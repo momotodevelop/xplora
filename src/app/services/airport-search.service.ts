@@ -1,0 +1,74 @@
+import {environment} from '../../environments/environment'
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AmadeusGetLocationResponse, AmadeusLocation, AmadeusSearchLocationResponse } from '../types/amadeus-airport-response.types';
+import { DirectDestination, DirectDestinationsResponse } from '../types/amadeus-direct-airport-response.types';
+type LocationTypes = "AIRPORT"|"CITY";
+@Injectable({
+  providedIn: 'root'
+})
+export class AirportSearchService {
+
+  constructor(private http: HttpClient) { }
+
+  searchAirports(keyword: string, token:string, types:LocationTypes[]=["AIRPORT", "CITY"]): Observable<AmadeusSearchLocationResponse> {
+    const subTypes = types.join(',');
+    const url = `${environment.amadeusApiUrl+'/v1/reference-data/locations'}?subType=${subTypes}&keyword=${keyword}&page[limit]=5&page[offset]=0`;
+    const headers = new HttpHeaders({
+      'Authorization': 'Bearer '+token
+    });
+    return this.http.get<AmadeusSearchLocationResponse>(url, { headers });
+  }
+  getLocation(id: string, token:string): Observable<AmadeusGetLocationResponse> {
+    const url = environment.amadeusApiUrl+'/v1/reference-data/locations/'+id;
+    const headers = new HttpHeaders({
+      'Authorization': 'Bearer '+token
+    });
+    return this.http.get<AmadeusGetLocationResponse>(url, { headers });
+  }
+
+  searchDirectDestinations(iataCode: string, token: string): Observable<DirectDestinationsResponse> {
+    const url = `${environment.amadeusApiUrl+'/v1/airport/direct-destinations'}?departureAirportCode=${iataCode}&max=5`;
+    const headers = new HttpHeaders({
+      'Authorization': 'Bearer ' + token
+    });
+
+    return this.http.get<DirectDestinationsResponse>(url, { headers });
+  }
+  getNearbyAirports(lat: number, lon: number, token:string) {
+    const params = `?latitude=${lat}&longitude=${lon}&page[limit]=5`;
+    const url = environment.amadeusApiUrl+"/v1/reference-data/locations/airports" + params;
+    const headers = new HttpHeaders({
+      'Authorization': 'Bearer ' + token
+    });
+    return this.http.get<AmadeusSearchLocationResponse>(url, {headers});
+  }
+  convertirAmadeusLocationADirectDestination(amadeusLocation: AmadeusLocation): DirectDestination {
+    const directDestination: DirectDestination = {
+      type: amadeusLocation.type,
+      subtype: amadeusLocation.subType === 'AIRPORT' ? 'airport' : 'city',
+      name: amadeusLocation.name,
+      iataCode: amadeusLocation.iataCode,
+      geoCode: {
+        latitude: amadeusLocation.geoCode.latitude,
+        longitude: amadeusLocation.geoCode.longitude
+      },
+      address: {
+        cityName: amadeusLocation.address.cityName,
+        countryName: amadeusLocation.address.countryName,
+        stateCode: amadeusLocation.address.cityCode,
+        regionCode: amadeusLocation.address.regionCode
+      },
+      timeZone: {
+        offset: amadeusLocation.timeZoneOffset,
+        referenceLocalDateTime: new Date().toISOString() // Puedes ajustar esto según sea necesario
+      },
+      metrics: {
+        relevance: amadeusLocation.analytics?.travelers?.score || 0 // Si el campo no está presente, asigna un valor por defecto
+      }
+    };
+
+    return directDestination;
+  }
+}

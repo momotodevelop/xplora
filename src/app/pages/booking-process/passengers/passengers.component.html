@@ -1,0 +1,41 @@
+@if(passengers.controls.length > 0){
+    <form [formGroup]="form">
+        <div formArrayName="passengers">
+            @for(passenger of passengers.controls; track passenger; let i = $index){
+                <p class="text-16 fw-400">{{passengerTitles[i]}}</p>
+                <div class="row x-gap-10 y-gap-10 pb-20" [formGroupName]="i">
+                    <div class="col-md-6">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                            <mat-label>Nombre(s)</mat-label>
+                            <input matInput placeholder="Nombre(s)" formControlName="name">
+                        </mat-form-field>
+                    </div>
+                    <div class="col-md-6">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                            <mat-label>Apellido(s)</mat-label>
+                            <input matInput placeholder="Apellido(s)" formControlName="lastname">
+                        </mat-form-field>
+                    </div>
+                    <div class="col-md-6">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                            <mat-label>Fecha Nacimiento</mat-label>
+                            <input matInput [matDatepicker]="picker" readonly (click)="picker.open()" formControlName="birth">
+                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-datepicker #picker></mat-datepicker>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-md-6">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                            <mat-label>Genero</mat-label>
+                            <mat-select formControlName="gender">
+                                <mat-option value="MALE">Masculino</mat-option>
+                                <mat-option value="FEMALE">Femenino</mat-option>
+                                <mat-option value="OTHER">Otro</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+            }
+        </div>
+    </form>
+}

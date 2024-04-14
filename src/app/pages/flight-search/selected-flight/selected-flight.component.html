@@ -1,0 +1,11 @@
+@if(offer&&dictionaries){
+    <h5 class="text-16 fw-500 mb-20">Tu vuelo de ida:</h5>
+    <div class="pb-50">
+        <app-flight-offer 
+                [offer]="offer" 
+                [dictionaries]="dictionaries"
+                [selected]="true"
+                (removedFlight)="removeFlight()">
+            </app-flight-offer>
+    </div>
+}

@@ -1,0 +1,134 @@
+<div #scrollTarget></div>
+<section class="pt-40 pb-40">
+    <div class="container">
+        <div class="row y-gap-20 items-center">
+            <div class="col-auto">
+                <div class="dropdown js-dropdown js-return-active">
+                    <div [matMenuTriggerFor]="menu" class="dropdown__button d-flex items-center  text-15" data-el-toggle=".js-return-toggle" data-el-toggle-active=".js-return-active">
+                        <span class="js-dropdown-title">{{round?'Redondo':'Sencillo'}}</span>
+                        <i class="icon icon-chevron-sm-down text-7 ml-10"></i>
+                    </div>
+                    <mat-menu #menu="matMenu">
+                        <button (click)="updateRound(true)" mat-menu-item [disabled]="round">
+                            <mat-icon>swap_horiz</mat-icon>
+                            <span>Redondo</span>
+                        </button>
+                        <button (click)="updateRound(false)" mat-menu-item [disabled]="!round">
+                            <mat-icon>arrow_right_alt</mat-icon>
+                            <span>Sencillo</span>
+                        </button>
+                    </mat-menu>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="dropdown js-dropdown js-economy-active">
+                    <div class="dropdown__button d-flex items-center  text-15">
+                        <a [matMenuTriggerFor]="menuClasses" >
+                            <span class="js-dropdown-title">{{selectedFlightClass.name}}</span>
+                            <i class="icon icon-chevron-sm-down text-7 ml-10"></i>
+                        </a>
+                    </div>
+                    <mat-menu #menuClasses="matMenu">
+                        @for(flightClass of flightClasses; track flightClass;){
+                            <button (click)="updateFlightClass(flightClass.id)" mat-menu-item [disabled]="selectedFlightClass.id===flightClass.id">
+                                <span>{{flightClass.name}}</span>
+                            </button>
+                        }
+                    </mat-menu>
+                </div>
+            </div>
+            <!-- <div class="col-auto">
+                <div class="dropdown js-dropdown js-bags-active">
+                    <div class="dropdown__button d-flex items-center  text-15" data-el-toggle=".js-bags-toggle" data-el-toggle-active=".js-bags-active">
+                        <span class="js-dropdown-title">0 Bags</span>
+                        <i class="icon icon-chevron-sm-down text-7 ml-10"></i>
+                    </div>
+                </div>
+            </div> -->
+        </div>
+        <div class="mainSearch -col-5 border-light rounded-4 pr-20 py-20 lg:px-20 lg:pt-5 lg:pb-20 mt-15">
+            <div class="button-grid items-center">
+            <div class="searchMenu-loc px-30 lg:py-20 lg:px-0 js-form-dd js-liverSearch">
+                <div data-x-dd-click="searchMenu-loc">
+                    <h4 class="text-15 fw-500 ls-2 lh-16">Saliendo de</h4>
+                    <div (click)="openLocationBottomSheet(true)" class="text-15 text-light-1 ls-2 lh-16">
+                        @if(origin.subType==='AIRPORT'){
+                            <input readonly placeholder="Ciudad o Aeropuerto" [value]="'Aeropuerto de '+(origin.address.cityName|titlecase)+' ('+origin.iataCode+')'" />
+                        }@else{
+                            <input readonly placeholder="Ciudad o Aeropuerto" [value]="(origin.address.cityName|titlecase)+', '+(origin.address.countryName|titlecase)+' (Todos los aeropuertos)'" />
+                        }
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="searchMenu-loc px-30 lg:py-20 lg:px-0 js-form-dd js-liverSearch">
+                <div data-x-dd-click="searchMenu-loc">
+                <h4 class="text-15 fw-500 ls-2 lh-16">Llegando a</h4>
+                <div (click)="openLocationBottomSheet(false)" class="text-15 text-light-1 ls-2 lh-16">
+                    @if(destination.subType==='AIRPORT'){
+                        <input readonly placeholder="Ciudad o Aeropuerto" [value]="'Aeropuerto de '+(destination.address.cityName|titlecase)+' ('+destination.iataCode+')'" />
+                    }@else{
+                        <input readonly placeholder="Ciudad o Aeropuerto" [value]="(destination.address.cityName|titlecase)+', '+(destination.address.countryName|titlecase)+' (Todos los aeropuertos)'" />
+                    }
+                </div>
+                </div>
+            </div>
+
+
+            <div class="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar">
+
+                <div data-x-dd-click="searchMenu-date">
+                <h4 class="text-15 fw-500 ls-2 lh-16">Ida</h4>
+
+                <div class="text-15 text-light-1 ls-2 lh-16">
+                    <span>{{departure|date:'dd MMM YYYY'|titlecase}}</span>
+                </div>
+                </div>
+            </div>
+
+
+            @if(round){
+                <div class="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar">
+
+                    <div data-x-dd-click="searchMenu-date">
+                    <h4 class="text-15 fw-500 ls-2 lh-16">Regreso</h4>
+    
+                    <div class="text-15 text-light-1 ls-2 lh-16">
+                        <span class="js-first-date">{{return|date:'dd MMM YYYY'|titlecase}}</span>
+                    </div>
+                    </div>
+                </div>
+            }
+
+
+            <div (click)="openPaxBottomSheet()" class="searchMenu-guests px-30 lg:py-20 lg:px-0 js-form-dd js-form-counters">
+
+                <div data-x-dd-click="searchMenu-guests">
+                <h4 class="text-15 fw-500 ls-2 lh-16">Pasajeros</h4>
+
+                <div class="text-15 text-light-1 ls-2 lh-16">
+                    <span class="js-count-adult">{{passengers.adults}}</span> Adulto{{passengers.adults>1?'s':''}}
+                    @if(passengers.childrens>0){
+                        -
+                        <span class="js-count-child">{{passengers.childrens}}</span> {{passengers.childrens>1?'Menores':'Menor'}}
+                    }
+                    @if(passengers.infants>0){
+                        -
+                        <span class="js-count-child">{{passengers.infants}}</span> {{passengers.infants>1?'Infantes':'Infante'}}
+                    }
+                </div>
+                </div>
+            </div>
+
+
+            <div class="button-item">
+                <button class="mainSearch__submit button -blue-1 py-15 px-35 h-60 col-12 rounded-4 bg-dark-3 text-white">
+                <i class="icon-search text-20 mr-10"></i>
+                Buscar
+                </button>
+            </div>
+            </div>
+        </div>
+    </div>
+</section>

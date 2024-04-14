@@ -1,0 +1,249 @@
+<form [formGroup]="filtersFormGroup">
+    <div class="row y-gap-40" style="overflow-x: hidden;">
+        <div class="sidebar__item pb-30 -no-border">
+            <h5 class="text-18 fw-500 mb-20">Ordenar por</h5>
+            <div class="row x-gap-10 y-gap-30">
+            <div class="form-radio d-flex items-center ">
+                <div class="radio">
+                <input type="radio" formControlName="orderBy" value="duracion.asc">
+                <div class="radio__mark">
+                    <div class="radio__icon"></div>
+                </div>
+                </div>
+                <div class="text-14 lh-1 ml-10">Duración (Cortos → Largos)</div>
+            </div>
+            <div class="form-radio d-flex items-center ">
+                <div class="radio">
+                <input type="radio" formControlName="orderBy" value="duracion.desc">
+                <div class="radio__mark">
+                    <div class="radio__icon"></div>
+                </div>
+                </div>
+                <div class="text-14 lh-1 ml-10">Duración (Largos → Cortos)</div>
+            </div>
+            <div class="form-radio d-flex items-center ">
+                <div class="radio">
+                <input type="radio" formControlName="orderBy" value="precio.asc">
+                <div class="radio__mark">
+                    <div class="radio__icon"></div>
+                </div>
+                </div>
+                <div class="text-14 lh-1 ml-10">Precio (Menor → Mayor)</div>
+            </div>
+            <div class="form-radio d-flex items-center ">
+                <div class="radio">
+                <input type="radio" formControlName="orderBy" value="precio.desc">
+                <div class="radio__mark">
+                    <div class="radio__icon"></div>
+                </div>
+                </div>
+                <div class="text-14 lh-1 ml-10">Precio (Mayor → Menor)</div>
+            </div>
+            <div class="form-radio d-flex items-center ">
+                <div class="radio">
+                <input type="radio" formControlName="orderBy" value="salida.asc">
+                <div class="radio__mark">
+                    <div class="radio__icon"></div>
+                </div>
+                </div>
+                <div class="text-14 lh-1 ml-10">Salida (Temprano → Tarde)</div>
+            </div>
+            <div class="form-radio d-flex items-center ">
+                <div class="radio">
+                <input type="radio" formControlName="orderBy" value="salida.desc">
+                <div class="radio__mark">
+                    <div class="radio__icon"></div>
+                </div>
+                </div>
+                <div class="text-14 lh-1 ml-10">Salida (Tarde → Temprano)</div>
+            </div>
+            </div>
+        </div>
+        <div class="sidebar__item">
+            <h5 class="text-18 fw-500 mb-10">Escalas</h5>
+            <div class="sidebar-checkbox">
+            <div class="row y-gap-10 items-center justify-between" formArrayName="stops">
+                @for(option of stopsOptions; track option; let i = $index){
+                <div class="d-flex items-center">
+                    <div class="form-checkbox">
+                    <input type="checkbox" [formControlName]="i">
+                    <div class="form-checkbox__mark">
+                        <div class="form-checkbox__icon icon-check"></div>
+                    </div>
+                    </div>
+                    <div class="text-15 ml-10">{{option.text}}</div>
+                </div>
+                }
+            </div>
+            </div>
+        </div>
+        <div class="sidebar__item">
+            <h5 class="text-18 fw-500 mb-10">Aerolinea</h5>
+            <div class="sidebar-checkbox">
+            <div class="row y-gap-10 items-center justify-between" formArrayName="airlines">
+                @for(option of carrierOptions; track option; let i = $index){
+                <div class="d-flex items-center">
+                    <div class="form-checkbox ">
+                    <input type="checkbox" name="name" [formControlName]="i">
+                    <div class="form-checkbox__mark">
+                        <div class="form-checkbox__icon icon-check"></div>
+                    </div>
+                    </div>
+                    <div class="text-15 ml-10">{{option.value|titlecase}}</div>
+                </div>
+                }
+            </div>
+            </div>
+        </div>
+        <div class="sidebar__item pb-30">
+            <h5 class="text-18 fw-500 mb-20">Hora de salida</h5>
+            <div class="sidebar-radio x-gap-10 y-gap-40">
+            <div class="row items-center justify-between">
+                <div class="col-auto">
+                <div class="form-radio d-flex items-center">
+                    <div class="radio">
+                    <input type="radio" formControlName="departureTime" value="MORNING">
+                    <div class="radio__mark">
+                        <div class="radio__icon"></div>
+                    </div>
+                    </div>
+                    <div class="text-14 lh-1 ml-10">Mañana</div>
+                </div>
+                </div>
+                @if(filterByDeparture && filterByDeparture==='MORNING'){
+                <div class="col-auto">
+                    <div style="max-height: 15px;margin-top: -20px;" class="text-15 text-light-1">
+                    <i-feather style="width: 15px; height: 15px;" name="delete"></i-feather>
+                    </div>
+                </div>
+                }
+            </div>
+            <div class="row items-center justify-between">
+                <div class="col-auto">
+                <div class="form-radio d-flex items-center">
+                    <div class="radio">
+                    <input type="radio" formControlName="departureTime" value="AFTERNOON">
+                    <div class="radio__mark">
+                        <div class="radio__icon"></div>
+                    </div>
+                    </div>
+                    <div class="text-14 lh-1 ml-10">Tarde</div>
+                </div>
+                </div>
+                @if(filterByDeparture && filterByDeparture==='AFTERNOON'){
+                <div class="col-auto">
+                    <div style="max-height: 15px;margin-top: -20px;" class="text-15 text-light-1">
+                    <i-feather style="width: 15px; height: 15px;" name="delete"></i-feather>
+                    </div>
+                </div>
+                }
+            </div>
+            <div class="row items-center justify-between">
+                <div class="col-auto">
+                <div class="form-radio d-flex items-center">
+                    <div class="radio">
+                    <input type="radio" formControlName="departureTime" value="EVENING">
+                    <div class="radio__mark">
+                        <div class="radio__icon"></div>
+                    </div>
+                    </div>
+                    <div class="text-14 lh-1 ml-10">Noche</div>
+                </div>
+                </div>
+                @if(filterByDeparture && filterByDeparture==='EVENING'){
+                <div class="col-auto">
+                    <div style="max-height: 15px;margin-top: -20px;" class="text-15 text-light-1">
+                    <i-feather style="width: 15px; height: 15px;" name="delete"></i-feather>
+                    </div>
+                </div>
+                }
+            </div>
+            </div>
+        </div>
+        <div class="sidebar__item pb-30">
+            <h5 class="text-18 fw-500 mb-20">Hora de llegada</h5>
+            <div class="sidebar-radio x-gap-10 y-gap-40">
+            <div class="row items-center justify-between">
+                <div class="col-auto">
+                <div class="form-radio d-flex items-center">
+                    <div class="radio">
+                    <input type="radio" formControlName="arrivalTime" value="MORNING">
+                    <div class="radio__mark">
+                        <div class="radio__icon"></div>
+                    </div>
+                    </div>
+                    <div class="text-14 lh-1 ml-10">Mañana</div>
+                </div>
+                </div>
+                @if(filterByArrival && filterByArrival==='MORNING'){
+                <div class="col-auto">
+                    <div style="max-height: 15px;margin-top: -20px;" class="text-15 text-light-1">
+                    <i-feather style="width: 15px; height: 15px;" name="delete"></i-feather>
+                    </div>
+                </div>
+                }
+            </div>
+            <div class="row items-center justify-between">
+                <div class="col-auto">
+                <div class="form-radio d-flex items-center">
+                    <div class="radio">
+                    <input type="radio" formControlName="arrivalTime" value="AFTERNOON">
+                    <div class="radio__mark">
+                        <div class="radio__icon"></div>
+                    </div>
+                    </div>
+                    <div class="text-14 lh-1 ml-10">Tarde</div>
+                </div>
+                </div>
+                @if(filterByArrival && filterByArrival==='AFTERNOON'){
+                <div class="col-auto">
+                    <div style="max-height: 15px;margin-top: -20px;" class="text-15 text-light-1">
+                    <i-feather style="width: 15px; height: 15px;" name="delete"></i-feather>
+                    </div>
+                </div>
+                }
+            </div>
+            <div class="row items-center justify-between">
+                <div class="col-auto">
+                <div class="form-radio d-flex items-center">
+                    <div class="radio">
+                    <input type="radio" formControlName="arrivalTime" value="EVENING">
+                    <div class="radio__mark">
+                        <div class="radio__icon"></div>
+                    </div>
+                    </div>
+                    <div class="text-14 lh-1 ml-10">Noche</div>
+                </div>
+                </div>
+                @if(filterByArrival && filterByArrival==='EVENING'){
+                <div class="col-auto">
+                    <div style="max-height: 15px;margin-top: -20px;" class="text-15 text-light-1">
+                    <i-feather style="width: 15px; height: 15px;" name="delete"></i-feather>
+                    </div>
+                </div>
+                }
+            </div>
+            </div>
+        </div>
+        <div class="sidebar__item pb-30">
+            <h5 class="text-18 fw-500 mb-10">Precio</h5>
+            <div class="row x-gap-10 y-gap-30">
+            <div class="col-12">
+                <div class="js-price-rangeSlider" style="display: flex;flex-direction: column;">
+                <div class="text-14 fw-500"></div>
+                <div class="d-flex justify-between mb-20">
+                    <div class="text-15 text-dark-1" style="width: 100%;display: flex;justify-content: space-between;">
+                    <span class="js-lower">{{formatSliderLabel(prices.min)}}</span>
+                    <span class="js-upper">{{formatSliderLabel(prices.max)}}</span>
+                    </div>
+                </div>
+                <mat-slider formGroupName="price" style="width: 85%;margin: auto;" [min]="prices.min" [max]="prices.max" step="1" discrete [displayWith]="formatSliderLabel">
+                    <input formControlName="min" matSliderStartThumb>
+                    <input formControlName="max" matSliderEndThumb>
+                </mat-slider>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</form>

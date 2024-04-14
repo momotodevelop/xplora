@@ -1,0 +1,117 @@
+<div class="px-15 py-15 mat-elevation-z1">
+    <div class="form-input">
+        <input [formControl]="searchInput" #search type="text">
+        <label class="lh-1 text-16 text-light-1">{{data.isOrigin?'¿De donde salimos?':'¿A donde vamos?'}}</label>
+    </div>
+</div>
+@if(!loading){
+    <cdk-virtual-scroll-viewport itemSize="3" style="height: 280px;">
+        @if(locationResults.length==0){
+            @if(data.isOrigin){
+                <div>
+                    <button (click)="nearbyAirports()" class="-link d-block col-12 text-left rounded-4 px-15 py-15">
+                        <div class="d-flex">
+                        <div class="icon-airplane text-light-1 text-20 pt-4"></div>
+                        <div class="ml-10">
+                            <div class="text-15 lh-12 fw-500">Aeropuertos Cercanos</div>
+                            <div class="text-14 lh-12 text-light-1 mt-5">Ver los aeropuertos cerca de mi</div>
+                        </div>
+                        </div>
+                    </button>
+                </div>
+            }
+            @if(suggestedDestinations.length>0){
+                <div [@listAnimation] class="y-gap-5">
+                    @for (location of suggestedDestinations; track location) {
+                        <div>
+                            <button (click)="selectDirectDestination(location)" class="-link d-block col-12 text-left rounded-4 px-15 py-15">
+                                <div class="d-flex">
+                                <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
+                                <div class="ml-10">
+                                    <div class="text-15 lh-12 fw-500">{{location.name|iataSubstitution:location.iataCode|titlecase}}, {{location.address.countryName|titlecase}}</div>
+                                    <div class="text-14 lh-12 text-light-1 mt-5">Todos los aeropuertos</div>
+                                </div>
+                                </div>
+                            </button>
+                        </div>
+                    }
+                </div>
+            }@else{
+                <div [@listAnimation] class="y-gap-5">
+                    @for (location of featuredLocations; track location) {
+                        @if(location.subType==="AIRPORT"){
+                            <div>
+                                <button (click)="selectAirport(location)" class="-link d-block col-12 text-left rounded-4 px-15 py-15">
+                                    <div class="d-flex">
+                                    <div class="icon-airplane text-light-1 text-20 pt-4"></div>
+                                    <div class="ml-10">
+                                        <div class="text-15 lh-12 fw-500">Aeropuerto de {{location.address.cityName|iataSubstitution:location.iataCode|titlecase}} ({{location.iataCode}})</div>
+                                        <div class="text-14 lh-12 text-light-1 mt-5">{{location.address.cityName|titlecase}}, {{location.address.countryName|titlecase}}</div>
+                                    </div>
+                                    </div>
+                                </button>
+                            </div>
+                        }
+                        @else{
+                            <div>
+                                <button (click)="selectAirport(location)" class="-link d-block col-12 text-left rounded-4 px-15 py-15">
+                                    <div class="d-flex">
+                                    <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
+                                    <div class="ml-10">
+                                        <div class="text-15 lh-12 fw-500">{{location.address.cityName|titlecase}}, {{location.address.countryName|titlecase}}</div>
+                                        <div class="text-14 lh-12 text-light-1 mt-5">Todos los aeropuertos</div>
+                                    </div>
+                                    </div>
+                                </button>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        }
+        @else{
+            <div [@listAnimation] class="y-gap-5">
+                @for (location of locationResults; track location) {
+                    @if(location.subType==="AIRPORT"){
+                        <div>
+                            <button (click)="selectAirport(location)" class="-link d-block col-12 text-left rounded-4 px-15 py-15">
+                                <div class="d-flex">
+                                <div class="icon-airplane text-light-1 text-20 pt-4"></div>
+                                <div class="ml-10">
+                                    <div class="text-15 lh-12 fw-500">Aeropuerto de {{location.address.cityName|iataSubstitution:location.iataCode|titlecase}} ({{location.iataCode}})</div>
+                                    <div class="text-14 lh-12 text-light-1 mt-5">{{location.address.cityName|titlecase}}, {{location.address.countryName|titlecase}}</div>
+                                </div>
+                                </div>
+                            </button>
+                        </div>
+                    }
+                    @else{
+                        <div>
+                            <button (click)="selectAirport(location)" class="-link d-block col-12 text-left rounded-4 px-15 py-15">
+                                <div class="d-flex">
+                                <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
+                                <div class="ml-10">
+                                    <div class="text-15 lh-12 fw-500">{{location.address.cityName|titlecase}}, {{location.address.countryName|titlecase}}</div>
+                                    <div class="text-14 lh-12 text-light-1 mt-5">Todos los aeropuertos</div>
+                                </div>
+                                </div>
+                            </button>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    </cdk-virtual-scroll-viewport>
+}
+@else{
+    <div style="height: 280px;">
+        <div class="d-flex justify-content-center" style="align-items: center;min-height: 100%;">
+            <div class="spinner-grow text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    </div>
+}
+<div class="px-15 py-15 mat-elevation-z1 cancel-button">
+    <button (click)="close()" class="button -md -outline-blue-1 text-blue-1" style="width: 100%;">Cancelar</button>
+</div>

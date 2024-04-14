@@ -1,0 +1,68 @@
+<div (click)="openDetails(offer)" style="cursor: pointer;" class="py-30 px-30 bg-white rounded-4 base-tr" [class.mt-30]="!selected" (mouseenter)="hovered = true" (mouseleave)="hovered = false" [class.mat-elevation-z2]="hovered">
+    <div class="row y-gap-30 justify-between">
+        <div class="col">
+            @for (segment of offer.itineraries[0].segments; track segment; let first = $first){
+                <div class="row y-gap-10 items-center" [ngClass]="{'pt-30': !first, 'mt-lg-2': offer.itineraries[0].segments.length===1}">
+                    <div class="col-sm-auto">
+                        <img class="size-40 d-none d-lg-block" [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/'+(segment.carrierCode)+'.svg'" alt="image">
+                        <img class="d-block d-lg-none" style="width: 120px;" [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/'+(segment.carrierCode)+'.svg'" alt="image">
+                    </div>
+                    <div class="col">
+                        <div class="row x-gap-20 items-end">
+                            <div class="col-auto">
+                                <div class="lh-15 fw-500">{{segment.departure.at|dateString:'HH:mm'}}</div>
+                                <div class="text-15 lh-15 text-light-1">{{segment.departure.iataCode}}</div>
+                            </div>
+                            <div class="col text-center">
+                                <div class="flightLine">
+                                <div></div>
+                                <div></div>
+                                </div>
+                                <div class="text-15 lh-15 text-light-1 mt-10">{{segment.carrierCode}}{{segment.number}}</div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="lh-15 fw-500">{{segment.arrival.at|dateString:'HH:mm'}}</div>
+                                <div class="text-15 lh-15 text-light-1">{{segment.arrival.iataCode}}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-auto">
+                        <div class="text-15 text-light-1 px-20 md:px-0">{{segment.duration|duration}}</div>
+                    </div>
+                </div>
+            }
+            @if(offer.itineraries[0].segments.length===1){
+                <div class="row">
+                    <mat-chip-set class="chipset-direct-flight" aria-label="Vuelo Directo">
+                        <mat-chip [matTooltip]="'La duración total de este vuelo es '+(offer.itineraries[0].segments[0].duration|duration)" color="primary">
+                            <mat-icon matChipAvatar fontIcon="rocket_launch"></mat-icon>
+                            Vuelo Directo
+                        </mat-chip>
+                    </mat-chip-set>
+                </div>
+            }
+        </div>
+        <div class="col-md-auto">
+            <div class="d-flex items-center h-full">
+                <div class="pl-30 border-left-light h-full md:d-none"></div>
+                <div>
+                    <div class="text-right md:text-left mb-10">
+                        <div class="text-18 lh-16 fw-500">{{offer.price.grandTotal|currency:'MXN'}}</div>
+                        <div class="text-15 lh-16 text-light-1">TUA e IVA incluido</div>
+                    </div>
+                    <div class="accordion__button">
+                        @if(selected){
+                            <button (click)="removeFlight($event)" class="button -md -dark-1 bg-yellow-1 text-dark-1">
+                                Eliminar <div class="icon-trash-2 ml-15"></div>
+                            </button>
+                        }@else{
+                            <button (click)="selectFlight($event)" class="button -dark-1 px-20 h-50 bg-blue-1 text-white">
+                                Seleccionar <div class="icon-check ml-15"></div>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

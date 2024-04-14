@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Selecciona la categoría de cabina</h2>
+<mat-dialog-content class="px-2 pb-0">
+    <mat-selection-list color="primary" class="pb-0" (selectionChange)="selectAllChange($event)">
+        <mat-list-option checkboxPosition="before" value="ALL" [selected]="allSelected">
+            Cualquiera
+        </mat-list-option>
+    </mat-selection-list>
+    <mat-selection-list #classList color="primary" class="pt-0" [(ngModel)]="selectedOptions" (selectionChange)="classListChange()">
+        @for (flightClass of flightClasses; track flightClass){
+            <mat-list-option checkboxPosition="before" [value]="flightClass.id">
+                {{flightClass.name}}
+            </mat-list-option>
+        }
+    </mat-selection-list>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-raised-button [mat-dialog-close]="data">Cancelar</button>
+    <button mat-raised-button color="primary" (click)="closeWithData()">Aceptar</button>
+</mat-dialog-actions>

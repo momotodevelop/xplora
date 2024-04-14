@@ -1,0 +1,25 @@
+@if(origin!==undefined&&destination!==undefined){
+    <app-flight-search-topbar 
+        [passengers]="passengers"
+        [departure]="departure"
+        [return]="return"
+        [destination]="destination"
+        [origin]="origin"
+        [flightClass]="searchParams.flightClass" >
+    </app-flight-search-topbar>
+}
+<section class="layout-pt-md layout-pb-md bg-light-2">
+    <div class="container">
+        <app-selected-flight></app-selected-flight>
+        <div class="row y-gap-30">
+            <div class="col-xl-3 col-lg-4 d-none d-lg-block">
+                <app-flight-search-sidebar></app-flight-search-sidebar> 
+            </div>
+            @if(searchParams!==undefined){
+                <div class="col-xl-9 col-lg-8">
+                    <app-flight-search-results-view [origin]="searchParams.origin" [destination]="searchParams.destination" [departure]="searchParams.departure" [return]="searchParams.return!=='NA'?searchParams.return:undefined" [flightClass]="searchParams.flightClass" [round]="return!==undefined"></app-flight-search-results-view>
+                </div>
+            }
+        </div>
+    </div>
+</section>

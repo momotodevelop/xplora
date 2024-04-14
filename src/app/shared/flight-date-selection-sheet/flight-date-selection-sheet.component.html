@@ -1,0 +1,35 @@
+<mat-tab-group [selectedIndex]="round?0:1" #tabs (selectedIndexChange)="tabChange($event)">
+    <mat-tab label="Redondo">
+        <div class="w-100 mt-10" style="display: inline-flex;">
+            <mat-form-field subscriptSizing="dynamic" appearance="outline" class="w-50 mr-5">
+                <mat-label>Fecha de Salida</mat-label>
+                <input matInput appPreventEdit placeholder="Fecha de Salida" readonly="readonly" spellcheck="false" #start [value]="selectedDateRange.start|date:'EEE. d MMM YYY'|titlecase" type="text">
+            </mat-form-field>
+            <mat-form-field subscriptSizing="dynamic" appearance="outline" class="w-50 mr-5">
+                <mat-label>Fecha de Salida</mat-label>
+                <input matInput appPreventEdit readonly="readonly" placeholder="Fecha de Regreso" spellcheck="false" #end [value]="selectedDateRange.end|date:'EEE. d MMM YYY'|titlecase" type="text">
+            </mat-form-field>
+        </div>
+    </mat-tab>
+    <mat-tab label="Sencillo">
+        <div class="w-100 mt-10">
+            <mat-form-field subscriptSizing="dynamic" appearance="outline" class="w-100">
+                <mat-label>Fecha de Salida</mat-label>
+                <input matInput appPreventEdit [value]="singleDate|date:'fullDate'|titlecase" placeholder="Fecha de Salida" readonly="readonly" spellcheck="false" #start type="text">
+            </mat-form-field>
+        </div>
+    </mat-tab>
+</mat-tab-group>
+@if(round){
+    <mat-calendar   [selected]="selectedDateRange"
+                    [dateClass]="dateClass"
+                    (selectedChange)="onRangeDateSelected($event)"
+                    style="margin-top: -15px;">
+    </mat-calendar>
+}
+@else{
+    <mat-calendar   [selected]="singleDate"
+                    (selectedChange)="onSingleDateSelected($event)"
+                    style="margin-top: -15px;">
+    </mat-calendar>
+}

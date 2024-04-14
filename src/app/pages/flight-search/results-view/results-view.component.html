@@ -1,0 +1,109 @@
+<div #scrollTarget></div>
+<div class="row y-gap-10 justify-between items-center">
+    <div class="col-auto">
+        @if(results.length>0){
+            <div class="text-18"><span class="fw-500">{{loading?'Buscando':results.length}} vuelos</span> de {{selectionStatus==='OUTBOUND'?'ida':'regreso'}}</div>
+        }
+    </div>
+
+    <div class="col-auto">
+        <button (click)="openFilters()" class="button -blue-1 h-40 px-30 rounded-100 bg-blue-1-05 text-15 text-blue-1">
+            <i class="icon-up-down text-14 mr-10"></i>
+            Filtrar
+        </button>
+    </div>
+</div>
+<div [@listAnimation]>
+  @if(loading){
+    @for(loader of loaderArray; track loader){
+      <div class="py-30 px-30 bg-white rounded-4 base-tr mt-30">
+        <div class="row y-gap-30 justify-between">
+            <div class="col">
+              <div class="row y-gap-10 items-center">
+                  <div class="col-sm-auto">
+                      <ngx-skeleton-loader class="size-40 d-none d-lg-block" style="margin-top: -25px;" count="1" appearance="circle" />
+                      <ngx-skeleton-loader class="d-block d-lg-none skeleton-airline-mobile" style="width: 120px;" count="1" appearance="circle" />
+                      <!-- <img class="size-40 d-none d-lg-block" [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/'+(segment.carrierCode)+'.svg'" alt="image">
+                      <img class="d-block d-lg-none" style="width: 120px;" [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/'+(segment.carrierCode)+'.svg'" alt="image"> -->
+                  </div>
+                  <div class="col">
+                    <div class="row x-gap-20 items-end">
+                        <div class="col-auto">
+                            <div class="lh-15 fw-500 m-auto" style="width: 50px;"><ngx-skeleton-loader count="1" appearance="line" /></div>
+                            <div class="text-15 lh-15 text-light-1 m-auto" style="width: 40px;"><ngx-skeleton-loader count="1" appearance="line" /></div>
+                        </div>
+                        <div class="col text-center">
+                            <div class="flightLine">
+                              <div></div>
+                              <div></div>
+                            </div>
+                            <div class="text-15 lh-15 text-light-1 m-auto mt-10" style="width: 50px;"><ngx-skeleton-loader count="1" appearance="line" /></div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="lh-15 fw-500 m-auto" style="width: 50px;"><ngx-skeleton-loader count="2" appearance="line" /></div>
+                        </div>
+                    </div>
+                  </div>
+                <div class="col-md-auto">
+                    <div class="text-15 text-light-1 px-20 md:px-0" style="width: 40px;"><ngx-skeleton-loader count="1" appearance="line" /></div>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+    }
+  }@else{
+    @for (offer of (results|paginate:(flightOffersHandler.pageSize|async):(flightOffersHandler.page|async)); track offer; let i = $index){
+      <app-flight-offer 
+        [offer]="offer" 
+        [dictionaries]="dictionaries"
+        (selectedFlight)="selectFlight($event.offer, selectionStatus)">
+      </app-flight-offer>
+    }
+  }
+</div>
+@if(paginator&&!loading){
+  <div class="border-top-light mt-30 pt-30">
+    <div class="row x-gap-10 y-gap-20 justify-between md:justify-center">
+      <div class="col-auto md:order-1">
+        <button [disabled]="paginator.actualPage===1" (click)="flightOffersHandler.prevPage()" class="button -blue-1 size-40 rounded-full border-light">
+          <i class="icon-chevron-left text-12"></i>
+        </button>
+      </div>
+      <div class="col-md-auto md:order-3">
+        <div class="row x-gap-20 y-gap-20 items-center md:d-none">
+          @if(paginator.visible.length>1){
+            @for(page of paginator.visible; track page){
+              <div class="col-auto">
+                <div [class.bg-dark-1]="page.active" [class.text-white]="page.active" class="size-40 flex-center rounded-full">{{page.pageNumber}}</div>
+              </div>
+            }
+          }
+          @if(paginator.showSuspensive){
+            <div class="col-auto">
+              <div class="size-40 flex-center rounded-full">...</div>
+            </div>
+            <div class="col-auto">
+              <div class="size-40 flex-center rounded-full">{{paginator.last.pageNumber}}</div>
+            </div>
+          }
+        </div>
+        <div class="row x-gap-10 y-gap-20 justify-center items-center d-none md:d-flex">
+          @for(page of paginator.visible; track page){
+            <div class="col-auto">
+              <div [class.bg-dark-1]="page.active" [class.text-white]="page.active" class="size-40 flex-center rounded-full">{{page.pageNumber}}</div>
+            </div>
+          }
+        </div>
+        <div class="text-center mt-30 md:mt-10">
+          <div class="text-14 text-light-1">{{paginator.pageStatusString}}</div>
+        </div>
+      </div>
+      <div class="col-auto md:order-2">
+        <button [disabled]="paginator.actualPage===paginator.totalPages" (click)="flightOffersHandler.nextPage()" class="button -blue-1 size-40 rounded-full border-light">
+          <i class="icon-chevron-right text-12"></i>
+        </button>
+      </div>
+    </div>
+</div>
+}

@@ -1,0 +1,45 @@
+@if(booking!==undefined){
+    <section class="section-bg layout-pt-lg layout-pb-lg">
+        <div class="section-bg__item col-12">
+            <img src="assets/img/backgrounds/cancun.jpg" alt="Destino">
+        </div>
+        <div class="container">
+            <div class="row justify-center text-center">
+                <div class="col-xl-6 col-lg-8 col-md-10">
+                <h1 class="text-40 md:text-25 fw-600 text-white">Tu viaje a {{booking.destination.address.cityName|titlecase}}</h1>
+                <div class="text-white mt-15">Completa tu reservación</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-7 col-lg-8">
+                <mat-stepper [linear]="false" #stepper>
+                    <mat-step [completed]="passengersValid">
+                        <ng-template matStepLabel><h2 class="text-22 fw-500">Pasajeros</h2></ng-template>
+                        <app-passengers [adults]="1" [childrens]="1" [infants]="0" (valid)="passengersValid = $event"></app-passengers>
+                        <div>
+                            <button class="button -md -dark-1 bg-blue-1 text-white" matStepperNext>Siguiente</button>
+                        </div>
+                    </mat-step>
+                    <mat-step>
+                        <ng-template matStepLabel><h2 class="text-22 fw-500">Asientos</h2></ng-template>
+                        <app-seats></app-seats>
+                        
+                    </mat-step>
+                    <mat-step>
+                        <ng-template matStepLabel>Done</ng-template>
+                        You are now done.
+                        <div>
+                            <button mat-button matStepperPrevious>Back</button>
+                        </div>
+                    </mat-step>
+                </mat-stepper>
+            </div>
+            <div class="col-xl-5 col-lg-4">
+                <app-booking-sidebar></app-booking-sidebar>
+            </div>
+        </div>
+    </div>
+}

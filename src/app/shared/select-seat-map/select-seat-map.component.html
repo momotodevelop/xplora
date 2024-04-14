@@ -1,0 +1,9 @@
+<div *ngFor="let row of rows" class="row">
+    <mat-grid-list cols="{{deck.deckConfiguration.width}}" rowHeight="2:1">
+        <mat-grid-tile *ngFor="let seat of row.seats" [colspan]="1">
+            <div [ngClass]="{'occupied': seat.travelerPricing[0].seatAvailabilityStatus === 'OCCUPIED'}">
+            {{ seat.number }}
+            </div>
+        </mat-grid-tile>
+    </mat-grid-list>
+</div>

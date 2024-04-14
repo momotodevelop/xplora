@@ -30,9 +30,19 @@
               "src/assets"
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+              "src/assets/scss/framework/main.scss",
+              "src/assets/scss/vendors/bootstrap.css",
+              "src/assets/scss/vendors/glightbox.min.css",
+              "src/assets/scss/vendors/icons.css",
+              "src/assets/scss/vendors/nouislider.min.css",
+              "src/assets/scss/vendors/swiper.min.css",
+              "src/assets/scss/main.scss"
             ],
-            "scripts": [],
+            "scripts": [
+              "src/assets/js/vendors.js",
+              "src/assets/js/main.js"
+            ],
             "server": "src/main.server.ts",
             "prerender": true,
             "ssr": {
@@ -53,7 +63,13 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
