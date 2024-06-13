@@ -7,11 +7,11 @@ export interface APIResponse{
 export interface SeatMap {
     id:                     string;
     type:                   string;
-    departure:              Departure;
-    arrival:                Arrival;
+    departure:              DepartureArrival;
+    arrival:                DepartureArrival;
     carrierCode:            string;
     number:                 string;
-    operating:              Operating;
+    operating?:              Operating;
     aircraft:               Aircraft;
     class:                  string;
     flightOfferId:          string;
@@ -19,6 +19,25 @@ export interface SeatMap {
     decks:                  Deck[];
     aircraftCabinAmenities: AircraftCabinAmenities;
     availableSeatsCounters: AvailableSeatsCounter[];
+    selectedSeats?: SelectedSeat[]
+}
+
+export interface SeatMapSavingData{
+    id:string;
+    departure: DepartureArrival;
+    arrival: DepartureArrival;
+    number: string;
+    aircraft: Aircraft;
+    carrierCode: string;
+    segmentId: string;
+    aircraftCabinAmenities: AircraftCabinAmenities;
+    selectedSeats: SelectedSeat[];
+    operating?: Operating;
+}
+
+export interface SelectedSeat {
+    passengerID: number,
+    seat?: SeatElement
 }
 
 export interface Aircraft {
@@ -75,8 +94,9 @@ export interface Wifi {
     wifiCoverage: string;
 }
 
-export interface Arrival {
+export interface DepartureArrival {
     iataCode: string;
+    terminal?: string;
     at:       Date;
 }
 
@@ -136,7 +156,7 @@ export interface Tax {
     code:   string;
 }
 
-export type SeatAvailabilityStatus = "AVAILABLE"|"BLOCKED";
+export type SeatAvailabilityStatus = "AVAILABLE"|"BLOCKED"|"OCCUPIED";
 
 export interface Departure {
     iataCode: string;

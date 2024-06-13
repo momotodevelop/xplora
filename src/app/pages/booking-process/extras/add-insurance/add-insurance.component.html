@@ -1,0 +1,39 @@
+<div style="height: 50px; border-bottom: 1px solid #dddddd; padding: 8px 16px; background: #fff;">
+    <div class="text-20 fw-500 mb-0 d-inline-block">Allianz Travel Premium<sup>®</sup></div>
+    <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
+</div>
+<div style="max-height: calc(80vh - 120px); min-height: calc(80vh - 120px); overflow: auto;">
+    <mat-tab-group>
+        <mat-tab [label]="data.flights[0].departure.iataCode+' - '+data.flights[0].arrival.iataCode">
+            <mat-selection-list #outbound color="primary" (selectionChange)="change()">
+                @for (passenger of data.passengers; track passenger; let i = $index) {
+                    <mat-list-option [value]="i">
+                        <span matListItemTitle style="font-weight: 500;">{{passenger.name}}</span>
+                        <span matListItemLine>{{passenger.type}} - {{price|currency:'MXN'}}</span>
+                    </mat-list-option>
+                }
+            </mat-selection-list>
+        </mat-tab>
+        @if(data.flights.length>1){
+            <mat-tab [label]="data.flights[1].departure.iataCode+' - '+data.flights[1].arrival.iataCode">
+                <mat-selection-list #inbound color="primary" (selectionChange)="change()">
+                    @for (passenger of data.passengers; track passenger; let i = $index) {
+                        <mat-list-option [value]="i">
+                            <span matListItemTitle style="font-weight: 500;">{{passenger.name}}</span>
+                            <span matListItemLine>{{passenger.type}} - {{price|currency:'MXN'}}</span>
+                        </mat-list-option>
+                    }
+                </mat-selection-list>
+            </mat-tab>
+        }
+    </mat-tab-group>
+</div>
+<div style="height: 70px;border-top: 1px solid #dddddd;padding: 8px 16px;display: flex;justify-content: space-between; background: #fff; align-items: center;">
+    <div>
+        <div class="text-20 fw-500 mb-0" style="height: 25px;">{{total|currency:'MXN'}}</div>
+        <div class="text-16 fw-200 text-light-1">Total adicional</div>
+    </div>
+    <div>
+        <button (click)="save()" mat-flat-button color="primary">Guardar</button>
+    </div>
+</div>

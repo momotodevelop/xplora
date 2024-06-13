@@ -1,22 +1,68 @@
-<div class="d-flex items-center justify-between bg-success-1 pl-30 pr-20 py-30 rounded-8 mt-20">
-    <div class="text-success-2 lh-1 fw-500">En Xplora Travel, te ofrecemos la selección de asientos gratis al momento de reservar. Elige el asiento que más te guste, ¡sin pagar más!</div>
-</div>
-<table class="table-4 w-1/1 mt-30">
-    <thead class="bg-light-2">
-        <tr>
-            <th>Pasajero</th>
-            <th>Asiento</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>Juan Gomez</td>
-            <td>4A <a href="#"><mat-icon style="font-size: 14px; width: 14px; height: 14px;">delete</mat-icon></a></td>
-        </tr>
-        <tr>
-            <td>Juan Gomez</td>
-            <td style="padding: 8px 30px;"><button mat-flat-button color="primary">Asignar</button></td>
-        </tr>
-    </tbody>
-</table>
+@if(seatMapStatus==="READY"){
+    <div class="d-flex items-center justify-between bg-success-1 pl-30 pr-20 py-30 rounded-8 my-5">
+        <div class="text-success-2 lh-1 fw-500">En Xplora Travel, te ofrecemos la selección de asientos gratis al momento de reservar. <br/>Elige el asiento que más te guste, ¡sin pagar más!</div>
+    </div>
+    @for(seatMap of seatMaps; track seatMap; let last = $last; let seatMapI = $index){
+        <div class="d-flex align-items-center">
+            <img style="height: 20px;" [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/'+(seatMap.operating?seatMap.operating!.carrierCode:seatMap.carrierCode)+'.svg'" alt="image">
+            <span class="mx-2 badge rounded-pill text-bg-secondary d-flex align-items-center"><mat-icon style="font-size: 12px; width: 12px; height: 12px;">flight</mat-icon> {{(seatMap.operating?seatMap.operating!.carrierCode:seatMap.carrierCode)}}{{seatMap.number}}</span>
+            <span class="text-14 fw-400">{{seatMap.departure.iataCode}} - {{seatMap.arrival.iataCode}}</span>
+        </div>
+        <table class="table-4 w-1/1 mt-2">
+            <thead class="bg-light-2">
+                <tr>
+                    <th>Pasajero</th>
+                    <th>Asiento</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(passenger of passengersData; track passenger; let i = $index){
+                    <tr>
+                        <td>{{passenger.name|titlecase}} {{passenger.lastname|titlecase}}</td>
+                        @if(selection[seatMapI][i]&&selection[seatMapI][i].seat){
+                            <td style="padding: 8px 30px;">
+                                <mat-chip-set>
+                                    <mat-chip>
+                                        {{selection[seatMapI][i]!.seat!.number}}
+                                        <button matChipRemove (click)="removedSeat(seatMapI, i)">
+                                            <mat-icon>cancel</mat-icon>
+                                        </button>
+                                    </mat-chip>
+                                </mat-chip-set>
+                            </td>
+                        }@else{
+                            <td style="padding: 8px 30px;"><button (click)="openSeatSelector(seatMap.decks[0], i, seatMapI)" mat-flat-button color="primary">Asignar</button></td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if(!last){
+            <mat-divider style="margin-bottom: 2rem;"></mat-divider>
+        }
+        <button mat-stroked-button (click)="skip.emit()" class="w-100 mt-4">Continuar sin asientos</button>
+        <button mat-flat-button (click)="saveSeatSelection()" color="primary" class="w-100 mt-4">Guardar asientos</button>
+    }
+}@else if (seatMapStatus==="ERROR"){
+    <div class="w-100" style="height: 400px; align-items: center; justify-content: center; display: flex; flex-direction: column;">
+        <mat-icon style="font-size: 100px; width: 100px; height: 100px; opacity: .30;">flight_class</mat-icon>
+        <p class="text-14" style="text-align: center;">Ahora mismo no puedes elegir asientos.<br/>Te ayudaremos a seleccionarlos más adelante.</p>
+    </div>
+    <button mat-flat-button color="primary" (click)="skip.emit()" class="w-100 mt-4">Continuar</button>
+}@else if(seatMapStatus==="LOADING"){
+    <div class="w-100" style="height: 400px; align-items: center; justify-content: center; display: flex; flex-direction: column;">
+        <mat-spinner class="mb-20" [diameter]="100"></mat-spinner>
+        <p class="text-14" style="text-align: center;">Por favor, espera un momento.<br/>Estamos revisando la disponibilidad de los asientos.</p>
+    </div>
+}@else if(seatMapStatus==="PENDING"){
+    <div class="w-100" style="height: 400px; align-items: center; justify-content: center; display: flex; flex-direction: column;">
+        <mat-icon style="font-size: 100px; width: 100px; height: 100px; opacity: .30;">flight_class</mat-icon>
+        <p class="text-14" style="text-align: center;">Estamos creando los mapas de asientos.<br />Esto tomará solo un momento.</p>
+    </div>
+}@else if(seatMapStatus==="NOT_PASSENGERS"){
+    <div class="w-100" style="height: 400px; align-items: center; justify-content: center; display: flex; flex-direction: column;">
+        <mat-icon style="font-size: 100px; width: 100px; height: 100px; opacity: .30;">person_add</mat-icon>
+        <p class="text-14" style="text-align: center;">Primero necesitamos la información de todos los pasajeros.<br />Por favor, agrégala antes de continuar.</p>
+    </div>
+    <button mat-flat-button color="primary" (click)="goToPassengers.emit()" class="w-100 mt-4">Ir a pasajeros</button>
+}

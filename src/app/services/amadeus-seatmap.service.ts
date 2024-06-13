@@ -10,7 +10,12 @@ export interface Row{
   number: number,
   wingStatus: "START"|"END"|"HAS_WING"|"NONE",
   exitRow: boolean,
-  seats: SeatElement[]
+  items: Item[]
+}
+
+interface Item {
+  type: 'SEAT' | 'AISLE';
+  seat?: SeatElement;  // Solo se incluye si type es 'SEAT'
 }
 
 @Injectable({

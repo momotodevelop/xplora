@@ -1,1 +1,20 @@
-<app-select-seat-map [deck]="data"></app-select-seat-map>
+<div style="height: 50px; border-bottom: 1px solid #dddddd; padding: 8px 16px; background: #fff;">
+    <div class="text-20 fw-500 mb-0 d-inline-block">Selecciona tu asiento</div>
+    <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
+</div>
+<div style="max-height: calc(80vh - 120px); overflow: auto;">
+    <app-select-seat-map (selected)="selectedSeat($event)" [deck]="data.deck" [passenger]="data.passenger" [selection]="data.selected"></app-select-seat-map>
+</div>
+<div style="height: 70px;border-top: 1px solid #dddddd;padding: 8px 16px;display: flex;justify-content: space-between; background: #fff; align-items: center;">
+    <div>
+        <div class="text-20 fw-500 mb-0" style="height: 25px;">{{data.passenger.name}} {{data.passenger.lastname}}</div>
+        @if(seat!==undefined){
+            <div class="text-16 fw-200 text-light-1">{{seat.number}} - Asiento sin costo</div>
+        }@else{
+            <div class="text-16 fw-200 text-light-1">Sin selección</div>
+        }
+    </div>
+    <div>
+        <button [disabled]="!seat" (click)="saveSelection()" mat-flat-button color="primary">Seleccionar</button>
+    </div>
+</div>

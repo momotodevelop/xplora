@@ -77,13 +77,15 @@ export interface TravelerPricing {
 }
 export interface FareDetailsBySegment {
     segmentId: string;
-    cabin: string;
+    cabin: "ECONOMY"|"PREMIUM_ECONOMY"|"BUSINESS"|"FIRST";
     fareBasis: string;
     class: string;
     includedCheckedBags: IncludedCheckedBags;
     includedCabinBags:{
         quantity: number;
     }
+    brandedFare? :string;
+    brandedFareLabel?: string;
 }
 export interface IncludedCheckedBags {
     weight?: number;

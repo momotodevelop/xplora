@@ -1,1 +1,5 @@
-<p>payment works!</p>
+<div id="paymentBrick_container"></div>
+<div style="margin-bottom: 16px;" class="text-16 text-light-1">
+    Al hacer clic en "Pagar", aceptas los <a href="">Términos y Condiciones</a> y la <a>Política de Privacidad</a> de Xplora Travel.
+</div>
+<button (click)="createPayment()" style="margin-bottom: 16px;" class="button -md -dark-1 bg-blue-1 text-white w-100" matStepperNext>Pagar {{total|currency:'MXN'}}</button>

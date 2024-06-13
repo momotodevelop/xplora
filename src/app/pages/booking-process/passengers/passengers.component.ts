@@ -5,6 +5,18 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { BookingHandlerService } from '../../../services/booking-handler.service';
+
+export interface PassengerValue {
+  id:       number;
+  name:     string;
+  lastname: string;
+  birth:    Date;
+  gender:   string;
+  type:     "ADULT"|"CHILDREN"|"INFANT";
+  minDate?:      Date;
+  maxDate?:      Date;
+}
 
 @Component({
   selector: 'app-passengers',
@@ -17,23 +29,96 @@ export class PassengersComponent implements OnInit {
   @Input() adults!: number;
   @Input() childrens!: number;
   @Input() infants!: number;
-  @Output() valid: EventEmitter<boolean> = new EventEmitter();
+  @Input() passengersData!:PassengerValue[];
+  @Output() valid: EventEmitter<PassengerValue[]|undefined> = new EventEmitter();
   form: FormGroup;
   passengerTitles:string[]=[];
-  constructor(private fb: FormBuilder){
+  dateLimits:{
+    adult:{
+      min: Date|null,
+      max: Date|null
+    },
+    children:{
+      min: Date|null,
+      max: Date|null
+    },
+    infant:{
+      min: Date|null,
+      max: Date|null
+    }
+  }
+  constructor(private fb: FormBuilder, private bookingHandler:BookingHandlerService){
+    const today = new Date();
     this.form = this.fb.group({
       passengers: this.fb.array([])
     });
+    this.dateLimits = {
+      adult: {
+        max: new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()),
+        min: null
+      },
+      children: {
+        max: new Date(today.getFullYear() - 2, today.getMonth(), today.getDate()),
+        min: new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())
+      },
+      infant: {
+        max: today,
+        min: new Date(today.getFullYear() - 2, today.getMonth(), today.getDate())
+      }
+    }
   }
   ngOnInit(): void {
+    console.log(this.dateLimits);
     this.initializeForm();
     console.log(this.passengers);
+    this.bookingHandler.booking.subscribe(booking=>{
+      if(booking!==undefined){
+        let passengersData = booking.passengersData;
+        if(passengersData!==undefined&&passengersData.length>0){
+          passengersData.forEach((passenger,i)=>{
+            let passengerGroup = (this.form.get('passengers') as FormArray).controls[i] as FormGroup;
+            if(passenger.name!==undefined&&passenger.name!==null){
+              passengerGroup.get('name')?.setValue(passenger.name)
+            }
+            if(passenger.lastname!==undefined&&passenger.lastname!==null){
+              passengerGroup.get('lastname')?.setValue(passenger.lastname)
+            }
+            if(passenger.birth!==undefined&&passenger.birth!==null){
+              passengerGroup.get('birth')?.setValue(passenger.birth)
+            }
+            if(passenger.gender!==undefined&&passenger.gender!==null){
+              passengerGroup.get('gender')?.setValue(passenger.gender)
+            }
+          });
+          this.emitFormData();
+        }else{
+          this.passengers.reset();
+        }
+      }
+    })
     this.form.valueChanges.subscribe(()=>{
-      this.valid.emit(this.form.valid);
+      if(this.form.valid){
+        this.emitFormData();
+      }else{
+        this.valid.emit(undefined);
+      }
     });
   }
   get passengers(): FormArray {
     return this.form.get('passengers') as FormArray;
+  }
+  emitFormData(){
+    const data:PassengerValue[]=this.form.get('passengers')!.value.map((passenger:PassengerValue)=>{
+      return {
+        name: passenger.name,
+        lastname: passenger.lastname,
+        birth: passenger.birth,
+        gender: passenger.gender,
+        type: passenger.type,
+        id: passenger.id
+      }
+    });
+    this.valid.emit(data);
   }
   initializeForm(): void {
     let id:number = 1;
@@ -59,29 +144,44 @@ export class PassengersComponent implements OnInit {
   addPassenger(type: "ADULT"|"CHILDREN"|"INFANT", id:number, iteratorNumber:number): void {
     let passengerForm:FormGroup;
     // Si el pasajero es un infante, añadir un campo para seleccionar el adulto relacionado
-    if (type === 'INFANT') {
-      passengerForm = this.fb.group({
-        id: [id], 
-        name: ['', Validators.required],
-        lastname: ['', Validators.required],
-        birth: ['', Validators.required],
-        gender: ['', Validators.required],
-        type: ["INFANT"],
-        linkedAdult: ['', Validators.required]
-      });
-      this.passengerTitles.push("Infante "+iteratorNumber.toString());
-    }else{
-      passengerForm = this.fb.group({
-        id: [id], 
-        name: ['', Validators.required],
-        lastname: ['', Validators.required],
-        birth: ['', Validators.required],
-        gender: ['', Validators.required],
-        type: [type]
-      });
-      this.passengerTitles.push((type==="CHILDREN"?"Menor ":"Adulto ")+iteratorNumber.toString());
+    const today = new Date();
+    let minDate: Date|null;
+    let maxDate: Date|null;
+
+    // Establecer rangos de fecha según el tipo
+    if (type === 'ADULT') {
+      minDate = null;
+      maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    } else if (type === 'CHILDREN') {
+      minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      maxDate = new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
+    } else {  // INFANT
+      minDate = new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
+      maxDate = today;
     }
-    
+    passengerForm = this.fb.group({
+      id: [id], 
+      name: ['', Validators.required],
+      lastname: ['', Validators.required],
+      birth: ['', Validators.required],
+      gender: ['', Validators.required],
+      type: [type],
+      minDate: [minDate],  // Almacenar las fechas mínimas y máximas en el FormGroup
+      maxDate: [maxDate]
+    });
+    let passengerTypeText;
+    switch(type){
+      case "ADULT":
+        passengerTypeText = "Adulto ";
+        break;
+      case "CHILDREN":
+        passengerTypeText = "Menor ";
+        break;
+      case "INFANT":
+        passengerTypeText = "Infante ";
+        break;
+    }
+    this.passengerTitles.push(passengerTypeText+iteratorNumber.toString());
     this.passengers.push(passengerForm);
   }
 }

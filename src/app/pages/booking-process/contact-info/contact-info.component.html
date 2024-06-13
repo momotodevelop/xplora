@@ -1,0 +1,45 @@
+<form [formGroup]="form">
+    <p class="text-16 fw-400">Titular de la Reservación</p>
+    <div class="row x-gap-10 y-gap-10 pb-20">
+        <div class="col-md-6">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                <mat-label>Nombre(s)</mat-label>
+                <input matInput placeholder="Nombre(s)" formControlName="name">
+            </mat-form-field>
+        </div>
+        <div class="col-md-6">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                <mat-label>Apellido(s)</mat-label>
+                <input matInput placeholder="Apellido(s)" formControlName="lastname">
+            </mat-form-field>
+        </div>
+        <div class="col-md-6">
+            <div class="row x-gap-5">
+                <div class="col-5">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                        <mat-label>País</mat-label>
+                        <mat-select formControlName="country_code">
+                            @for(country of countries; track country;){
+                                <mat-option class="country-code-option" [value]="country.code">
+                                    {{ country.id }} (+{{ country.code }})
+                                </mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-7">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                        <mat-label>Número de Telefono</mat-label>
+                        <input matInput placeholder="00 0000 0000" formControlName="phone">
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                <mat-label>Correo Electronico</mat-label>
+                <input matInput placeholder="ejemplo@gmail.com" formControlName="email">
+            </mat-form-field>
+        </div>
+    </div>
+</form>

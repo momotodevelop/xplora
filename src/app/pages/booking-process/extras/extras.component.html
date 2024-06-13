@@ -1,0 +1,119 @@
+<mat-card class="mt-20">
+    <mat-card-header>
+        <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/seguro.png');"></div>
+        <mat-card-title class="extra-service-title">Viaja Seguro</mat-card-title>
+        <mat-card-subtitle style="margin-top: -7px;"><small>Seguro de viajero</small></mat-card-subtitle>
+    </mat-card-header>
+    <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/seguro.jpg" alt="Photo of a Shiba Inu">
+    <mat-card-content>
+        <p style="text-align: justify; line-height: 1.5em;">
+            Al reservar con Xplora Travel, recibes gratis nuestro Seguro de Viajero básico, que incluye cobertura por cancelaciones y pérdida de equipaje. Mejora a Premium para beneficios adicionales como asistencia 24/7 y compensaciones por demoras.
+        </p>
+    </mat-card-content>
+    <mat-card-actions class="d-flex justify-between" style="padding: 16px;">
+        <div style="text-align: left;">
+            <p class="mb-0 text-14 lh-14 fw-500">{{insuranceTotal|currency:'MXN'}}</p>
+            <p class="mb-0 text-12 lh-12">Impuestos Incluidos</p>
+        </div>
+        @if(insuranceActive===undefined){
+            <button (click)="openInsurance()" mat-stroked-button color="primary">Agregar</button>
+        }@else{
+            <button (click)="openInsurance()" mat-flat-button color="primary">Editar</button>
+        }
+    </mat-card-actions>
+</mat-card>
+<mat-card class="mt-20">
+    <mat-card-header>
+        <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/carryon.png');"></div>
+        <mat-card-title class="extra-service-title">Equipaje de Mano</mat-card-title>
+        <mat-card-subtitle style="margin-top: -7px;"><small>Equipaje en cabina</small></mat-card-subtitle>
+    </mat-card-header>
+    <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/carryon.jpg" alt="Photo of a Shiba Inu">
+    <mat-card-content>
+        <p class="font-14" style="text-align: justify; line-height: 1.5em;">
+            Con nuestro servicio de Equipaje de Mano Adicional, lleva piezas adicionales a bordo. Ideal para quienes desean acceso directo y fácil a sus pertenencias esenciales durante el vuelo, y para facilitar una salida más rápida al llegar a tu destino. Perfecto para mantener todo lo necesario a tu alcance.
+        </p>
+    </mat-card-content>
+    <mat-card-actions class="d-flex justify-between" style="padding: 16px;">
+        <div style="text-align: left;">
+            <p class="mb-0 text-14 lh-14 fw-500">{{carryOnTotal|currency:'MXN'}}</p>
+            <p class="mb-0 text-12 lh-12">Impuesto Incluidos</p>
+        </div>
+        @if(carryOn===undefined){
+            <button (click)="openCarryOn()" mat-stroked-button color="primary">Agregar</button>
+        }@else{
+            <button (click)="openCarryOn()" mat-flat-button color="primary">Editar</button>
+        }
+    </mat-card-actions>
+</mat-card>
+<mat-card class="mt-20">
+    <mat-card-header>
+        <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/baggage.png');"></div>
+        <mat-card-title class="extra-service-title">Equipaje Documentado</mat-card-title>
+        <mat-card-subtitle style="margin-top: -7px;"><small>Equipaje en bodega</small></mat-card-subtitle>
+    </mat-card-header>
+    <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/baggage.jpg" alt="Photo of a Shiba Inu">
+    <mat-card-content>
+        <p style="text-align: justify; line-height: 1.5em;">
+            Amplía tu franquicia de equipaje con nuestro servicio de Equipaje Documentado Adicional. Perfecto para viajes largos o para llevar artículos especiales, asegura que todo lo que necesites esté contigo al llegar a tu destino.
+        </p>
+    </mat-card-content>
+    <mat-card-actions class="d-flex justify-between" style="padding: 16px;">
+        <div style="text-align: left;">
+            <p class="mb-0 text-14 lh-14 fw-500">{{baggageTotal|currency:'MXN'}}</p>
+            <p class="mb-0 text-12 lh-12">Impuestos Incluidos</p>
+        </div>
+        <div>
+            @if(baggage===undefined){
+                <button (click)="openBaggage()" mat-stroked-button color="primary">Agregar</button>
+            }@else{
+                <button (click)="openBaggage()" mat-flat-button color="primary">Editar</button>
+            }
+        </div>
+    </mat-card-actions>
+</mat-card>
+<mat-card class="mt-20">
+    <mat-card-header>
+        <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/flexpass.png');"></div>
+        <mat-card-title class="extra-service-title">FlexPass</mat-card-title>
+        <mat-card-subtitle style="margin-top: -7px;"><small>Flexibilidad absoluta</small></mat-card-subtitle>
+    </mat-card-header>
+    <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/flexpass.jpg" alt="Photo of a Shiba Inu">
+    <mat-card-content>
+        <p style="text-align: justify; line-height: 1.5em;">
+            Viaja con flexibilidad y tranquilidad con FlexPass. Este servicio te permite tener un asiento en el próximo vuelo disponible si pierdes el tuyo, además de cambios ilimitados y la opción de adelantar tu vuelo el mismo día, todo sin costo adicional.
+        </p>
+    </mat-card-content>
+    <mat-card-actions class="d-flex justify-between" style="padding: 16px;">
+        <div style="text-align: left;">
+            <p class="mb-0 text-14 lh-14 fw-500">{{flexpassTotal|currency:'MXN'}}</p>
+            <p class="mb-0 text-12 lh-12">Impuestos Incluidos</p>
+        </div>
+        <div>
+            @if(flexpass===undefined){
+                <button (click)="openFlexPass()" mat-stroked-button color="primary">Agregar</button>
+            }@else{
+                <button (click)="openFlexPass()" mat-flat-button color="primary">Editar</button>
+            }
+        </div>
+    </mat-card-actions>
+</mat-card>
+<div class="text-18 fw-500 my-3">Total adicionales: {{total|currency:'MXN'}}</div>
+<button mat-stroked-button (click)="next.emit()" class="w-100 mt-4">Continuar sin {{isUpdate?'actualizar':'adicionales'}}</button>
+<button mat-flat-button color="primary" (click)="saveExtras()" [disabled]="!insuranceActive&&!flexpass&&!carryOn&&!baggage||!hasChanges" class="w-100 mt-4">{{isUpdate?'Actualizar':'Guardar'}} adicionales</button>
+<!--<mat-card class="mt-20">
+    <mat-card-header>
+        <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/pets.png');"></div>
+        <mat-card-title class="extra-service-title">Viaja con tu Mascota</mat-card-title>
+        <mat-card-subtitle style="margin-top: -7px;"><small>Compañeros de Vuelo</small></mat-card-subtitle>
+    </mat-card-header>
+    <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/pets.jpg" alt="Photo of a Shiba Inu">
+    <mat-card-content>
+        <p style="text-align: justify; line-height: 1.5em;">
+            No dejes a tu mejor amigo en casa cuando viajes. Nuestro servicio "Viaja con tu Mascota" te permite llevar a tu perro o gato contigo en la cabina. Viaja con la tranquilidad de tener cerca a tu compañero peludo, asegurando su comodidad y seguridad durante el vuelo.
+        </p>
+    </mat-card-content>
+    <mat-card-actions align="end">
+        <button (click)="openPets()" mat-stroked-button color="primary">Agregar</button>
+    </mat-card-actions>
+</mat-card>-->

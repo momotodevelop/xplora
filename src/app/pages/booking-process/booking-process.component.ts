@@ -1,22 +1,58 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import {MatStepperModule} from '@angular/material/stepper';
-import { PassengersComponent } from './passengers/passengers.component';
+import { MatStepper, MatStepperModule} from '@angular/material/stepper';
+import { PassengerValue, PassengersComponent } from './passengers/passengers.component';
 import { BookingSidebarComponent } from './booking-sidebar/booking-sidebar.component';
 import { ActivatedRoute } from '@angular/router';
 import { XploraApiService } from '../../services/xplora-api.service';
 import { XploraFlightBooking } from '../../types/xplora-api.types';
 import { SharedDataService } from '../../services/shared-data.service';
-import { TitleCasePipe } from '@angular/common';
+import { CommonModule, TitleCasePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { AmadeusSeatmapService } from '../../services/amadeus-seatmap.service';
 import { FlightOffer } from '../../types/flight-offer-amadeus.types';
 import { SeatsComponent } from './seats/seats.component';
+import { SeatMap, SeatMapSavingData, SelectedSeat } from '../../types/amadeus-seat-map.types';
+import { BookingHandlerService } from '../../services/booking-handler.service';
+import { AmadeusLocation } from '../../types/amadeus-airport-response.types';
+import * as _ from 'lodash'
+import { ExtrasComponent } from './extras/extras.component';
+import { ContactInfoComponent, ContactInfoValue } from './contact-info/contact-info.component';
+import { PaymentComponent } from './payment/payment.component';
+import { XploraPromosService } from '../../services/xplora-promos.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { combineLatest } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+declare const MercadoPago: any;
+
+export interface SeatSelectionInfo{
+  flight: number,
+  airline: string,
+  origin: AmadeusLocation,
+  destination: AmadeusLocation
+}
+
+export type Steps = "PASSENGERS"|"SEATS"|"CONTACT"|"EXTRAS"|"PAYMENT";
 
 @Component({
   selector: 'app-booking-process',
   standalone: true,
-  imports: [MatStepperModule, MatFormFieldModule, PassengersComponent, BookingSidebarComponent, TitleCasePipe, MatButtonModule, SeatsComponent],
+  imports: [
+    MatStepperModule, 
+    MatFormFieldModule, 
+    PassengersComponent, 
+    BookingSidebarComponent, 
+    TitleCasePipe, 
+    MatButtonModule, 
+    SeatsComponent, 
+    ExtrasComponent, 
+    ContactInfoComponent, 
+    PaymentComponent, 
+    CommonModule,
+    MatIconModule,
+    MatProgressSpinnerModule
+  ],
   templateUrl: './booking-process.component.html',
   styleUrl: './booking-process.component.scss'
 })
@@ -25,28 +61,132 @@ export class BookingProcessComponent implements OnInit {
     private route: ActivatedRoute, 
     private xplora: XploraApiService, 
     private sharedService: SharedDataService,
-    private seatMapService: AmadeusSeatmapService
+    private seatMapService: AmadeusSeatmapService,
+    public bookingHandler: BookingHandlerService,
+    private promos: XploraPromosService,
+    private _sb: MatSnackBar
+    
   ){}
   booking?: XploraFlightBooking;
-  passengersValid:boolean=false;
-  ngOnInit(): void {
+  bookingID?:string;
+  passengers?:PassengerValue[];
+  seatMaps!:SeatMap[];
+  contactInfo?: ContactInfoValue;
+  activePromoCode?:string;
+  @ViewChild('stepper') stepper!:MatStepper;
+  ngOnInit():void {
     this.sharedService.setLoading(true);
-    this.route.params.subscribe((p)=>{
-      const params:{bookingID:string, step: string} = p as {bookingID:string, step: string};
+    combineLatest([this.route.params,this.route.queryParams]).subscribe(([p, q])=>{
+      const params:{bookingID:string, step: Steps} = p as {bookingID:string, step: Steps};
+      const queryParams:{promo?:string} = q as {promo?:string};
       const bookingID:string = params.bookingID;
-      const step:string = params.step;
+      this.bookingID = bookingID;
       this.xplora.getBooking(bookingID).subscribe(booking=>{
-        console.log(booking);
-        this.booking=booking;
+        this.bookingHandler.setBookingInfo(booking);
         this.sharedService.setLoading(false);
-        const flights:FlightOffer[] = [booking.flights.outbound!.offer];
-        if(booking.round){
-          flights.push(booking.flights.inbound!.offer);
+        if(queryParams.promo!==undefined){
+          this.getPromo(queryParams.promo);
         }
-        this.seatMapService.getSeatMap(flights).subscribe(seatMap=>{
-          console.log(seatMap);
-        })
+        setTimeout(() => {
+          switch (params.step) {
+            case "PASSENGERS":
+              this.goToPassengers()
+              break;
+            case "CONTACT":
+              this.stepper.selectedIndex=1;
+              break;
+            case "SEATS":
+              this.stepper.selectedIndex=2;
+              break;
+            case "EXTRAS":
+              this.stepper.selectedIndex=3;
+              break;
+            case "PAYMENT":
+              this.stepper.selectedIndex=4;
+              break;
+            default:
+              this.goToPassengers();
+              break;
+          }
+        }, 500);
+      });
+      this.bookingHandler.booking.subscribe(booking=>{
+        if(booking!==undefined){
+          this.booking=booking;
+        }
       });
     });
   }
+  getPromo(promoCode:string){
+    this.promos.getPromoByCode(promoCode).subscribe({
+      next: promo =>{
+        this._sb.open('Promoción '+promo.code+' aplicada.', 'Aceptar', {duration: 1500});
+        this.bookingHandler.setPromo(promo);
+      },
+      error: err =>{
+        this.bookingHandler.setPromo(undefined);
+        this._sb.open('Código de promoción invalido', 'Aceptar', {duration: 1500});
+      }
+    })
+  }
+  processPassengers(){
+    if(this.passengers!==undefined){
+      let passengersData = this.passengers;
+      this.xplora.updateBooking(this.bookingID!, {passengersData:passengersData}).subscribe(result=>{
+        this.bookingHandler.setBookingInfo(result.booking);
+        this.stepper.selectedIndex=1;
+        console.log(result);
+      });
+    }
+  }
+  validContact(event:any){
+    console.log(event);
+  }
+  goToPassengers(){
+    this.stepper.selectedIndex=0
+  }
+  processContact(){
+    if(this.contactInfo){
+      this.xplora.updateBooking(this.bookingID!, {contact:this.contactInfo}).subscribe(result=>{
+        this.bookingHandler.setBookingInfo(result.booking);
+        console.log(result);
+      });
+    }
+  }
+  seatsHaveChanges(oldSeatMaps:SeatMapSavingData[], newSeatMaps:SeatMapSavingData[]) {
+    let hasChanges = false;
+    // Verificar que ambos tengan el mismo número de entradas en seatSelection
+    if(oldSeatMaps === undefined) return true;
+    if (oldSeatMaps.length !== newSeatMaps.length) return true;
+    // Mapear cada seatSelection por passengerID y número de asiento
+    oldSeatMaps.forEach((seatMap, seatMapI)=>{
+      seatMap.selectedSeats.filter(selection=>selection.seat!==undefined).forEach((selection, selectionI)=>{
+        const isDifferent:boolean = newSeatMaps[seatMapI].selectedSeats[selectionI].seat!.number!==selection.seat!.number;
+        hasChanges = isDifferent;
+      });
+    });
+    return hasChanges;
+  }
+  skipStep(){
+    this.stepper.next();
+  }
+  processSeats(data:SeatMapSavingData[]){
+    const oldSeatMaps = this.booking?.seatMaps;
+    if(oldSeatMaps!==undefined){
+      const hasChanges:boolean = this.seatsHaveChanges(oldSeatMaps, data);
+      console.log(hasChanges);
+      if(hasChanges){
+        this.xplora.updateBooking(this.bookingID!, {seatMaps:data}).subscribe(updated=>{
+          this.stepper.next();
+        });
+      }else{
+        this.stepper.next();
+      }
+    }else{
+      this.xplora.updateBooking(this.bookingID!, {seatMaps:data}).subscribe(updated=>{
+        this.stepper.next();
+      });
+    }
+  }
+
 }

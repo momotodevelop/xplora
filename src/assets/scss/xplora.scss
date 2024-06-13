@@ -63,3 +63,88 @@
     display: block; /* Asegura que la imagen no tenga espacios extra alrededor */
     width: 100%; /* Opcional: hace que la imagen se extienda a todo el ancho del contenedor */
 }
+
+.seat-selector-bottomsheet{
+    .mat-bottom-sheet-container{
+        background: #97afff;
+        padding: 0px !important;
+        .row-container{
+            max-width: 90%; margin: auto;
+            background: #fff; 
+            .plane-row{
+                border-left: 2px solid;
+                border-right: 2px solid;
+                border-color: #000
+            }
+            .plane-row.emergency{
+                border-color: red;
+            }
+            .plane-row.emergency:first{
+                border-top: 2px solid;
+            }
+            .seat-element{
+                border-radius: 50%;
+                width: 70%;
+                height: 70%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border: 3px solid;
+                border-color: #888888;
+            }
+            .seat-element.available{
+                border-color: #28c652;
+                cursor: pointer;
+            }
+
+            .seat-element.available:hover{
+                border-color: #2B4BA8;
+                transition: all 200ms;
+            }
+            .seat-element.selected{
+                border-color: #2B4BA8;
+                background-color: #2B4BA8;
+                color: #fff;
+                font-weight: 500;
+            }
+        }
+    }
+}
+.extra-service-title{
+    margin-top: -3px;
+}
+.custom-bottom-sheet{
+    .mat-bottom-sheet-container{
+        padding: 0px !important;
+    }
+}
+.country-code-option{
+    .mdc-list-item__primary-text{
+        white-space: nowrap !important;
+    }
+}
+.payment-step{
+    .mat-vertical-content-container{
+        margin: 0 !important;
+    }
+}
+.booking-stepper{
+    .mat-step:last-child {
+        // Selector para el contenedor de contenido vertical dentro del último paso
+        .mat-vertical-content-container {
+            margin: 0 !important; // Establece los márgenes a 0
+            .mat-vertical-content{
+                padding: 0 !important;
+            }
+        }
+    }
+}
+.mp-checkout-bricks__payment-form{
+    padding: 0 !important;
+}
+
+.flight-class-icon{
+    font-size: 20px !important;
+    height: 20px !important;
+    width: 20px !important;
+}

@@ -1,9 +1,21 @@
-<div *ngFor="let row of rows" class="row">
-    <mat-grid-list cols="{{deck.deckConfiguration.width}}" rowHeight="2:1">
-        <mat-grid-tile *ngFor="let seat of row.seats" [colspan]="1">
-            <div [ngClass]="{'occupied': seat.travelerPricing[0].seatAvailabilityStatus === 'OCCUPIED'}">
-            {{ seat.number }}
-            </div>
-        </mat-grid-tile>
-    </mat-grid-list>
+<div class="row-container">
+    <div *ngFor="let row of rows" class="plane-row" [class.emergency]="row.exitRow">
+        <mat-grid-list cols="{{deck.deckConfiguration.width}}" rowHeight="1:1">
+            <mat-grid-tile *ngFor="let item of row.items" [colspan]="1">
+                @if(item.type==='SEAT'&&item.seat){
+                    @if(!isSelected(item.seat.number)){
+                        <div (click)="selectSeat(item.seat)" class="seat-element text-12" [class.available]="item.seat!.travelerPricing[0].seatAvailabilityStatus==='AVAILABLE'" [class.selected]="item.seat===selectedSeat">
+                            {{ item.seat===selectedSeat? (passenger.name|initial)+(passenger.lastname|initial): item.seat.number }}
+                        </div>
+                    }@else{
+                        <div (click)="selectSeat(item.seat, true)" class="seat-element text-12 selected">
+                            {{ passengerInitial(item.seat.number) }}
+                        </div>
+                    }
+                }@else{
+                    <div></div>
+                }
+            </mat-grid-tile>
+        </mat-grid-list>
+    </div>
 </div>

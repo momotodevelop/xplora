@@ -1,5 +1,5 @@
 @if(booking!==undefined){
-    <section class="section-bg layout-pt-lg layout-pb-lg">
+    <section class="section-bg layout-pt-lg layout-pb-lg mb-20">
         <div class="section-bg__item col-12">
             <img src="assets/img/backgrounds/cancun.jpg" alt="Destino">
         </div>
@@ -15,30 +15,39 @@
     <div class="container">
         <div class="row">
             <div class="col-xl-7 col-lg-8">
-                <mat-stepper [linear]="false" #stepper>
-                    <mat-step [completed]="passengersValid">
-                        <ng-template matStepLabel><h2 class="text-22 fw-500">Pasajeros</h2></ng-template>
-                        <app-passengers [adults]="1" [childrens]="1" [infants]="0" (valid)="passengersValid = $event"></app-passengers>
+                <mat-vertical-stepper [linear]="true" class="booking-stepper" #stepper>
+                    <mat-step [completed]="passengers!==undefined">
+                        <ng-template matStepLabel><h2 class="text-16 fw-500">Pasajeros</h2></ng-template>
+                        @if(booking){
+                            <app-passengers [adults]="booking.passengers.adults" [childrens]="booking.passengers.childrens" [infants]="booking.passengers.infants" [passengersData]="booking.passengersData ?? []" (valid)="passengers = $event"></app-passengers>
+                        }
                         <div>
-                            <button class="button -md -dark-1 bg-blue-1 text-white" matStepperNext>Siguiente</button>
+                            <button (click)="processPassengers()" mat-raised-button class="w-100">Siguiente <mat-icon><mat-spinner diameter="20"></mat-spinner></mat-icon></button>
                         </div>
                     </mat-step>
-                    <mat-step>
-                        <ng-template matStepLabel><h2 class="text-22 fw-500">Asientos</h2></ng-template>
-                        <app-seats></app-seats>
-                        
+                    <mat-step [completed]="contactInfo!==undefined">
+                        <ng-template matStepLabel><h2 class="text-16 fw-500">Información de Contacto</h2></ng-template>
+                        <app-contact-info (valid)="contactInfo = $event"></app-contact-info>
+                        <button mat-flat-button [disabled]="!contactInfo" (click)="processContact()" color="primary" class="w-100 mt-4">Continuar</button>
                     </mat-step>
                     <mat-step>
-                        <ng-template matStepLabel>Done</ng-template>
-                        You are now done.
-                        <div>
-                            <button mat-button matStepperPrevious>Back</button>
-                        </div>
+                        <ng-template matStepLabel><h2 class="text-16 fw-500">Asientos</h2></ng-template>
+                        <app-seats (completed)="processSeats($event)" (skip)="stepper.next()" (goToPassengers)="goToPassengers()"></app-seats>
                     </mat-step>
-                </mat-stepper>
+                    <mat-step>
+                        <ng-template matStepLabel><h2 class="text-16 fw-500">Servicios Adicionales</h2></ng-template>
+                        <app-extras (next)="stepper.next()"></app-extras>
+                    </mat-step>
+                    <mat-step [ngClass]="{'payment-step': true}">
+                        <ng-template matStepLabel>Pagar Reservación</ng-template>
+                        <app-payment></app-payment>
+                    </mat-step>
+                </mat-vertical-stepper>
             </div>
             <div class="col-xl-5 col-lg-4">
-                <app-booking-sidebar></app-booking-sidebar>
+                @if(booking!==undefined){
+                    <app-booking-sidebar></app-booking-sidebar>
+                }
             </div>
         </div>
     </div>

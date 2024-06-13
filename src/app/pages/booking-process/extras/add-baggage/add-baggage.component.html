@@ -1,0 +1,66 @@
+<div style="height: 50px; border-bottom: 1px solid #dddddd; padding: 8px 16px; background: #fff;">
+    <div class="text-20 fw-500 mb-0 d-inline-block">Equipaje documentado adicional</div>
+    <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
+</div>
+<div style="max-height: calc(80vh - 120px); min-height: calc(80vh - 120px); overflow: auto;">
+    <mat-tab-group>
+
+        <mat-tab [label]="data.flights[0].departure.iataCode+' - '+data.flights[0].arrival.iataCode">
+            @for (passenger of data.passengers; track passenger; let i = $index) {
+                <div class="row y-gap-10 justify-between items-center p-3">
+                    <div class="col-auto">
+                        <div class="text-15 fw-500">{{passenger.name}}</div>
+                        <div class="text-14 lh-12 text-light-1 mt-5">{{price|currency:'MXN'}}/Pieza adicional</div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex items-center">
+                            <button [disabled]="extraBaggage[0][i].pieces<1" (click)="removePiece(0, i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
+                                <i class="icon-minus text-12"></i>
+                            </button>
+                            <div class="flex-center size-20 ml-10 mr-10">
+                                <div class="text-15">{{extraBaggage[0][i].pieces}}</div>
+                            </div>
+                            <button [disabled]="extraBaggage[0][i].pieces>4" (click)="addPiece(0, i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
+                                <i class="icon-plus text-12"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </mat-tab>
+        @if(data.flights.length>1){
+            <mat-tab [label]="data.flights[1].departure.iataCode+' - '+data.flights[1].arrival.iataCode">
+                @for (passenger of data.passengers; track passenger; let i = $index) {
+                    <div class="row y-gap-10 justify-between items-center p-3">
+                        <div class="col-auto">
+                            <div class="text-15 fw-500">{{passenger.name}}</div>
+                            <div class="text-14 lh-12 text-light-1 mt-5">{{passenger.type}} - {{price|currency:'MXN'}}</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="d-flex items-center">
+                                <button class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
+                                    <i class="icon-minus text-12"></i>
+                                </button>
+                                <div class="flex-center size-20 ml-10 mr-10">
+                                    <div class="text-15">{{extraBaggage[1][i]}}</div>
+                                </div>
+                                <button class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
+                                    <i class="icon-plus text-12"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </mat-tab>
+        }
+    </mat-tab-group>
+</div>
+<div style="height: 70px;border-top: 1px solid #dddddd;padding: 8px 16px;display: flex;justify-content: space-between; background: #fff; align-items: center;">
+    <div>
+        <div class="text-20 fw-500 mb-0" style="height: 25px;">{{total|currency:'MXN'}}</div>
+        <div class="text-16 fw-200 text-light-1">Total adicional</div>
+    </div>
+    <div>
+        <button (click)="save()" mat-flat-button color="primary">Guardar</button>
+    </div>
+</div>
