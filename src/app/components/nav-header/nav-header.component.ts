@@ -3,6 +3,7 @@ import { HeaderType, SharedDataService } from '../../services/shared-data.servic
 import { CommonModule } from '@angular/common';
 import { SanityService } from '../../services/sanity.service';
 import { NavigationItem } from '../../types/sanity.types';
+import { MenuItem } from '../../types/navigation.types';
 
 @Component({
   selector: 'app-nav-header',
@@ -13,15 +14,34 @@ import { NavigationItem } from '../../types/sanity.types';
 })
 export class NavHeaderComponent implements OnInit, AfterViewInit {
   headerType:HeaderType="light";
-  menuItems:NavigationItem[]=[];
+  dashboard:boolean=false;
+  booking:boolean=false;
+  menuItems:MenuItem []=[
+    {
+      name: "Inicio",
+      tipoEnlace: "interno",
+      route: "inicio",
+      openInNewTab: false
+    },
+    {
+      name: "Nosotros",
+      tipoEnlace: "interno",
+      route: "nosotros",
+      openInNewTab: false
+    },
+    {
+      name: "Contacto",
+      tipoEnlace: "interno",
+      route: "contacto",
+      openInNewTab: false
+    }
+  ];
   @ViewChild('header', {read: ElementRef, static:false}) headerElement!: ElementRef;
   constructor(public shared: SharedDataService, private sanity: SanityService){}
   ngOnInit(): void {
     this.shared.headerType.subscribe({next: (type:HeaderType)=>{this.headerType=type}});
-    this.sanity.getBySlug("navigation", "menu-principal").then(data=>{
-      console.log(data[0].navigationItems);
-      this.menuItems=data[0].navigationItems;
-    });
+    this.shared.headerDashboard.subscribe(isDash=>{this.dashboard=isDash});
+    this.shared.headerBooking.subscribe(isBooking=>{this.booking=isBooking});
   }
   ngAfterViewInit(): void {
     this.shared.changeHeaderHeight(this.headerElement.nativeElement.offsetHeight);

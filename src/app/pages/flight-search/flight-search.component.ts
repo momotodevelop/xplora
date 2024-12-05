@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FlightClassType, SearchTopbarComponent } from './search-topbar/search-topbar.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { ResultsViewComponent } from './results-view/results-view.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, catchError, forkJoin, map, of } from 'rxjs';
 import { SharedDataService } from '../../services/shared-data.service';
 import { AirportSearchService } from '../../services/airport-search.service';
@@ -14,6 +14,7 @@ import { TranslateService } from '../../services/translate.service';
 import { SelectedFlightComponent } from './selected-flight/selected-flight.component';
 import { FlightOffersDataHandlerService } from '../../services/flight-offers-data-handler.service';
 import { XploraApiService } from '../../services/xplora-api.service';
+import { BookingStatus } from '../../types/xplora-api.types';
 export interface SearchParams{
   adults: string
   childrens: string
@@ -25,12 +26,13 @@ export interface SearchParams{
   flightClass: FlightClassType
 }
 
-export interface BookingItem{
+export interface SimpleBookingItem{
   origin: AmadeusLocation,
   destination: AmadeusLocation,
   passengers: Passengers,
   departure: Date,
   round: Boolean,
+  status: BookingStatus,
   return?: Date,
   
 }
@@ -63,6 +65,7 @@ export class FlightSearchComponent implements OnInit {
     private xplora: XploraApiService){}
 
   ngOnInit(): void {
+    this.sharedService.settBookingMode(true);
     this.sharedService.setLoading(true);
     this.route.data.pipe(
       map(data => data["headerType"])
@@ -106,20 +109,22 @@ export class FlightSearchComponent implements OnInit {
       if(status==="FULL"){
         const round = this.return!==undefined;
         this.sharedService.setLoading(true);
-        let item:BookingItem = {
+        let item:SimpleBookingItem = {
           origin: this.origin,
           destination: this.destination,
           departure: this.departure,
           passengers: this.passengers,
+          status: "PENDING",
           round
         }
         if(item.round){
           item.return=this.return;
         }
-        this.xplora.createBooking(this.flightOffersHandler.createBooking(item)).subscribe((resp)=>{
+        this.xplora.createBooking(this.flightOffersHandler.createBookingAddFlights(item)).subscribe((resp)=>{
           console.log(resp);
           if(resp&&resp.status==="CREATED"){
-            
+            const url = `/reservar/vuelos/${resp.id}`;
+            window.location.href = url;
           }
         });
       }

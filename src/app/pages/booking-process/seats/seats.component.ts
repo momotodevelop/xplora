@@ -15,6 +15,8 @@ import { XploraFlightBooking } from '../../../types/xplora-api.types';
 import { AmadeusSeatmapService } from '../../../services/amadeus-seatmap.service';
 import { FlightOffer } from '../../../types/flight-offer-amadeus.types';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faSpinner, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 
 export interface SelectionDisplay{
   initial:string,
@@ -24,7 +26,7 @@ export interface SelectionDisplay{
 @Component({
   selector: 'app-seats',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule, CommonModule, MatDividerModule, MatIconModule, InitialPipe, MatChipsModule, MatDialogModule, MatProgressSpinnerModule],
+  imports: [MatButtonModule, MatIconModule, CommonModule, MatDividerModule, MatIconModule, InitialPipe, MatChipsModule, MatDialogModule, MatProgressSpinnerModule, FontAwesomeModule],
   providers: [InitialPipe],
   templateUrl: './seats.component.html',
   styleUrl: './seats.component.scss'
@@ -37,6 +39,9 @@ export class SeatsComponent implements OnInit {
   @Output() skip:EventEmitter<void> = new EventEmitter();
   selection:SelectedSeat[][]=[];
   seatMapStatus:"LOADING"|"ERROR"|"READY"|"PENDING"|"NOT_PASSENGERS"="PENDING";
+  nextIcon=faChevronRight;
+  spinnerIcon=faSpinner;
+  loading:boolean=false;
   constructor(private bs: MatBottomSheet, private bookingHandler:BookingHandlerService, private initial: InitialPipe, private dialog: MatDialog, private seatMapService: AmadeusSeatmapService){
 
   }
@@ -133,6 +138,7 @@ export class SeatsComponent implements OnInit {
   }
   saveSeatSelection(){
     const pendingSelectionSeats=this.selection.filter(passenger=>passenger.filter(pass=>pass.seat===undefined).length>0).length;
+    this.loading=true;
     if(pendingSelectionSeats>0){
       this.dialog.open(SeatPendingDialog, {data: pendingSelectionSeats}).afterClosed().subscribe(result=>{
         if(result) this.completed.emit(this.getSavingData());

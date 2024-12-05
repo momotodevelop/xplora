@@ -9,6 +9,12 @@ import { SharedDataService } from './services/shared-data.service';
 import { AsyncPipe, CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
 import { DateStringPipe } from './date-string.pipe';
 import { DurationPipe } from './duration.pipe';
+import { AngularFireModule } from '@angular/fire/compat';
+import { firebaseConfig } from '../environments/environment'
+import { ToggleClassDirective } from './toggle-class.directive';
+import {
+  FingerprintjsProAngularModule
+} from '@fingerprintjs/fingerprintjs-pro-angular'
 
 @Component({
   selector: 'app-root',
@@ -19,14 +25,11 @@ import { DurationPipe } from './duration.pipe';
     NavHeaderComponent, 
     MatBottomSheetModule, 
     MatButtonModule,
-    
-// TODO: `HttpClientModule` should not be imported into a component directly.
-// Please refactor the code to add `provideHttpClient()` call to the provider list in the
-// application bootstrap logic and remove the `HttpClientModule` import from this component.
-HttpClientModule,
     CommonModule,
     DatePipe,
-    TitleCasePipe
+    TitleCasePipe,
+    ToggleClassDirective,
+    
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',

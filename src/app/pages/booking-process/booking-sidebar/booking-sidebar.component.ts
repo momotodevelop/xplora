@@ -1,6 +1,6 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { XploraFlightBooking } from '../../../types/xplora-api.types';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FareDetailsBySegment, FlightOffer } from '../../../types/flight-offer-amadeus.types';
 import * as _ from 'lodash'
 import { DateStringPipe } from '../../../date-string.pipe';
@@ -15,6 +15,9 @@ import { MatInputModule } from '@angular/material/input';
 import { ExtrasPrices } from '../extras/extras.component';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
 import { MatIconModule } from '@angular/material/icon';
+import { UppercaseDirective } from '../../../uppercase.directive';
+import { AmadeusAirlinesService } from '../../../services/amadeus-airlines.service';
+import { BrandfetchService } from '../../../services/brandfetch.service';
 
 export interface Charge{
   amount: number,
@@ -25,11 +28,13 @@ export interface Charge{
 @Component({
   selector: 'app-booking-sidebar',
   standalone: true,
-  imports: [CommonModule, DateStringPipe, RemoveCharactersPipe, DurationPipe, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule],
+  imports: [CommonModule, DateStringPipe, RemoveCharactersPipe, DurationPipe, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, UppercaseDirective, CurrencyPipe],
   templateUrl: './booking-sidebar.component.html',
+  providers: [CurrencyPipe],
   styleUrl: './booking-sidebar.component.scss'
 })
 export class BookingSidebarComponent implements OnInit{
+  @Output() openInsuranceExtra: EventEmitter<void> = new EventEmitter();
   booking?:XploraFlightBooking;
   dates!: {outbound:Date[], inbound?:Date[]};
   promoControl: FormControl = new FormControl('', [Validators.required, Validators.minLength(3)]);
@@ -41,7 +46,12 @@ export class BookingSidebarComponent implements OnInit{
   grandTotal:number=0;
   totalPassengers:number=0;
   chargeablePassengers:number=0;
-  constructor(private promos: XploraPromosService, private _sb: MatSnackBar, public bookingHandler:BookingHandlerService){
+  activeInsurance:number=0;
+  outboundAirlineCode?:string;
+  inboundAirlineCode?:string;
+  outboundAirlineBrand?:string;
+  inboundAirlineBrand?:string;
+  constructor(private promos: XploraPromosService, private _sb: MatSnackBar, public bookingHandler:BookingHandlerService, private currencyPipe: CurrencyPipe, private airlines: AmadeusAirlinesService, private brandfetch: BrandfetchService){
     
   }
   ngOnInit(): void {
@@ -72,6 +82,7 @@ export class BookingSidebarComponent implements OnInit{
               aditional_info: "Impuestos"
             }
           ]
+          this.outboundAirlineCode = booking.flights.outbound!.offer.validatingAirlineCodes[0];
         }
         if(booking.round&&booking.flights.inbound!==undefined){
           this.dates.inbound = [
@@ -87,7 +98,8 @@ export class BookingSidebarComponent implements OnInit{
             description: booking.flights.inbound.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flights.inbound.offer.itineraries[0].segments)!.arrival.iataCode,
             amount: this.priceMultiplier(parseInt(booking.flights.inbound.offer.price.grandTotal as string)-parseInt(booking.flights.inbound.offer.price.base as string)),
             aditional_info: "Impuestos"
-          })
+          });
+          this.inboundAirlineCode = booking.flights.inbound.offer.validatingAirlineCodes[0];
         }
         if(this.booking.aditionalServices!==undefined){
           if(this.booking.aditionalServices.insurance!==undefined){
@@ -103,6 +115,7 @@ export class BookingSidebarComponent implements OnInit{
                 amount: insuranceTotal
               });
             }
+            this.activeInsurance = insuranceTotal;
           }
           if(this.booking.aditionalServices.flexpass!==undefined){
             let flexpassTotal:number=0;
@@ -148,11 +161,26 @@ export class BookingSidebarComponent implements OnInit{
           }
         }
         this.updatePrice(booking);
+        if(this.outboundAirlineCode){
+          this.airlines.getAirlineInfo(this.outboundAirlineCode).subscribe(airline=>{
+            this.brandfetch.getBrands(airline.data[0].businessName).subscribe(brands=>{
+              this.outboundAirlineBrand = brands[0].domain;
+            })
+          });
+        }
+        if(this.inboundAirlineCode){
+          this.airlines.getAirlineInfo(this.inboundAirlineCode).subscribe(airline=>{
+            this.brandfetch.getBrands(airline.data[0].businessName).subscribe(brands=>{
+              this.inboundAirlineBrand = brands[0].domain
+            });
+          });
+        }
       }
     });
     this.bookingHandler.promo.subscribe(promo=>{
       this.appliedPromo = promo;
       if(this.booking!==undefined){
+        console.log(promo);
         this.updatePrice(this.booking);
       }
     });
@@ -223,6 +251,17 @@ export class BookingSidebarComponent implements OnInit{
   }
   updatePrice(booking:XploraFlightBooking){
     this.grandTotal=this.bookingTotalCalculator(booking);
+    const charges:Charge[] = [...this.flightCharges, {description: "Cargo por servicio", amount: 0, aditional_info: "GRATIS"}, ...this.aditionalServiceCharges]
+    if(this.appliedPromo&&this.discountedAmmount){
+      const discount:string = this.appliedPromo.discountType==="percentage"?this.appliedPromo.discountAmount+"%":this.currencyPipe.transform(this.appliedPromo.discountAmount, "MXN")!;
+      let promoCharge:Charge = {
+        amount: 0-this.discountedAmmount,
+        description: this.appliedPromo.code+" [-"+discount+"]"
+      }
+      charges.push(promoCharge);
+    }
+    this.bookingHandler.setCharges(charges);
+    console.log(charges);
     this.bookingHandler.setPricesInfo([this.grandTotal, this.discountedAmmount ?? 0]);
   }
   removePromo(){
@@ -233,7 +272,7 @@ export class BookingSidebarComponent implements OnInit{
   }
   getPromo(promoCode:string){
     this.promoControl.disable();
-    this.promos.getPromoByCode(promoCode).subscribe({
+    this.promos.getPromoByCode(promoCode.toUpperCase()).subscribe({
       next: promo =>{
         this.promoControl.setValue(promo.code);
         this._sb.open('Promoción '+promo.code+' aplicada.', 'Aceptar', {duration: 1500});

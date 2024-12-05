@@ -1,0 +1,12 @@
+<div class="container mt-40">
+    <div class="row">
+        <div class="col-xl-7 col-lg-8">
+            <app-payment></app-payment>
+        </div>
+        <div class="col-xl-5 col-lg-4 pt-20">
+            @if(booking!==undefined){
+                <app-confirmation-sidebar [booking]="booking"></app-confirmation-sidebar>
+            }
+        </div>
+    </div>
+</div>

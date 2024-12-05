@@ -4,6 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import { FilterFormValue } from '../pages/flight-search/sidebar/sidebar.component';
+import { XploraFlightBooking } from '../types/xplora-api.types';
 export interface FilterOptions{
   segments?: number[],
   airlines?: string[],
@@ -85,13 +86,12 @@ export class FlightOffersDataHandlerService {
     }
     this._flightSelectionStatus.next(this.determineFlightStatus(this._selected.value, round));
   }
-  createBooking(bookingInfo:any){
+  createBookingAddFlights(bookingInfo:any):XploraFlightBooking{
     let flights:SelectedFlights=this._selected.value;
     let bookingData = {
       ...bookingInfo,
       flights
     }
-    console.log(bookingData);
     return bookingData;
   }
   resetFlightSelection(){

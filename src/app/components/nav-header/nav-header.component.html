@@ -1,95 +1,112 @@
-<header #header data-add-bg="bg-dark-1" [ngClass]="{'bg-green': headerType==='light', 'bg-dark-3': headerType==='dark'}" class="header js-header" data-x="header" data-x-toggle="is-menu-opened">
+<header #header data-add-bg="bg-dark-1" [ngClass]="{'-dashboard': dashboard,'bg-white': headerType==='white','bg-green': headerType==='light', 'bg-dark-3': headerType==='dark'}" class="header js-header" data-x="header" data-x-toggle="is-menu-opened">
   <div data-anim="fade" class="header__container px-30 sm:px-20">
-    <div class="row justify-between items-center">
-
+    @if(dashboard){
+      <div class="-left-side">
+        <a href="/" class="header-logo" data-x="header-logo" data-x-toggle="is-logo-dark">
+          <img src="assets/img/general/logo-light.svg" alt="logo icon">
+          <img src="assets/img/general/logo-dark.svg" alt="logo icon">
+        </a>
+      </div>
+    }
+    <div class="row justify-between items-center pl-60 lg:pl-20">
+      @if(dashboard){
+        <div class="col-auto">
+          <div class="d-flex items-center">
+            <button (click)="shared.toggleDashboardSidebar()">
+              <i class="icon-menu-2 text-20"></i>
+            </button>
+          </div>
+        </div>
+      }
       <div class="col-auto">
         <div class="d-flex items-center">
-          <a href="index.html" class="header-logo mr-20" data-x="header-logo" data-x-toggle="is-logo-dark">
-            <img src="assets/img/general/logo-light.svg" alt="logo icon">
-            <img src="assets/img/general/logo-dark.svg" alt="logo icon">
-          </a>
-
-
-          <div class="header-menu " data-x="mobile-menu" data-x-toggle="is-menu-active">
-            <div class="mobile-overlay"></div>
-            <div class="header-menu__content">
-              <div class="mobile-bg js-mobile-bg"></div>
-
-              <div class="menu js-navList">
-                <ul class="menu__nav text-white -is-active">
-                  @for(menuItem of menuItems; track menuItem){
-                    @if(menuItem.children!==undefined){
-                      <li class="menu-item-has-children">
+          @if(!dashboard){
+            <a href="/" class="header-logo mr-20" data-x="header-logo" data-x-toggle="is-logo-dark">
+              <img src="assets/img/general/logo-light.svg" alt="logo icon">
+              <img src="assets/img/general/logo-dark.svg" alt="logo icon">
+            </a>
+          }
+          @if(!booking){
+            <div class="header-menu" data-x="mobile-menu" data-x-toggle="is-menu-active">
+              <div class="mobile-overlay"></div>
+              <div class="header-menu__content">
+                <div class="mobile-bg js-mobile-bg"></div>
+                <div class="menu js-navList">
+                  <ul class="menu__nav text-white -is-active">
+                    @for(menuItem of menuItems; track menuItem){
+                      @if(menuItem.children!==undefined){
+                        <li class="menu-item-has-children">
+                          @switch(menuItem.tipoEnlace){
+                            @case("interno"){
+                              <a [href]="'/'+menuItem.route">
+                                <span class="mr-10">{{menuItem.name|titlecase}}</span>
+                                <i class="icon icon-chevron-sm-down"></i>
+                              </a>
+                            }
+                            @case("externo"){
+                              <a [href]="menuItem.url">
+                                <span class="mr-10">{{menuItem.name|titlecase}}</span>
+                                <i class="icon icon-chevron-sm-down"></i>
+                              </a>
+                            }
+                            @case("pagina"){
+                              <a [href]="'/pagina/'+menuItem.page">
+                                <span class="mr-10">{{menuItem.name|titlecase}}</span>
+                                <i class="icon icon-chevron-sm-down"></i>
+                              </a>
+                            }
+                          }
+                          <ul class="subnav">
+                            <li>
+                              @for(childrenItem of menuItem.children; track childrenItem){
+                                @switch(childrenItem.tipoEnlace){
+                                  @case("interno"){
+                                    <a [href]="'/'+menuItem.route">
+                                      {{childrenItem.name|titlecase}}
+                                    </a>
+                                  }
+                                  @case("externo"){
+                                    <a [href]="childrenItem.url">
+                                      {{childrenItem.name|titlecase}}
+                                    </a>
+                                  }
+                                  @case("pagina"){
+                                    <a [href]="'/pagina/'+childrenItem.page">
+                                      {{childrenItem.name|titlecase}}
+                                    </a>
+                                  }
+                                }
+                              }
+                            </li>
+                          </ul>
+                        </li>
+                      }@else{
+                      <li>
                         @switch(menuItem.tipoEnlace){
                           @case("interno"){
                             <a [href]="'/'+menuItem.route">
-                              <span class="mr-10">{{menuItem.name|titlecase}}</span>
-                              <i class="icon icon-chevron-sm-down"></i>
+                              {{menuItem.name|titlecase}}
                             </a>
                           }
                           @case("externo"){
                             <a [href]="menuItem.url">
-                              <span class="mr-10">{{menuItem.name|titlecase}}</span>
-                              <i class="icon icon-chevron-sm-down"></i>
+                              {{menuItem.name|titlecase}}
                             </a>
                           }
                           @case("pagina"){
-                            <a [href]="'/pagina/'+menuItem.page._ref">
-                              <span class="mr-10">{{menuItem.name|titlecase}}</span>
-                              <i class="icon icon-chevron-sm-down"></i>
+                            <a [href]="'/pagina/'+menuItem.page">
+                              {{menuItem.name|titlecase}}
                             </a>
                           }
                         }
-                        <ul class="subnav">
-                          <li>
-                            @for(childrenItem of menuItem.children; track childrenItem){
-                              @switch(childrenItem.tipoEnlace){
-                                @case("interno"){
-                                  <a [href]="'/'+menuItem.route">
-                                    {{childrenItem.name|titlecase}}
-                                  </a>
-                                }
-                                @case("externo"){
-                                  <a [href]="childrenItem.url">
-                                    {{childrenItem.name|titlecase}}
-                                  </a>
-                                }
-                                @case("pagina"){
-                                  <a [href]="'/pagina/'+childrenItem.page._ref">
-                                    {{childrenItem.name|titlecase}}
-                                  </a>
-                                }
-                              }
-                            }
-                          </li>
-                        </ul>
                       </li>
-                    }@else{
-                    <li>
-                      @switch(menuItem.tipoEnlace){
-                        @case("interno"){
-                          <a [href]="'/'+menuItem.route">
-                            {{menuItem.name|titlecase}}
-                          </a>
-                        }
-                        @case("externo"){
-                          <a [href]="menuItem.url">
-                            {{menuItem.name|titlecase}}
-                          </a>
-                        }
-                        @case("pagina"){
-                          <a [href]="'/pagina/'+menuItem.page._ref">
-                            {{menuItem.name|titlecase}}
-                          </a>
-                        }
                       }
-                    </li>
                     }
-                  }
-                </ul>
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          }
 
         </div>
       </div>
@@ -99,7 +116,7 @@
         <div class="d-flex items-center">
 
           <div class="row x-gap-20 items-center xxl:d-none">
-            <div class="col-auto">
+            <!-- <div class="col-auto">
               <button class="d-flex items-center text-14 text-white" data-x-click="currency">
                 <span class="js-currencyMenu-mainTitle">USD</span>
                 <i class="icon-chevron-sm-down text-7 ml-10"></i>
@@ -116,18 +133,26 @@
                 <span class="js-language-mainTitle">United Kingdom</span>
                 <i class="icon-chevron-sm-down text-7 ml-15"></i>
               </button>
-            </div>
+            </div> -->
           </div>
 
 
           <div class="d-flex items-center ml-20 is-menu-opened-hide md:d-none">
-            <a href="login.html" class="button px-30 fw-400 text-14 -white bg-white h-50 text-dark-1">Become An Expert</a>
-            <a href="signup.html" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">Sign In / Register</a>
+            @if(!booking){
+              <a href="login.html" class="button px-30 fw-400 text-14 -white bg-white h-50 text-dark-1">Conviértete en Xperto</a>
+            }@else{
+              <a href="/inicio" class="button px-30 fw-400 text-14 -white bg-white h-50 text-dark-1">Salir</a>
+            }
+            <a href="/entrar" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">Iniciar Sesión / Registrarse</a>
           </div>
 
           <div class="d-none xl:d-flex x-gap-20 items-center pl-30 text-white" data-x="header-mobile-icons" data-x-toggle="text-white">
             <div><a href="login.html" class="d-flex items-center icon-user text-inherit text-22"></a></div>
-            <div><button class="d-flex items-center icon-menu text-inherit text-20" data-x-click="html, header, header-logo, header-mobile-icons, mobile-menu"></button></div>
+            @if(!booking){
+              <div><button class="d-flex items-center icon-menu text-inherit text-20" data-x-click="html, header, header-logo, header-mobile-icons, mobile-menu"></button></div>
+            }@else{
+              <div><button class="d-flex items-center icon-close text-inherit text-20"></button></div>
+            }
           </div>
         </div>
       </div>

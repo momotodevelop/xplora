@@ -105,3 +105,49 @@ export interface CreatePaymentRequestData{
     selectedPaymentMethod: string;
     formData: any;
 }
+
+export type PaymentType = 'credit_card'|'debit_card'|'ticket'|'wallet_purchase'|'atm'|'onboarding_credits';
+  // Interfaz para los datos del pagador
+interface Payer {
+    email: string;
+    first_name: string;
+    last_name: string;
+    // Otros campos opcionales para distintos métodos de pago
+    identification?: {
+        type: string;
+        number: string;
+    };
+    phone?: {
+        area_code: string;
+        number: string;
+    };
+}
+  // Interfaz para los metadatos
+interface Metadata {
+    payment_point: string;
+    issuer_id?: string;
+    cardholder_name?: string;
+    cardholder_id_number?: string;
+    [key: string]: any; // Otros campos adicionales
+}
+
+  // Interfaz para los datos del formulario (formData)
+interface FormData {
+    payment_method_id: string;
+    transaction_amount: number;
+    payer: Payer;
+    token?: string; // Token de la tarjeta (para pagos con tarjeta)
+    installments?: number; // Cuotas (para pagos con tarjeta)
+    issuer_id?: string; // Emisor de la tarjeta
+    payment_method_option_id?: string; // Opciones de métodos de pago
+    binary_mode?: boolean; // Pago en modo binario
+    metadata?: Metadata;
+    [key: string]: any; // Otros campos adicionales
+}
+
+  // Interfaz para el objeto completo de datos de pago
+export interface PaymentData {
+    paymentType: PaymentType;
+    selectedPaymentMethod: string;
+    formData: FormData;
+}

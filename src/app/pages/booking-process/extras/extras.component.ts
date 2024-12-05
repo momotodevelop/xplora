@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
-import {MatCardModule} from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { DepartureArrival, FlightOffer } from '../../../types/flight-offer-amadeus.types';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
 import { XploraFlightBooking } from '../../../types/xplora-api.types';
@@ -12,6 +12,8 @@ import { AddPremiumInsuranceComponent } from './add-insurance/add-insurance.comp
 import { AddBaggageComponent } from './add-baggage/add-baggage.component';
 import { CommonModule } from '@angular/common';
 import { XploraApiService } from '../../../services/xplora-api.service';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faChevronRight, faSpinner, faSync, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 
 export const ExtrasPrices = {
   insurance: 109,
@@ -33,12 +35,13 @@ export interface ExtraServiceBottomSheetData{
 @Component({
   selector: 'app-extras',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatBottomSheetModule, CommonModule],
+  imports: [MatCardModule, MatButtonModule, MatBottomSheetModule, CommonModule, FontAwesomeModule],
   templateUrl: './extras.component.html',
   styleUrl: './extras.component.scss'
 })
 export class ExtrasComponent implements OnInit {
   @Output() next:EventEmitter<void> = new EventEmitter();
+  @Output() skip:EventEmitter<void> = new EventEmitter();
   constructor(private dialog: MatBottomSheet, private bookingHandler:BookingHandlerService, private xplora: XploraApiService){}
   booking?:XploraFlightBooking;
   insuranceActive?:number[][];
@@ -52,6 +55,11 @@ export class ExtrasComponent implements OnInit {
   baggageTotal:number=0;
   hasChanges:boolean=false;
   isUpdate:boolean=false;
+  nextIcon=faChevronRight;
+  spinnerIcon=faSpinner;
+  updateIcon=faSync;
+  saveIcon=faFloppyDisk;
+  loading:boolean=false;
   ngOnInit(){
     this.bookingHandler.booking.subscribe(booking=>{
       if(booking!==undefined){
@@ -255,9 +263,11 @@ export class ExtrasComponent implements OnInit {
       carryon: this.carryOn,
       baggage: this.baggage
     }
-    this.xplora.updateBooking(this.booking!.bookingID, {aditionalServices}).subscribe(updated=>{
+    this.loading=true;
+    this.xplora.updateBooking(this.booking!.bookingID!, {aditionalServices}).subscribe(updated=>{
       this.bookingHandler.setBookingInfo(updated.booking);
       this.next.emit();
+      this.loading=false;
     });
   }
 }

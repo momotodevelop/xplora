@@ -1,5 +1,15 @@
 <form [formGroup]="form">
     <p class="text-16 fw-400">Titular de la Reservación</p>
+    @if(bookingData&&bookingData.passengersData!==undefined){
+        <mat-chip-listbox class="mb-10" aria-label="Dog selection">
+            @for(passenger of bookingData.passengersData; track passenger;){
+                <mat-chip (click)="autoFill(passenger.name, passenger.lastname)">
+                    <img matChipAvatar src="https://ui-avatars.com/api/?background=004aad&color=fff&name={{passenger.name}}+{{passenger.lastname}}"/>
+                    {{passenger.name}} {{passenger.lastname}}
+                </mat-chip>
+            }
+        </mat-chip-listbox>
+    }
     <div class="row x-gap-10 y-gap-10 pb-20">
         <div class="col-md-6">
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">

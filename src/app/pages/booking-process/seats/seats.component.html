@@ -40,15 +40,15 @@
         @if(!last){
             <mat-divider style="margin-bottom: 2rem;"></mat-divider>
         }
-        <button mat-stroked-button (click)="skip.emit()" class="w-100 mt-4">Continuar sin asientos</button>
-        <button mat-flat-button (click)="saveSeatSelection()" color="primary" class="w-100 mt-4">Guardar asientos</button>
     }
+    <button mat-stroked-button (click)="skip.emit()" class="w-100 mt-4">Continuar sin asientos <fa-icon [icon]="nextIcon"></fa-icon></button>
+    <button mat-flat-button (click)="saveSeatSelection()" color="primary" class="w-100 mt-4">Guardar asientos <fa-icon [icon]="loading?spinnerIcon:nextIcon" [animation]="loading?'spin':undefined"></fa-icon></button>
 }@else if (seatMapStatus==="ERROR"){
     <div class="w-100" style="height: 400px; align-items: center; justify-content: center; display: flex; flex-direction: column;">
         <mat-icon style="font-size: 100px; width: 100px; height: 100px; opacity: .30;">flight_class</mat-icon>
         <p class="text-14" style="text-align: center;">Ahora mismo no puedes elegir asientos.<br/>Te ayudaremos a seleccionarlos más adelante.</p>
     </div>
-    <button mat-flat-button color="primary" (click)="skip.emit()" class="w-100 mt-4">Continuar</button>
+    <button mat-flat-button color="primary" (click)="skip.emit()" class="w-100 mt-4">Siguiente <fa-icon [icon]="nextIcon"></fa-icon></button>
 }@else if(seatMapStatus==="LOADING"){
     <div class="w-100" style="height: 400px; align-items: center; justify-content: center; display: flex; flex-direction: column;">
         <mat-spinner class="mb-20" [diameter]="100"></mat-spinner>

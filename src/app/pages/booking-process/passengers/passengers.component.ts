@@ -17,6 +17,12 @@ export interface PassengerValue {
   minDate?:      Date;
   maxDate?:      Date;
 }
+export interface PassengerFormValue {
+  name:     string;
+  lastname: string;
+  birth:    Date;
+  gender:   string;
+}
 
 @Component({
   selector: 'app-passengers',
@@ -33,6 +39,12 @@ export class PassengersComponent implements OnInit {
   @Output() valid: EventEmitter<PassengerValue[]|undefined> = new EventEmitter();
   form: FormGroup;
   passengerTitles:string[]=[];
+  passengerDetails:{
+    minDate: Date|undefined,
+    maxDate: Date|undefined,
+    id: number
+    type: "ADULT"|"CHILDREN"|"INFANT"
+  }[]=[];
   dateLimits:{
     adult:{
       min: Date|null,
@@ -54,18 +66,19 @@ export class PassengersComponent implements OnInit {
     });
     this.dateLimits = {
       adult: {
-        max: new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()),
+        max: new Date(today.getFullYear() - 12, today.getMonth(), today.getDate()),
         min: null
       },
       children: {
         max: new Date(today.getFullYear() - 2, today.getMonth(), today.getDate()),
-        min: new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())
+        min: new Date(today.getFullYear() - 12, today.getMonth(), today.getDate())
       },
       infant: {
         max: today,
         min: new Date(today.getFullYear() - 2, today.getMonth(), today.getDate())
       }
     }
+    console.log(this.dateLimits);
   }
   ngOnInit(): void {
     console.log(this.dateLimits);
@@ -108,16 +121,20 @@ export class PassengersComponent implements OnInit {
     return this.form.get('passengers') as FormArray;
   }
   emitFormData(){
-    const data:PassengerValue[]=this.form.get('passengers')!.value.map((passenger:PassengerValue)=>{
-      return {
+    const data:PassengerValue[]=this.form.get('passengers')!.value.map((passenger:PassengerFormValue, i:number)=>{
+      const value:PassengerValue = {
         name: passenger.name,
         lastname: passenger.lastname,
         birth: passenger.birth,
         gender: passenger.gender,
-        type: passenger.type,
-        id: passenger.id
-      }
+        type: this.passengerDetails[i].type,
+        id: i,
+        minDate: this.passengerDetails[i].minDate,
+        maxDate: this.passengerDetails[i].maxDate
+      };
+      return value;
     });
+    console.log(data);
     this.valid.emit(data);
   }
   initializeForm(): void {
@@ -140,34 +157,30 @@ export class PassengersComponent implements OnInit {
       id++;
       infantIterator++;
     }
+    console.log(this.passengers);
   }
   addPassenger(type: "ADULT"|"CHILDREN"|"INFANT", id:number, iteratorNumber:number): void {
     let passengerForm:FormGroup;
     // Si el pasajero es un infante, añadir un campo para seleccionar el adulto relacionado
     const today = new Date();
-    let minDate: Date|null;
-    let maxDate: Date|null;
+    let minDate: Date|undefined;
+    let maxDate: Date|undefined;
 
     // Establecer rangos de fecha según el tipo
     if (type === 'ADULT') {
-      minDate = null;
-      maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      maxDate = new Date(today.getFullYear() - 12, today.getMonth(), today.getDate());
     } else if (type === 'CHILDREN') {
-      minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      minDate = new Date(today.getFullYear() - 12, today.getMonth(), today.getDate());
       maxDate = new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
     } else {  // INFANT
       minDate = new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
       maxDate = today;
     }
     passengerForm = this.fb.group({
-      id: [id], 
       name: ['', Validators.required],
       lastname: ['', Validators.required],
       birth: ['', Validators.required],
-      gender: ['', Validators.required],
-      type: [type],
-      minDate: [minDate],  // Almacenar las fechas mínimas y máximas en el FormGroup
-      maxDate: [maxDate]
+      gender: ['', Validators.required]
     });
     let passengerTypeText;
     switch(type){
@@ -182,6 +195,9 @@ export class PassengersComponent implements OnInit {
         break;
     }
     this.passengerTitles.push(passengerTypeText+iteratorNumber.toString());
+    this.passengerDetails.push({id, maxDate, minDate, type})
     this.passengers.push(passengerForm);
+    console.log(passengerForm);
+    console.log(minDate, maxDate);
   }
 }

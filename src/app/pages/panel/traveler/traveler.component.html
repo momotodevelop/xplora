@@ -1,0 +1,4 @@
+<div class="dashboard" [ngClass]="{'-is-sidebar-open': !(sharedService.sidebarDashboardOpened|async)}">
+    <app-traveler-sidebar></app-traveler-sidebar>
+</div>
+<router-outlet></router-outlet>

@@ -1,5 +1,129 @@
-<div id="paymentBrick_container"></div>
-<div style="margin-bottom: 16px;" class="text-16 text-light-1">
-    Al hacer clic en "Pagar", aceptas los <a href="">Términos y Condiciones</a> y la <a>Política de Privacidad</a> de Xplora Travel.
+<mat-accordion class="payment-accordion">
+    <mat-expansion-panel hideToggle #panelTarjeta (opened)="openedPanel('tarjeta')" (closed)="closedPanel('tarjeta')" expanded>
+            <mat-expansion-panel-header>
+                <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='tarjeta'}" class="mr-5 text-14" [icon]="cardIcon"></fa-icon> Tarjeta de Crédito o Débito</mat-panel-title>
+            </mat-expansion-panel-header>
+            <!-- <div id="clip_checkout" style="margin-bottom: -25px;margin-top: 10px;"></div> -->
+            <form [formGroup]="cardForm">
+                <div class="row">
+                    <div class="col-12 col-md-6">
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Número de Tarjeta</mat-label>
+                            <input matInput placeholder="0000 0000 0000 0000" type="tel" ccNumber #ccNumber="ccNumber" formControlName="number">
+                            <mat-icon matSuffix>credit_card</mat-icon>
+                            <mat-hint class="text-12">Visa, MasterCard, American Express</mat-hint>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-6 col-md-3 pr-0 px-md-0">
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Expiración</mat-label>
+                            <input type="tel" matInput ccExp formControlName="expiration" placeholder="MM/YY">
+                            <mat-icon matSuffix>event</mat-icon>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>CVV</mat-label>
+                            <input type="tel" matInput placeholder="000" ccCVC formControlName="cvv">
+                            <mat-icon matSuffix>lock</mat-icon>
+                            <mat-hint class="text-12">3 o 4 Dígitos</mat-hint>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Nombre del Titular</mat-label>
+                            <input matInput placeholder="Titular" type="text" formControlName="holder">
+                            <mat-icon matSuffix>account_circle</mat-icon>
+                            <mat-hint class="text-12">Como aparece en la tarjeta</mat-hint>
+                        </mat-form-field>
+                    </div>
+                </div>
+                @if(availableInstallments&&availableInstallments.length>1){
+                    <div class="row">
+                        <div class="col-12">
+                            <mat-selection-list [@listAnimation]="availableInstallments.length+1" color="primary" #installments (selectionChange)="installmentsChange($event)" [multiple]="false">
+                                <mat-divider></mat-divider>
+                                <div mat-subheader>
+                                    <p class="text-14 mb-0"><strong>Pago diferido disponible</strong></p>
+                                </div>
+                                <mat-list-option [value]="1" selected>
+                                    <span class="text-14" matListItemTitle><strong>Un solo pago</strong></span>
+                                    <span class="text-12" matListItemLine>Un pago de {{total|currency:'MXN'}}</span>
+                                </mat-list-option>
+                                @for (installment of availableInstallments; track installment) {
+                                    <mat-list-option [value]="installment.quantity">
+                                        <span class="text-14" matListItemTitle><strong>{{installment.quantity}} Mensualidades</strong> <span matTooltip="Meses sin intereses" class="badge badge-pill badge-primary text-8 ml-5">MSI</span></span>
+                                        <span class="text-12" matListItemLine>{{installment.quantity}} pagos de {{installment.amount|currency:'MXN'}} = {{installment.total_amount|currency:'MXN'}} <small>(+{{installment.fee}}%)</small></span>
+                                    </mat-list-option>
+                                }
+                            </mat-selection-list>
+                        </div>
+                    </div>
+                }
+            </form>
+            <div>
+
+            </div>
+    </mat-expansion-panel>
+    <mat-expansion-panel hideToggle #panelEfectivo (opened)="openedPanel('efectivo')" (closed)="closedPanel('efectivo')">
+        <mat-expansion-panel-header>
+            <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='efectivo'}" class="mr-5 text-14" [icon]="cashIcon"></fa-icon> Efectivo</mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-selection-list color="primary" #paymentOfficeList (selectionChange)="paymentOfficeChange($event)" [multiple]="false" >
+            @for(paymentOffice of paymentOffices; track paymentOffice){
+                <mat-list-option [disabled]="total>paymentOffice.maxAmmount" [value]="paymentOffice.id">
+                    <div matListItemTitle style="font-weight: bolder;">{{paymentOffice.name}} <span [ngClass]="paymentOffice.fee>0?'badge-primary':'badge-success'" class="badge badge-pill badge-success">+{{paymentOffice.fee|currency:'MXN'}}</span> </div>
+                    <div matListItemLine class="text-14">
+                        @if(total>paymentOffice.maxAmmount){
+                            <span>Monto maximo: {{paymentOffice.maxAmmount|currency:'MXN'}}</span>
+                        }
+                        @else{
+                            @if(paymentOffice.delayHours>0){
+                                <span>Se aplica en {{paymentOffice.delayHours}} horas</span>
+                            }@else{
+                                <span>Se aplica de inmediato</span>
+                            }
+                        }
+                    </div>
+                </mat-list-option>
+            }
+        </mat-selection-list>
+        @if(selectedPaymentOffice){
+            <button (click)="resetPaymentOffice()" mat-button color="primary">Cambiar sucursal de pago</button>
+            <p class="text-dark-1 text-14 mt-10" style="text-align: justify;">Una vez que confirmes tu reservación, recibirás un número de referencia que deberás proporcionar al momento de hacer el pago. Los detalles para completar la transacción serán enviados a tu correo electrónico.</p>
+        }
+    </mat-expansion-panel>
+    <mat-expansion-panel hideToggle #panelSpei (opened)="openedPanel('spei')" (closed)="closedPanel('spei')">
+        <mat-expansion-panel-header>
+            <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='spei'}" class="mr-5 text-14" [icon]="speiIcon"></fa-icon> SPEI</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="row">
+            <div class="col-md-4 d-flex items-center justify-center">
+                <img src="assets/img/payments/spei.svg" class="my-2" style="max-width: 100px;">
+            </div>
+            <div class="col-md-8">
+                <p class="text-14 text-dark-1" style="text-align: justify;">Después de confirmar tu reservación, recibirás un correo electrónico con la información de nuestra cuenta bancaria y el número de referencia que deberás incluir en la transferencia.</p>
+            </div>
+        </div>
+    </mat-expansion-panel>
+</mat-accordion>
+
+<!-- <div id="paymentBrick_container"></div> -->
+<button [disabled]="!selectedPayment||(selectedPayment==='tarjeta'&&!cardForm.valid)||(selectedPayment==='efectivo'&&!selectedPaymentOffice)||loading" (click)="makePayment()" mat-raised-button style="margin-top: 16px;" color="primary" class="w-100" >
+    @if(loading){
+        Procesando tu pago <fa-icon [icon]="spinnerIcon" [animation]="'spin'"></fa-icon>
+    }@else{
+        @if(selectedPayment!==undefined){
+            @if(selectedPayment==='tarjeta'){
+                Pagar {{total|currency:'MXN'}}
+            }@else{
+                Confirmar Reservación
+            }
+        }@else{
+            Confirmar Reservación
+        }
+    }
+</button>
+<div style="margin-top: 16px;" class="text-12 text-light-1">
+    Al hacer clic en "Pagar", aceptas los <a href="">Términos y Condiciones</a> y la <a href="">Política de Privacidad</a> de Xplora Travel.
 </div>
-<button (click)="createPayment()" style="margin-bottom: 16px;" class="button -md -dark-1 bg-blue-1 text-white w-100" matStepperNext>Pagar {{total|currency:'MXN'}}</button>

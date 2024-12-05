@@ -99,8 +99,12 @@
     </mat-card-actions>
 </mat-card>
 <div class="text-18 fw-500 my-3">Total adicionales: {{total|currency:'MXN'}}</div>
-<button mat-stroked-button (click)="next.emit()" class="w-100 mt-4">Continuar sin {{isUpdate?'actualizar':'adicionales'}}</button>
-<button mat-flat-button color="primary" (click)="saveExtras()" [disabled]="!insuranceActive&&!flexpass&&!carryOn&&!baggage||!hasChanges" class="w-100 mt-4">{{isUpdate?'Actualizar':'Guardar'}} adicionales</button>
+@if(isUpdate){
+    <button mat-stroked-button (click)="next.emit()" class="w-100 mt-4">Continuar sin actualizar <fa-icon [icon]="loading?spinnerIcon:nextIcon" [animation]="loading?'spin':undefined"></fa-icon></button>
+}@else{
+    <button mat-stroked-button (click)="skip.emit()" class="w-100 mt-4">Continuar sin adicionales <fa-icon [icon]="loading?spinnerIcon:nextIcon" [animation]="loading?'spin':undefined"></fa-icon></button>
+}
+<button mat-flat-button color="primary" (click)="saveExtras()" [disabled]="!insuranceActive&&!flexpass&&!carryOn&&!baggage||!hasChanges" class="w-100 mt-4">{{isUpdate?'Actualizar':'Guardar'}} adicionales <fa-icon [icon]="isUpdate?updateIcon:(loading?spinnerIcon:saveIcon)" [animation]="loading?'spin':undefined"></fa-icon></button>
 <!--<mat-card class="mt-20">
     <mat-card-header>
         <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/pets.png');"></div>

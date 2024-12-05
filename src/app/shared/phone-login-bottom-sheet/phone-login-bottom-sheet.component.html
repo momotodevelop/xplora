@@ -1,0 +1,26 @@
+<div class="py-15 px-15 mat-elevation-z4">
+    <div class="text-20 fw-500 mb-0 d-inline-block">Iniciar Sesión</div>
+    <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
+</div>
+<div class="px-15 py-15 mt-5">
+    <mat-form-field subscriptSizing="dynamic" class="w-100 mb-15" appearance="outline">
+        <mat-label>País</mat-label>
+        <mat-icon matPrefix>language</mat-icon>
+        <mat-select [(value)]="country">
+            @for(country of countries; track country){
+                <mat-option [value]="country.dialCode">{{country.name}} ({{country.code}})</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field subscriptSizing="dynamic" class="w-100" appearance="outline">
+        <mat-label>Número de Teléfono</mat-label>
+        <span matTextPrefix>+{{country}}</span>
+        <mat-icon matTextPrefix></mat-icon>
+        <input [formControl]="phone" matInput type="tel" placeholder="10 Dígitos">
+    </mat-form-field>
+    <div id="recaptcha-container" class="mt-15"></div>
+    <button (click)="sendSms()" [disabled]="phone.invalid" class="button col-12 -outline-blue-1 text-blue-1 py-15 rounded-8 mt-15">
+        <fa-icon [icon]="sendIcon" class="text-15 mr-10"></fa-icon>
+        Enviar codigo de confirmacion
+    </button>
+</div>

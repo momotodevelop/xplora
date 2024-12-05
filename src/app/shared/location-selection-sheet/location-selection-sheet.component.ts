@@ -24,11 +24,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 @Component({
   selector: 'app-location-selection-sheet',
   standalone: true,
-  imports: [MatBottomSheetModule,MatButtonModule,ScrollingModule, ReactiveFormsModule, 
-// TODO: `HttpClientModule` should not be imported into a component directly.
-// Please refactor the code to add `provideHttpClient()` call to the provider list in the
-// application bootstrap logic and remove the `HttpClientModule` import from this component.
-HttpClientModule, TitleCasePipe, NgxSkeletonLoaderModule, IataSubstitutionPipe, MatSnackBarModule],
+  imports: [MatBottomSheetModule,MatButtonModule,ScrollingModule, ReactiveFormsModule, TitleCasePipe, NgxSkeletonLoaderModule, IataSubstitutionPipe, MatSnackBarModule],
   providers: [AirportSearchService, AmadeusAuthService, TranslateService, TitleCasePipe, IataSubstitutionPipe, GeolocationService],
   templateUrl: './location-selection-sheet.component.html',
   styleUrl: './location-selection-sheet.component.scss',

@@ -4,6 +4,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
+import { MatChipsModule } from '@angular/material/chips';
+import { XploraFlightBooking } from '../../../types/xplora-api.types';
 export interface ContactInfoValue{
   name: string,
   lastname: string,
@@ -15,7 +17,7 @@ export interface ContactInfoValue{
 @Component({
   selector: 'app-contact-info',
   standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, MatInputModule, MatFormFieldModule, MatSelectModule],
+  imports: [ReactiveFormsModule, FormsModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatChipsModule],
   templateUrl: './contact-info.component.html',
   styleUrl: './contact-info.component.scss'
 })
@@ -68,14 +70,17 @@ export class ContactInfoComponent {
     name: new FormControl('', [Validators.required, Validators.minLength(2)]),
     lastname: new FormControl('', [Validators.required, Validators.minLength(2)])
   });
+  bookingData?:XploraFlightBooking;
   constructor(private booking: BookingHandlerService){
     this.form.valueChanges.subscribe(change=>{
       this.change();
     });
     this.booking.booking.subscribe(booking=>{
       if(booking!==undefined){
+        this.bookingData = booking;
         if(booking.contact!==undefined){
           this.form.setValue(booking.contact);
+          this.valid.emit(booking.contact!)
         }
       }
     })
@@ -86,5 +91,9 @@ export class ContactInfoComponent {
     }else{
       this.valid.emit(undefined);
     }
+  }
+  autoFill(name:string, lastname:string){
+    this.form.controls['name'].setValue(name);
+    this.form.controls['lastname'].setValue(lastname);
   }
 }

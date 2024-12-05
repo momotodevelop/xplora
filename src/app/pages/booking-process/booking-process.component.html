@@ -1,7 +1,7 @@
 @if(booking!==undefined){
-    <section class="section-bg layout-pt-lg layout-pb-lg mb-20">
+    <!-- <section class="layout-pt-md">
         <div class="section-bg__item col-12">
-            <img src="assets/img/backgrounds/cancun.jpg" alt="Destino">
+            <app-header-map [lat]="booking.destination.geoCode.latitude" [lng]="booking.destination.geoCode.longitude" ></app-header-map>
         </div>
         <div class="container">
             <div class="row justify-center text-center">
@@ -11,32 +11,36 @@
                 </div>
             </div>
         </div>
-    </section>
-    <div class="container">
+    </section> -->
+    <div class="container mt-40">
         <div class="row">
             <div class="col-xl-7 col-lg-8">
-                <mat-vertical-stepper [linear]="true" class="booking-stepper" #stepper>
+                <mat-vertical-stepper class="booking-stepper" #stepper>
                     <mat-step [completed]="passengers!==undefined">
                         <ng-template matStepLabel><h2 class="text-16 fw-500">Pasajeros</h2></ng-template>
                         @if(booking){
                             <app-passengers [adults]="booking.passengers.adults" [childrens]="booking.passengers.childrens" [infants]="booking.passengers.infants" [passengersData]="booking.passengersData ?? []" (valid)="passengers = $event"></app-passengers>
                         }
                         <div>
-                            <button (click)="processPassengers()" mat-raised-button class="w-100">Siguiente <mat-icon><mat-spinner diameter="20"></mat-spinner></mat-icon></button>
+                            <button [disabled]="!passengers" (click)="processPassengers()" color="primary" mat-raised-button class="w-100">
+                                Siguiente <fa-icon [icon]="loadingProcess?spinnerIcon:nextIcon" [animation]="loadingProcess?'spin':undefined"></fa-icon>
+                            </button>
                         </div>
                     </mat-step>
                     <mat-step [completed]="contactInfo!==undefined">
                         <ng-template matStepLabel><h2 class="text-16 fw-500">Información de Contacto</h2></ng-template>
                         <app-contact-info (valid)="contactInfo = $event"></app-contact-info>
-                        <button mat-flat-button [disabled]="!contactInfo" (click)="processContact()" color="primary" class="w-100 mt-4">Continuar</button>
+                        <button mat-flat-button [disabled]="!contactInfo" (click)="processContact()" color="primary" class="w-100 mt-4">
+                            Siguiente <fa-icon [icon]="loadingProcess?spinnerIcon:nextIcon" [animation]="loadingProcess?'spin':undefined"></fa-icon>
+                        </button>
                     </mat-step>
                     <mat-step>
                         <ng-template matStepLabel><h2 class="text-16 fw-500">Asientos</h2></ng-template>
-                        <app-seats (completed)="processSeats($event)" (skip)="stepper.next()" (goToPassengers)="goToPassengers()"></app-seats>
+                        <app-seats (completed)="processSeats($event)" (skip)="skipStep('SEATS')" (goToPassengers)="goToPassengers()"></app-seats>
                     </mat-step>
                     <mat-step>
                         <ng-template matStepLabel><h2 class="text-16 fw-500">Servicios Adicionales</h2></ng-template>
-                        <app-extras (next)="stepper.next()"></app-extras>
+                        <app-extras (next)="stepper.next()" (skip)="skipStep('EXTRAS')" #extras></app-extras>
                     </mat-step>
                     <mat-step [ngClass]="{'payment-step': true}">
                         <ng-template matStepLabel>Pagar Reservación</ng-template>
@@ -44,9 +48,9 @@
                     </mat-step>
                 </mat-vertical-stepper>
             </div>
-            <div class="col-xl-5 col-lg-4">
+            <div class="col-xl-5 col-lg-4 pt-20">
                 @if(booking!==undefined){
-                    <app-booking-sidebar></app-booking-sidebar>
+                    <app-booking-sidebar (openInsuranceExtra)="openInsuranceFromSidebar()"></app-booking-sidebar>
                 }
             </div>
         </div>

@@ -9,7 +9,7 @@ import { UpdateResponse, XploraFlightBooking } from '../types/xplora-api.types';
 export class XploraApiService {
 
   constructor(private http: HttpClient) { }
-  createBooking(data:any):Observable<{status:"CREATED", id: string}>{
+  createBooking(data:XploraFlightBooking):Observable<{status:"CREATED", id: string}>{
     return this.http.put<{status:"CREATED", id: string}>("https://zuddyksquc.execute-api.us-east-2.amazonaws.com/default/xploraFlightsAPI", JSON.stringify(data));
   }
   getBooking(bookingID:string){

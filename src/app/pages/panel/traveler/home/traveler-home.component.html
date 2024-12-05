@@ -1,0 +1,160 @@
+<div class="dashboard__main" [ngClass]="{'p-0': !(sharedService.sidebarDashboardOpened|async)}">
+    <div class="dashboard__content bg-light-2">
+      <div class="row y-gap-20 justify-between items-end pb-60 lg:pb-40 md:pb-32">
+        <div class="col-auto">
+
+          <h1 class="text-30 lh-14 fw-600">Mi Cuenta</h1>
+          <div class="text-15 text-light-1">Este es un resumen de tu actividad.</div>
+
+        </div>
+
+        <div class="col-auto">
+
+        </div>
+      </div>
+
+
+      <div class="row y-gap-30">
+
+        <div class="col-xl-6 col-md-6">
+          <div class="py-30 px-30 rounded-4 bg-white shadow-3">
+            <div class="row y-gap-20 justify-between items-center">
+              <div class="col-auto">
+                <div class="fw-500 lh-14">Xplorer Points</div>
+                <div class="text-26 lh-16 fw-600 mt-5">{{xpsBalance|currency:'MXN'}}</div>
+                <div class="text-15 lh-14 text-light-1 mt-5">Total Acumulado</div>
+              </div>
+
+              <div class="col-auto">
+                <img src="assets/img/dashboard/icons/xplora_coin.svg" alt="icon">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-6 col-md-6">
+          <div class="py-30 px-30 rounded-4 bg-white shadow-3">
+            <div class="row y-gap-20 justify-between items-center">
+              <div class="col-auto">
+                <div class="fw-500 lh-14">Pagos Pendientes</div>
+                <div class="text-26 lh-16 fw-600 mt-5">{{0|currency:'MXN'}}</div>
+                <div class="text-15 lh-14 text-light-1 mt-5">Al día de hoy</div>
+              </div>
+
+              <div class="col-auto">
+                <img src="assets/img/dashboard/icons/1.svg" alt="icon">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="row y-gap-30 pt-20">
+        <div class="col-xl-7 col-md-6">
+          <div class="py-30 px-30 rounded-4 bg-white shadow-3">
+            <div class="d-flex justify-between items-center">
+              <h2 class="text-18 lh-1 fw-500">
+                Ofertas Exclusivas
+              </h2>
+            </div>
+            <div class="pt-30">
+              <img src="assets/img/dashboard/promos/1.jpg" style="width: 100%;">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-5 col-md-6">
+          <div class="py-30 px-30 rounded-4 bg-white shadow-3">
+            <div class="d-flex justify-between items-center">
+              <h2 class="text-18 lh-1 fw-500">
+                Viajes Proximos
+              </h2>
+
+              <div class="">
+                <a href="#" class="text-14 text-blue-1 fw-500 underline">Ver Todos</a>
+              </div>
+            </div>
+
+            <div class="overflow-scroll scroll-bar-1 pt-30">
+              <table class="table-2 col-12">
+                <thead class="">
+                  <tr>
+                    <th></th>
+                    <th>Destino</th>
+                    <th>Fecha:</th>
+                  </tr>
+                </thead>
+                <tbody>
+
+                  @for(trip of upcomingTrips; track trip){
+                    <tr>
+                      <td>
+                        @switch(trip.type){
+                          @case("FLIGHT"){
+                            <fa-icon [icon]="planeIcon"></fa-icon>
+                          }
+                          @case("HOTEL"){
+                            <fa-icon [icon]="hotelIcon"></fa-icon>
+                          }
+                          @case("PACKAGE"){
+                            <fa-icon [icon]="packageIcon"></fa-icon>
+                          }
+                          @case("TOUR"){
+                            <fa-icon [icon]="tourIcon"></fa-icon>
+                          }
+                          @case("TRANSFER"){
+                            <fa-icon [icon]="transferIcon"></fa-icon>
+                          }
+                          @case("CARRENTAL"){
+                            <fa-icon [icon]="carIcon"></fa-icon>
+                          }
+                        }
+                      </td>
+                      <td class="fw-500">{{trip.destination}}</td>
+                      <td>{{trip.date|date:'mediumDate'|titlecase}}</td>
+                    </tr>
+                  }
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <footer class="footer -dashboard mt-60">
+        <div class="footer__row row y-gap-10 items-center justify-between">
+          <div class="col-auto">
+            <div class="row y-gap-20 items-center">
+              <div class="col-auto">
+                <div class="text-14 lh-14 mr-30">© 2022 GoTrip LLC All rights reserved.</div>
+              </div>
+
+              <div class="col-auto">
+                <div class="row x-gap-20 y-gap-10 items-center text-14">
+                  <div class="col-auto">
+                    <a href="#" class="text-13 lh-1">Privacy</a>
+                  </div>
+                  <div class="col-auto">
+                    <a href="#" class="text-13 lh-1">Terms</a>
+                  </div>
+                  <div class="col-auto">
+                    <a href="#" class="text-13 lh-1">Site Map</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-auto">
+            <div class="d-flex x-gap-5 y-gap-5 items-center">
+              <button class="text-14 fw-500 underline">English (US)</button>
+              <button class="text-14 fw-500 underline">USD</button>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>

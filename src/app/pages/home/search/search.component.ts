@@ -107,7 +107,7 @@ export class SearchComponent {
       +(this.origin?.subType==="AIRPORT"?'A':'C')+this.origin?.iataCode+"/"
       +(this.destination?.subType==="AIRPORT"?'A':'C')+this.destination?.iataCode+"/"
       +this.datepipe.transform(this.dates[0], "YYYY-MM-dd")+"/"
-      +(this.round?this.datepipe.transform(this.dates[0], "YYYY-MM-dd"):"NA")+"/"
+      +(this.round?this.datepipe.transform(this.dates[1], "YYYY-MM-dd"):"NA")+"/"
       +this.passengers.adults.toString()+"/"
       +(this.passengers.childrens.toString())+"/"
       +this.passengers.infants.toString()+"/ECONOMY";

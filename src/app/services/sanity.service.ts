@@ -14,7 +14,7 @@ const client = createClient(config);
 export class SanityService {
   
   constructor() { }
-  getBySlug(type:"navigation"|"page", slug:string){
+  private getBySlug(type:"navigation"|"page", slug:string){
     return client.fetch<NavigationData[]>('(*)[_type=="'+type+'"&&slug.current=="'+slug+'"]')
   }
 }

@@ -19,7 +19,7 @@
                     <div class="col-md-6">
                         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
                             <mat-label>Fecha Nacimiento</mat-label>
-                            <input [min]="passenger.get('minDate')?.value ?? null" [max]="passenger.get('maxDate')?.value ?? null" matInput [matDatepicker]="picker" readonly (click)="picker.open()" (focus)="picker.open()" formControlName="birth">
+                            <input [min]="passengerDetails[i].minDate" [max]="passengerDetails[i].maxDate" matInput [matDatepicker]="picker" readonly (click)="picker.open()" (focus)="picker.open()" formControlName="birth">
                             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-datepicker startView="multi-year" #picker></mat-datepicker>
                         </mat-form-field>

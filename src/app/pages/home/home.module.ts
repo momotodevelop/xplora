@@ -35,7 +35,6 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
         TitleCasePipe
     ], imports: [CommonModule,
         HomeRoutingModule,
-        HttpClientModule,
         LocationSelectionSheetComponent,
         PaxSelectionSheetComponent,
         FlightDateSelectionSheetComponent,

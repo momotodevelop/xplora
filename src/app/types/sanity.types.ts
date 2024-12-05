@@ -6,7 +6,7 @@ interface Slug {
 export type TipoEnlace = "interno"|"externo"|"pagina";
 
 export interface ChildItem {
-    slug: Slug;
+    slug?: Slug;
     route: string;
     _type: "childItem";
     name: string;
@@ -20,14 +20,13 @@ export interface ChildItem {
 }
 
 export interface NavigationItem {
-    _key: string;
     openInNewTab?: boolean;
     slug: Slug;
-    route: string;
-    url: string;
-    _type: "navigationItem";
+    route?: string;
+    url?: string;
+    type: "navigationItem";
     name: string;
-    page: {
+    page?: {
         _ref: string;
         _type: "reference"
     };

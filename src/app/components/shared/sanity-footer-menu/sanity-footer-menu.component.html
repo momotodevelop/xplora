@@ -1,0 +1,18 @@
+@if(data){
+    <h5 class="text-16 fw-500 mb-30">{{data.name}}</h5>
+    <div class="d-flex y-gap-10 flex-column">
+        @for(item of data.navigationItems; track item;){
+            @switch(item.tipoEnlace){
+                @case("interno"){
+                    <a [attr.target]="(item.openInNewTab||isBooking) ? '_blank' : '_self'" [href]="'/'+item.route">{{item.name|titlecase}}</a>
+                }
+                @case("externo"){
+                    <a [attr.target]="(item.openInNewTab||isBooking) ? '_blank' : '_self'" [href]="item.url">{{item.name|titlecase}}</a>
+                }
+                @case("pagina"){
+                    <a [attr.target]="(item.openInNewTab||isBooking) ? '_blank' : '_self'" [href]="'/pagina/'+item.page">{{item.name|titlecase}}</a>
+                }
+            }
+        }
+    </div>
+}

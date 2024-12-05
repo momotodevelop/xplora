@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 export interface Promo {
-  id: string;
+  promoID: string;
   code: string;
   description: string;
   discountType: 'percentage' | 'fixed';

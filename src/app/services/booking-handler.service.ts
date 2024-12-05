@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { XploraFlightBooking } from '../types/xplora-api.types';
 import { XploraApiService } from './xplora-api.service';
 import { Promo } from './xplora-promos.service';
+import { Charge } from '../pages/booking-process/booking-sidebar/booking-sidebar.component';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,8 @@ export class BookingHandlerService {
   prices:Observable<[total:number, discounted:number, promo?:Promo]>  = this._prices.asObservable();
   private _promo = new BehaviorSubject<Promo|undefined>(undefined);
   promo:Observable<Promo|undefined> = this._promo.asObservable();
+  private _charges = new BehaviorSubject<Charge[]>([]);
+  charges: Observable<Charge[]> = this._charges.asObservable();
 
   constructor() { }
 
@@ -25,6 +28,9 @@ export class BookingHandlerService {
   }
   setPromo(promo:Promo|undefined){
     this._promo.next(promo);
+  }
+  setCharges(charges:Charge[]){
+    this._charges.next(charges);
   }
 
 }
