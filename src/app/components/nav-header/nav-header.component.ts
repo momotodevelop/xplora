@@ -6,11 +6,10 @@ import { NavigationItem } from '../../types/sanity.types';
 import { MenuItem } from '../../types/navigation.types';
 
 @Component({
-  selector: 'app-nav-header',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './nav-header.component.html',
-  styleUrl: './nav-header.component.scss'
+    selector: 'app-nav-header',
+    imports: [CommonModule],
+    templateUrl: './nav-header.component.html',
+    styleUrl: './nav-header.component.scss'
 })
 export class NavHeaderComponent implements OnInit, AfterViewInit {
   headerType:HeaderType="light";

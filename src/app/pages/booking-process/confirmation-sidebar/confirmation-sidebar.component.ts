@@ -11,11 +11,10 @@ import { SharedDataService } from '../../../services/shared-data.service';
 import { Charge } from '../booking-sidebar/booking-sidebar.component';
 
 @Component({
-  selector: 'app-confirmation-sidebar',
-  standalone: true,
-  imports: [CommonModule, DurationPipe, MatIconModule],
-  templateUrl: './confirmation-sidebar.component.html',
-  styleUrl: './confirmation-sidebar.component.scss'
+    selector: 'app-confirmation-sidebar',
+    imports: [CommonModule, DurationPipe, MatIconModule],
+    templateUrl: './confirmation-sidebar.component.html',
+    styleUrl: './confirmation-sidebar.component.scss'
 })
 export class ConfirmationSidebarComponent implements OnInit {
   constructor(public bookingHandler: BookingHandlerService, private route: ActivatedRoute, private sharedService: SharedDataService){}

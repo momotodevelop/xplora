@@ -27,12 +27,11 @@ export const flightClasses:FlightClass[]=[
 ]
 
 @Component({
-  selector: 'app-flight-search-topbar',
-  standalone: true,
-  imports: [MatMenuModule, MatIconModule, MatCheckboxModule, FormsModule, MatDialogModule, DatePipe, TitleCasePipe],
-  templateUrl: './search-topbar.component.html',
-  styleUrl: './search-topbar.component.scss',
-  providers: [DatePipe, TitleCasePipe]
+    selector: 'app-flight-search-topbar',
+    imports: [MatMenuModule, MatIconModule, MatCheckboxModule, FormsModule, MatDialogModule, DatePipe, TitleCasePipe],
+    templateUrl: './search-topbar.component.html',
+    styleUrl: './search-topbar.component.scss',
+    providers: [DatePipe, TitleCasePipe]
 })
 export class SearchTopbarComponent implements OnInit {
   @Input() origin!: AmadeusLocation;

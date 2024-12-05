@@ -20,12 +20,11 @@ export interface FilterFormValue {
 }
 
 @Component({
-  selector: 'app-flight-search-sidebar',
-  standalone: true,
-  imports: [MatCheckboxModule, ReactiveFormsModule, TitleCasePipe, MatSliderModule, FeatherIconsModule, FilterFlightsSheetComponent, FlightFiltersComponent],
-  templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.scss',
-  providers: []
+    selector: 'app-flight-search-sidebar',
+    imports: [MatCheckboxModule, ReactiveFormsModule, TitleCasePipe, MatSliderModule, FeatherIconsModule, FilterFlightsSheetComponent, FlightFiltersComponent],
+    templateUrl: './sidebar.component.html',
+    styleUrl: './sidebar.component.scss',
+    providers: []
 })
 export class SidebarComponent implements OnInit {
   constructor(private offersData:FlightOffersDataHandlerService){}

@@ -37,12 +37,11 @@ export interface SimpleBookingItem{
   
 }
 @Component({
-  selector: 'app-flight-search',
-  standalone: true,
-  imports: [SearchTopbarComponent, SidebarComponent, ResultsViewComponent, DatePipe, SelectedFlightComponent],
-  templateUrl: './flight-search.component.html',
-  styleUrl: './flight-search.component.scss',
-  providers: [DatePipe]
+    selector: 'app-flight-search',
+    imports: [SearchTopbarComponent, SidebarComponent, ResultsViewComponent, DatePipe, SelectedFlightComponent],
+    templateUrl: './flight-search.component.html',
+    styleUrl: './flight-search.component.scss',
+    providers: [DatePipe]
 })
 export class FlightSearchComponent implements OnInit {
   origin!: AmadeusLocation;

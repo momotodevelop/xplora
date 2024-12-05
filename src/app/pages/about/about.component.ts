@@ -381,11 +381,10 @@ export const OPINIONS: Opinion[] = [
   }
 ]
 @Component({
-  selector: 'app-about',
-  standalone: true,
-  imports: [MatBottomSheetModule],
-  templateUrl: './about.component.html',
-  styleUrl: './about.component.scss'
+    selector: 'app-about',
+    imports: [MatBottomSheetModule],
+    templateUrl: './about.component.html',
+    styleUrl: './about.component.scss'
 })
 export class AboutComponent {
   opinions:Opinion[]=OPINIONS;

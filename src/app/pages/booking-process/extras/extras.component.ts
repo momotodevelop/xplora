@@ -33,11 +33,10 @@ export interface ExtraServiceBottomSheetData{
 }
 
 @Component({
-  selector: 'app-extras',
-  standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatBottomSheetModule, CommonModule, FontAwesomeModule],
-  templateUrl: './extras.component.html',
-  styleUrl: './extras.component.scss'
+    selector: 'app-extras',
+    imports: [MatCardModule, MatButtonModule, MatBottomSheetModule, CommonModule, FontAwesomeModule],
+    templateUrl: './extras.component.html',
+    styleUrl: './extras.component.scss'
 })
 export class ExtrasComponent implements OnInit {
   @Output() next:EventEmitter<void> = new EventEmitter();

@@ -26,12 +26,11 @@ export interface Charge{
 }
 
 @Component({
-  selector: 'app-booking-sidebar',
-  standalone: true,
-  imports: [CommonModule, DateStringPipe, RemoveCharactersPipe, DurationPipe, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, UppercaseDirective, CurrencyPipe],
-  templateUrl: './booking-sidebar.component.html',
-  providers: [CurrencyPipe],
-  styleUrl: './booking-sidebar.component.scss'
+    selector: 'app-booking-sidebar',
+    imports: [CommonModule, DateStringPipe, RemoveCharactersPipe, DurationPipe, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, UppercaseDirective, CurrencyPipe],
+    templateUrl: './booking-sidebar.component.html',
+    providers: [CurrencyPipe],
+    styleUrl: './booking-sidebar.component.scss'
 })
 export class BookingSidebarComponent implements OnInit{
   @Output() openInsuranceExtra: EventEmitter<void> = new EventEmitter();

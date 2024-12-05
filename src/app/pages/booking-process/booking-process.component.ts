@@ -43,27 +43,26 @@ export interface SeatSelectionInfo{
 export type Steps = "PASSENGERS"|"SEATS"|"CONTACT"|"EXTRAS"|"PAYMENT";
 
 @Component({
-  selector: 'app-booking-process',
-  standalone: true,
-  imports: [
-    MatStepperModule, 
-    MatFormFieldModule, 
-    PassengersComponent, 
-    BookingSidebarComponent, 
-    TitleCasePipe, 
-    MatButtonModule, 
-    SeatsComponent, 
-    ExtrasComponent, 
-    ContactInfoComponent, 
-    PaymentComponent, 
-    CommonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    FontAwesomeModule,
-    HeaderMapComponent
-  ],
-  templateUrl: './booking-process.component.html',
-  styleUrl: './booking-process.component.scss'
+    selector: 'app-booking-process',
+    imports: [
+        MatStepperModule,
+        MatFormFieldModule,
+        PassengersComponent,
+        BookingSidebarComponent,
+        TitleCasePipe,
+        MatButtonModule,
+        SeatsComponent,
+        ExtrasComponent,
+        ContactInfoComponent,
+        PaymentComponent,
+        CommonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        FontAwesomeModule,
+        HeaderMapComponent
+    ],
+    templateUrl: './booking-process.component.html',
+    styleUrl: './booking-process.component.scss'
 })
 export class BookingProcessComponent implements OnInit {
   constructor(

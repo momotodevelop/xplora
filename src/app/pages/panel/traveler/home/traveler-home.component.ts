@@ -12,11 +12,10 @@ export interface UpcomingTrips{
 }
 
 @Component({
-  selector: 'app-traveler-home',
-  standalone: true,
-  imports: [CommonModule, NgbDropdownModule, FontAwesomeModule],
-  templateUrl: './traveler-home.component.html',
-  styleUrl: './traveler-home.component.scss'
+    selector: 'app-traveler-home',
+    imports: [CommonModule, NgbDropdownModule, FontAwesomeModule],
+    templateUrl: './traveler-home.component.html',
+    styleUrl: './traveler-home.component.scss'
 })
 export class TravelerHomeComponent implements OnInit {
   planeIcon=faPlaneTail;

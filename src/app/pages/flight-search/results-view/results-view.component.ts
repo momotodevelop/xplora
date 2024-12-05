@@ -38,21 +38,17 @@ interface PaginatorData{
 }
 
 @Component({
-  selector: 'app-flight-search-results-view',
-  standalone: true,
-  imports: [CommonModule, DateStringPipe, DurationPipe, MatIconModule, MatChipsModule, MatTooltipModule, MatBottomSheetModule, PaginatePipe, MatSnackBarModule, NgxSkeletonLoaderModule, FlightOfferComponent],
-  templateUrl: './results-view.component.html',
-  styleUrl: './results-view.component.scss',
-  animations: [
-    trigger('listAnimation', [
-      transition('* <=> *', [
-        query(':enter',
-          [style({ opacity: 0, transform: 'translateY(-15px)' }), stagger('100ms', animate('600ms ease-out', style({ opacity: 1, transform: 'translateY(0px)' })))],
-          { optional: true }
-        )
-      ])
-    ])
-  ]
+    selector: 'app-flight-search-results-view',
+    imports: [CommonModule, DateStringPipe, DurationPipe, MatIconModule, MatChipsModule, MatTooltipModule, MatBottomSheetModule, PaginatePipe, MatSnackBarModule, NgxSkeletonLoaderModule, FlightOfferComponent],
+    templateUrl: './results-view.component.html',
+    styleUrl: './results-view.component.scss',
+    animations: [
+        trigger('listAnimation', [
+            transition('* <=> *', [
+                query(':enter', [style({ opacity: 0, transform: 'translateY(-15px)' }), stagger('100ms', animate('600ms ease-out', style({ opacity: 1, transform: 'translateY(0px)' })))], { optional: true })
+            ])
+        ])
+    ]
 })
 export class ResultsViewComponent implements OnInit {
   @Input() origin!:string;

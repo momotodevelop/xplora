@@ -3,11 +3,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'bottom-sheet-header',
-  standalone: true,
-  imports: [MatIconModule, MatButtonModule],
-  templateUrl: './bottom-sheet-header.component.html',
-  styleUrls: ['./bottom-sheet-header.component.scss']
+    selector: 'bottom-sheet-header',
+    imports: [MatIconModule, MatButtonModule],
+    templateUrl: './bottom-sheet-header.component.html',
+    styleUrls: ['./bottom-sheet-header.component.scss']
 })
 export class BottomSheetHeaderComponent {
   // Input para recibir el texto del título

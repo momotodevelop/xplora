@@ -25,11 +25,10 @@ export interface PassengerFormValue {
 }
 
 @Component({
-  selector: 'app-passengers',
-  standalone: true,
-  imports: [MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatDatepickerModule, FormsModule, MatNativeDateModule, MatOptionModule, MatSelectModule],
-  templateUrl: './passengers.component.html',
-  styleUrl: './passengers.component.scss'
+    selector: 'app-passengers',
+    imports: [MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatDatepickerModule, FormsModule, MatNativeDateModule, MatOptionModule, MatSelectModule],
+    templateUrl: './passengers.component.html',
+    styleUrl: './passengers.component.scss'
 })
 export class PassengersComponent implements OnInit {
   @Input() adults!: number;

@@ -10,11 +10,10 @@ import { XploraFlightBooking } from '../../types/xplora-api.types';
 import { PaymentComponent } from '../booking-process/payment/payment.component';
 
 @Component({
-  selector: 'app-make-payment',
-  standalone: true,
-  imports: [ConfirmationSidebarComponent, PaymentComponent],
-  templateUrl: './make-payment.component.html',
-  styleUrl: './make-payment.component.scss'
+    selector: 'app-make-payment',
+    imports: [ConfirmationSidebarComponent, PaymentComponent],
+    templateUrl: './make-payment.component.html',
+    styleUrl: './make-payment.component.scss'
 })
 export class MakePaymentComponent implements OnInit {
   bookingID!:string;

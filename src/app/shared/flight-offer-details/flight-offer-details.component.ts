@@ -13,12 +13,11 @@ import { DurationPipe } from '../../duration.pipe';
 import { FlightClassNamePipe } from '../../flight-class-name.pipe';
 
 @Component({
-  selector: 'app-flight-offer-details',
-  standalone: true,
-  imports: [DateStringPipe, TitleCasePipe, CommonModule, DateStringPipe, DurationPipe, FlightClassNamePipe],
-  templateUrl: './flight-offer-details.component.html',
-  styleUrl: './flight-offer-details.component.scss',
-  providers: [DatePipe]
+    selector: 'app-flight-offer-details',
+    imports: [DateStringPipe, TitleCasePipe, CommonModule, DateStringPipe, DurationPipe, FlightClassNamePipe],
+    templateUrl: './flight-offer-details.component.html',
+    styleUrl: './flight-offer-details.component.scss',
+    providers: [DatePipe]
 })
 export class FlightOfferDetailsComponent implements OnInit {
   loading:boolean=false;

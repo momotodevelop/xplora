@@ -6,11 +6,10 @@ import { CommonModule } from '@angular/common';
 import { TravelerSidebarComponent } from './traveler-sidebar/traveler-sidebar.component';
 
 @Component({
-  selector: 'app-traveler',
-  standalone: true,
-  imports: [RouterOutlet, CommonModule, TravelerSidebarComponent],
-  templateUrl: './traveler.component.html',
-  styleUrl: './traveler.component.scss'
+    selector: 'app-traveler',
+    imports: [RouterOutlet, CommonModule, TravelerSidebarComponent],
+    templateUrl: './traveler.component.html',
+    styleUrl: './traveler.component.scss'
 })
 export class TravelerComponent implements OnInit {
   constructor(private route: ActivatedRoute, public sharedService: SharedDataService){}

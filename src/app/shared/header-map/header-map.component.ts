@@ -2,11 +2,10 @@ import { Component, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 
 @Component({
-  selector: 'app-header-map',
-  standalone: true,
-  imports: [GoogleMapsModule],
-  templateUrl: './header-map.component.html',
-  styleUrls: ['./header-map.component.scss']
+    selector: 'app-header-map',
+    imports: [GoogleMapsModule],
+    templateUrl: './header-map.component.html',
+    styleUrls: ['./header-map.component.scss']
 })
 export class HeaderMapComponent implements OnChanges {
   @ViewChild(GoogleMap, { static: false }) map!: GoogleMap;

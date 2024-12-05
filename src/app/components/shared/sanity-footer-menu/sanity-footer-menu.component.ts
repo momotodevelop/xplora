@@ -4,11 +4,10 @@ import { NavigationData } from '../../../types/sanity.types';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'sanity-footer-menu',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './sanity-footer-menu.component.html',
-  styleUrl: './sanity-footer-menu.component.scss'
+    selector: 'sanity-footer-menu',
+    imports: [CommonModule],
+    templateUrl: './sanity-footer-menu.component.html',
+    styleUrl: './sanity-footer-menu.component.scss'
 })
 export class SanityFooterMenuComponent implements OnInit {
   @Input() slug!:string;

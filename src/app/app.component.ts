@@ -17,23 +17,21 @@ import {
 } from '@fingerprintjs/fingerprintjs-pro-angular'
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [
-    RouterOutlet, 
-    FooterComponent, 
-    NavHeaderComponent, 
-    MatBottomSheetModule, 
-    MatButtonModule,
-    CommonModule,
-    DatePipe,
-    TitleCasePipe,
-    ToggleClassDirective,
-    
-  ],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
-  providers: [AsyncPipe, DatePipe, TitleCasePipe, DateStringPipe, DurationPipe]
+    selector: 'app-root',
+    imports: [
+        RouterOutlet,
+        FooterComponent,
+        NavHeaderComponent,
+        MatBottomSheetModule,
+        MatButtonModule,
+        CommonModule,
+        DatePipe,
+        TitleCasePipe,
+        ToggleClassDirective,
+    ],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.scss',
+    providers: [AsyncPipe, DatePipe, TitleCasePipe, DateStringPipe, DurationPipe]
 })
 export class AppComponent implements OnInit {
   title = 'xplora';

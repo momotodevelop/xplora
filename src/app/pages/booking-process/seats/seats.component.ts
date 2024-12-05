@@ -24,12 +24,11 @@ export interface SelectionDisplay{
 }
 
 @Component({
-  selector: 'app-seats',
-  standalone: true,
-  imports: [MatButtonModule, MatIconModule, CommonModule, MatDividerModule, MatIconModule, InitialPipe, MatChipsModule, MatDialogModule, MatProgressSpinnerModule, FontAwesomeModule],
-  providers: [InitialPipe],
-  templateUrl: './seats.component.html',
-  styleUrl: './seats.component.scss'
+    selector: 'app-seats',
+    imports: [MatButtonModule, MatIconModule, CommonModule, MatDividerModule, MatIconModule, InitialPipe, MatChipsModule, MatDialogModule, MatProgressSpinnerModule, FontAwesomeModule],
+    providers: [InitialPipe],
+    templateUrl: './seats.component.html',
+    styleUrl: './seats.component.scss'
 })
 export class SeatsComponent implements OnInit {
   seatMaps!:SeatMap[];
@@ -152,11 +151,10 @@ export class SeatsComponent implements OnInit {
   }
 }
 @Component({
-  selector: 'pending-seats-dialog',
-  standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
-  providers: [],
-  templateUrl: './pending-seats-dialog.component.html'
+    selector: 'pending-seats-dialog',
+    imports: [MatDialogModule, MatButtonModule],
+    providers: [],
+    templateUrl: './pending-seats-dialog.component.html'
 })
 export class SeatPendingDialog{
   constructor(@Inject(MAT_DIALOG_DATA) public data: number){

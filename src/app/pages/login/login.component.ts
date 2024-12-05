@@ -11,11 +11,10 @@ import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-s
 import { PhoneLoginBottomSheetComponent } from '../../shared/phone-login-bottom-sheet/phone-login-bottom-sheet.component';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [MatSnackBarModule, FontAwesomeModule, MatBottomSheetModule],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+    selector: 'app-login',
+    imports: [MatSnackBarModule, FontAwesomeModule, MatBottomSheetModule],
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.scss'
 })
 export class LoginComponent implements OnInit {
   mobileIcon=faMobile;

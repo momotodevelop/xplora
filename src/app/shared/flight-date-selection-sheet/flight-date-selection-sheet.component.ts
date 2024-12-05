@@ -9,12 +9,11 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { PreventEditDirective } from '../../prevent-edit.directive';
 
 @Component({
-  selector: 'app-flight-date-selection-sheet',
-  standalone: true,
-  imports: [MatDatepickerModule, MatTabsModule, MatInputModule, CommonModule, MatGridListModule, PreventEditDirective],
-  templateUrl: './flight-date-selection-sheet.component.html',
-  styleUrl: './flight-date-selection-sheet.component.scss',
-  providers: [ provideNativeDateAdapter(), DatePipe ]
+    selector: 'app-flight-date-selection-sheet',
+    imports: [MatDatepickerModule, MatTabsModule, MatInputModule, CommonModule, MatGridListModule, PreventEditDirective],
+    templateUrl: './flight-date-selection-sheet.component.html',
+    styleUrl: './flight-date-selection-sheet.component.scss',
+    providers: [provideNativeDateAdapter(), DatePipe]
 })
 export class FlightDateSelectionSheetComponent implements OnInit {
   selectedDateRange: DateRange<Date> = new DateRange<Date>(null, null);

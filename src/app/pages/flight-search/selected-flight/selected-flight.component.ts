@@ -4,11 +4,10 @@ import { FlightOffersDataHandlerService } from '../../../services/flight-offers-
 import { FlightOfferComponent } from '../flight-offer/flight-offer.component';
 
 @Component({
-  selector: 'app-selected-flight',
-  standalone: true,
-  imports: [FlightOfferComponent],
-  templateUrl: './selected-flight.component.html',
-  styleUrl: './selected-flight.component.scss'
+    selector: 'app-selected-flight',
+    imports: [FlightOfferComponent],
+    templateUrl: './selected-flight.component.html',
+    styleUrl: './selected-flight.component.scss'
 })
 export class SelectedFlightComponent implements OnInit {
   offer:FlightOffer|undefined;

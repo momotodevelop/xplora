@@ -205,44 +205,43 @@ declare global {
 }
 
 @Component({
-  selector: 'app-payment',
-  standalone: true,
-  imports: [
-    CurrencyPipe, 
-    CommonModule, 
-    MatButtonModule, 
-    FontAwesomeModule, 
-    MatSnackBarModule, 
-    MatTabsModule, 
-    MatFormFieldModule,
-    MatExpansionModule, 
-    MatIconModule, 
-    MatInputModule,
-    DatePipe, 
-    TitleCasePipe, 
-    MatExpansionModule, 
-    MatCheckboxModule, 
-    FormsModule,
-    MatListModule,
-    CreditCardDirectivesModule,
-    ReactiveFormsModule, 
-    MatTooltipModule
-  ],
-  templateUrl: './payment.component.html',
-  styleUrl: './payment.component.scss',
-  providers: [CurrencyPipe, DatePipe, TitleCasePipe],
-  animations: [
-    trigger('listAnimation', [
-      transition('* => *', [ // Esto asegura que la animación ocurra en cada cambio de estado
-        query(':enter', [
-          style({ opacity: 0, transform: 'translateY(-20px)' }), // Estilo inicial
-          stagger('300ms', [ // Aplica el efecto escalonado (300ms entre elementos)
-            animate('500ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })) // Estilo final
-          ])
-        ], { optional: true })
-      ])
-    ])
-  ]
+    selector: 'app-payment',
+    imports: [
+        CurrencyPipe,
+        CommonModule,
+        MatButtonModule,
+        FontAwesomeModule,
+        MatSnackBarModule,
+        MatTabsModule,
+        MatFormFieldModule,
+        MatExpansionModule,
+        MatIconModule,
+        MatInputModule,
+        DatePipe,
+        TitleCasePipe,
+        MatExpansionModule,
+        MatCheckboxModule,
+        FormsModule,
+        MatListModule,
+        CreditCardDirectivesModule,
+        ReactiveFormsModule,
+        MatTooltipModule
+    ],
+    templateUrl: './payment.component.html',
+    styleUrl: './payment.component.scss',
+    providers: [CurrencyPipe, DatePipe, TitleCasePipe],
+    animations: [
+        trigger('listAnimation', [
+            transition('* => *', [
+                query(':enter', [
+                    style({ opacity: 0, transform: 'translateY(-20px)' }), // Estilo inicial
+                    stagger('300ms', [
+                        animate('500ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })) // Estilo final
+                    ])
+                ], { optional: true })
+            ])
+        ])
+    ]
 })
 export class PaymentComponent implements OnInit {
   @ViewChild('panelTarjeta') panelTarjeta!:MatExpansionPanel;

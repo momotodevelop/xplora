@@ -15,11 +15,10 @@ export interface ContactInfoValue{
 }
 
 @Component({
-  selector: 'app-contact-info',
-  standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatChipsModule],
-  templateUrl: './contact-info.component.html',
-  styleUrl: './contact-info.component.scss'
+    selector: 'app-contact-info',
+    imports: [ReactiveFormsModule, FormsModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatChipsModule],
+    templateUrl: './contact-info.component.html',
+    styleUrl: './contact-info.component.scss'
 })
 export class ContactInfoComponent {
   @Output() valid: EventEmitter<ContactInfoValue|undefined> = new EventEmitter();

@@ -10,10 +10,9 @@ import { AddPremiumInsuranceComponent } from "../add-insurance/add-insurance.com
 export interface ExtraBaggageData{passengerID: number, pieces: number}
 
 @Component({
-  selector: 'app-extras-pets',
-  standalone: true,
-  imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule, MatIconModule],
-  templateUrl: './add-carry-on.component.html'
+    selector: 'app-extras-pets',
+    imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule, MatIconModule],
+    templateUrl: './add-carry-on.component.html'
 })
 export class AddCarryOnComponent implements AfterViewInit{
   price:number;

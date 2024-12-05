@@ -9,11 +9,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 
 @Component({
-  selector: 'app-add-baggage',
-  standalone: true,
-  imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule, MatIconModule],
-  templateUrl: './add-baggage.component.html',
-  styleUrl: './add-baggage.component.scss'
+    selector: 'app-add-baggage',
+    imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule, MatIconModule],
+    templateUrl: './add-baggage.component.html',
+    styleUrl: './add-baggage.component.scss'
 })
 export class AddBaggageComponent {
   price:number;

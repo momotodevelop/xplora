@@ -7,10 +7,9 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { ExtraServiceBottomSheetData } from "../extras.component";
 
 @Component({
-  selector: 'app-extras-insurance',
-  standalone: true,
-  imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule],
-  templateUrl: './add-insurance.component.html'
+    selector: 'app-extras-insurance',
+    imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule],
+    templateUrl: './add-insurance.component.html'
 })
 export class AddPremiumInsuranceComponent implements AfterViewInit{
   price:number;

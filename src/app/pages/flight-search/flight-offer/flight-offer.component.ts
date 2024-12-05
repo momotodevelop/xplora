@@ -11,11 +11,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-flight-offer',
-  standalone: true,
-  imports: [MatBottomSheetModule, CommonModule, DateStringPipe, DurationPipe, MatChipsModule, MatTooltipModule, MatIconModule, CurrencyPipe, ],
-  templateUrl: './flight-offer.component.html',
-  styleUrl: './flight-offer.component.scss'
+    selector: 'app-flight-offer',
+    imports: [MatBottomSheetModule, CommonModule, DateStringPipe, DurationPipe, MatChipsModule, MatTooltipModule, MatIconModule, CurrencyPipe,],
+    templateUrl: './flight-offer.component.html',
+    styleUrl: './flight-offer.component.scss'
 })
 export class FlightOfferComponent {
   @Input() offer!:FlightOffer;

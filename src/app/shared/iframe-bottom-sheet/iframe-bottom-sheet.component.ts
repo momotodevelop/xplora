@@ -2,11 +2,10 @@ import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 @Component({
-  selector: 'app-iframe-bottom-sheet',
-  templateUrl: './iframe-bottom-sheet.component.html',
-  styleUrls: ['./iframe-bottom-sheet.component.css'],
-  standalone: true,
-  imports: []
+    selector: 'app-iframe-bottom-sheet',
+    templateUrl: './iframe-bottom-sheet.component.html',
+    styleUrls: ['./iframe-bottom-sheet.component.css'],
+    imports: []
 })
 export class IframeBottomSheetComponent implements OnInit, OnDestroy {
   url: string;

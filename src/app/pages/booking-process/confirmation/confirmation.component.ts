@@ -10,11 +10,10 @@ import { CommonModule } from '@angular/common';
 import { map } from 'rxjs';
 
 @Component({
-  selector: 'app-confirmation',
-  standalone: true,
-  imports: [ConfirmationSidebarComponent, CommonModule],
-  templateUrl: './confirmation.component.html',
-  styleUrl: './confirmation.component.scss'
+    selector: 'app-confirmation',
+    imports: [ConfirmationSidebarComponent, CommonModule],
+    templateUrl: './confirmation.component.html',
+    styleUrl: './confirmation.component.scss'
 })
 export class ConfirmationComponent implements OnInit {
   constructor(

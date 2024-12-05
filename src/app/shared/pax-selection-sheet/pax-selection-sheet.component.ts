@@ -4,11 +4,10 @@ import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetModule, MatBottomSheetRef } from '
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-pax-selection-sheet',
-  standalone: true,
-  imports: [MatBottomSheetModule,MatButtonModule,ScrollingModule],
-  templateUrl: './pax-selection-sheet.component.html',
-  styleUrl: './pax-selection-sheet.component.scss'
+    selector: 'app-pax-selection-sheet',
+    imports: [MatBottomSheetModule, MatButtonModule, ScrollingModule],
+    templateUrl: './pax-selection-sheet.component.html',
+    styleUrl: './pax-selection-sheet.component.scss'
 })
 export class PaxSelectionSheetComponent implements OnInit {
   adults:number=1;

@@ -9,11 +9,10 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SelectionDisplay } from '../../pages/booking-process/seats/seats.component';
 
 @Component({
-  selector: 'app-select-seat-map',
-  standalone: true,
-  imports: [MatGridListModule, CommonModule, InitialPipe, MatSnackBarModule],
-  templateUrl: './select-seat-map.component.html',
-  styleUrl: './select-seat-map.component.scss'
+    selector: 'app-select-seat-map',
+    imports: [MatGridListModule, CommonModule, InitialPipe, MatSnackBarModule],
+    templateUrl: './select-seat-map.component.html',
+    styleUrl: './select-seat-map.component.scss'
 })
 export class SelectSeatMapComponent implements OnInit {
   @Input() deck!:Deck;

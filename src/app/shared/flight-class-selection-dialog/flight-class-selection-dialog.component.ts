@@ -9,11 +9,10 @@ import { FlightClass, FlightClassType } from '../../pages/flight-search/search-t
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-flight-class-selection-dialog',
-  standalone: true,
-  imports: [FormsModule, MatButtonModule, MatCheckboxModule, MatDialogModule, MatDividerModule, MatListModule],
-  templateUrl: './flight-class-selection-dialog.component.html',
-  styleUrl: './flight-class-selection-dialog.component.scss'
+    selector: 'app-flight-class-selection-dialog',
+    imports: [FormsModule, MatButtonModule, MatCheckboxModule, MatDialogModule, MatDividerModule, MatListModule],
+    templateUrl: './flight-class-selection-dialog.component.html',
+    styleUrl: './flight-class-selection-dialog.component.scss'
 })
 export class FlightClassSelectionDialogComponent implements OnInit {
   flightClasses:FlightClass[]=[];

@@ -8,11 +8,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { SelectionDisplay } from '../../pages/booking-process/seats/seats.component';
 
 @Component({
-  selector: 'app-select-seat-map-bottomsheet',
-  standalone: true,
-  imports: [SelectSeatMapComponent, CommonModule, MatButtonModule],
-  templateUrl: './select-seat-map-bottomsheet.component.html',
-  styleUrl: './select-seat-map-bottomsheet.component.scss'
+    selector: 'app-select-seat-map-bottomsheet',
+    imports: [SelectSeatMapComponent, CommonModule, MatButtonModule],
+    templateUrl: './select-seat-map-bottomsheet.component.html',
+    styleUrl: './select-seat-map-bottomsheet.component.scss'
 })
 export class SelectSeatMapBottomsheetComponent {
   seat?: SeatElement;

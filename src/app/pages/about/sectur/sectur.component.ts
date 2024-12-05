@@ -4,12 +4,11 @@ import { BottomSheetHeaderComponent } from '../../../shared/bottom-sheet-header/
 import { MatSliderModule } from '@angular/material/slider';
 
 @Component({
-  selector: 'app-sectur',
-  standalone: true,
-  imports: [NgxExtendedPdfViewerModule, BottomSheetHeaderComponent, MatSliderModule],
-  providers: [NgxExtendedPdfViewerService],
-  templateUrl: './sectur.component.html',
-  styleUrl: './sectur.component.scss'
+    selector: 'app-sectur',
+    imports: [NgxExtendedPdfViewerModule, BottomSheetHeaderComponent, MatSliderModule],
+    providers: [NgxExtendedPdfViewerService],
+    templateUrl: './sectur.component.html',
+    styleUrl: './sectur.component.scss'
 })
 export class SecturComponent {
   src="/assets/docs/04230055f32e1-cert-sm.pdf"

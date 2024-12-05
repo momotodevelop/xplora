@@ -59,11 +59,10 @@ export const footerColumns = [
 
 
 @Component({
-  selector: 'app-footer',
-  standalone: true,
-  imports: [SanityFooterMenuComponent, FontAwesomeModule, CommonModule],
-  templateUrl: './footer.component.html',
-  styleUrl: './footer.component.scss'
+    selector: 'app-footer',
+    imports: [SanityFooterMenuComponent, FontAwesomeModule, CommonModule],
+    templateUrl: './footer.component.html',
+    styleUrl: './footer.component.scss'
 })
 export class FooterComponent implements OnInit {
   bookingMode:boolean=false;

@@ -22,22 +22,18 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-location-selection-sheet',
-  standalone: true,
-  imports: [MatBottomSheetModule,MatButtonModule,ScrollingModule, ReactiveFormsModule, TitleCasePipe, NgxSkeletonLoaderModule, IataSubstitutionPipe, MatSnackBarModule],
-  providers: [AirportSearchService, AmadeusAuthService, TranslateService, TitleCasePipe, IataSubstitutionPipe, GeolocationService],
-  templateUrl: './location-selection-sheet.component.html',
-  styleUrl: './location-selection-sheet.component.scss',
-  animations: [
-    trigger('listAnimation', [
-      transition('* <=> *', [
-        query(':enter',
-          [style({ opacity: 0, transform: 'translateY(-15px)' }), stagger('100ms', animate('600ms ease-out', style({ opacity: 1, transform: 'translateY(0px)' })))],
-          { optional: true }
-        )
-      ])
-    ])
-  ]
+    selector: 'app-location-selection-sheet',
+    imports: [MatBottomSheetModule, MatButtonModule, ScrollingModule, ReactiveFormsModule, TitleCasePipe, NgxSkeletonLoaderModule, IataSubstitutionPipe, MatSnackBarModule],
+    providers: [AirportSearchService, AmadeusAuthService, TranslateService, TitleCasePipe, IataSubstitutionPipe, GeolocationService],
+    templateUrl: './location-selection-sheet.component.html',
+    styleUrl: './location-selection-sheet.component.scss',
+    animations: [
+        trigger('listAnimation', [
+            transition('* <=> *', [
+                query(':enter', [style({ opacity: 0, transform: 'translateY(-15px)' }), stagger('100ms', animate('600ms ease-out', style({ opacity: 1, transform: 'translateY(0px)' })))], { optional: true })
+            ])
+        ])
+    ]
 })
 export class LocationSelectionSheetComponent implements OnInit {
   public token:string|null=null;

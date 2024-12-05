@@ -8,10 +8,9 @@ import { ExtraServiceBottomSheetData } from '../extras.component';
 import { AddPremiumInsuranceComponent } from '../add-insurance/add-insurance.component';
 
 @Component({
-  selector: 'app-extras-flexpass',
-  standalone: true,
-  imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule],
-  templateUrl: './add-flex-pass.component.html'
+    selector: 'app-extras-flexpass',
+    imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule],
+    templateUrl: './add-flex-pass.component.html'
 })
 export class AddFlexPassComponent implements AfterViewInit{
   price:number;

@@ -11,11 +11,10 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FireAuthService } from '../../services/fire-auth.service';
 
 @Component({
-  selector: 'app-phone-login-bottom-sheet',
-  standalone: true,
-  imports: [MatFormFieldModule, MatInputModule, MatIconModule, MatSelectModule, FontAwesomeModule, ReactiveFormsModule],
-  templateUrl: './phone-login-bottom-sheet.component.html',
-  styleUrl: './phone-login-bottom-sheet.component.scss'
+    selector: 'app-phone-login-bottom-sheet',
+    imports: [MatFormFieldModule, MatInputModule, MatIconModule, MatSelectModule, FontAwesomeModule, ReactiveFormsModule],
+    templateUrl: './phone-login-bottom-sheet.component.html',
+    styleUrl: './phone-login-bottom-sheet.component.scss'
 })
 export class PhoneLoginBottomSheetComponent implements OnInit {
   constructor(private _bottomSheetRef: MatBottomSheetRef<PhoneLoginBottomSheetComponent>, private auth: FireAuthService){}

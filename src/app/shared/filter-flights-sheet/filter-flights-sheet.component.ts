@@ -5,11 +5,10 @@ import { FilterOptions, FlightOffersDataHandlerService, SortOptions } from '../.
 import { FilterFormValue } from '../../pages/flight-search/sidebar/sidebar.component';
 
 @Component({
-  selector: 'app-filter-flights-sheet',
-  standalone: true,
-  imports: [FlightFiltersComponent, MatBottomSheetModule],
-  templateUrl: './filter-flights-sheet.component.html',
-  styleUrl: './filter-flights-sheet.component.scss',
+    selector: 'app-filter-flights-sheet',
+    imports: [FlightFiltersComponent, MatBottomSheetModule],
+    templateUrl: './filter-flights-sheet.component.html',
+    styleUrl: './filter-flights-sheet.component.scss'
 })
 export class FilterFlightsSheetComponent implements OnInit {
   filters?:FilterOptions;

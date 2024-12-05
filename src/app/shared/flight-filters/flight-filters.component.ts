@@ -12,11 +12,10 @@ import _ from 'lodash';
 import { combineLatest, debounceTime, first } from 'rxjs';
 
 @Component({
-  selector: 'app-flight-filters',
-  standalone: true,
-  imports: [SidebarComponent, MatCheckboxModule, ReactiveFormsModule, TitleCasePipe, MatSliderModule, FeatherIconsModule],
-  templateUrl: './flight-filters.component.html',
-  styleUrl: './flight-filters.component.scss'
+    selector: 'app-flight-filters',
+    imports: [SidebarComponent, MatCheckboxModule, ReactiveFormsModule, TitleCasePipe, MatSliderModule, FeatherIconsModule],
+    templateUrl: './flight-filters.component.html',
+    styleUrl: './flight-filters.component.scss'
 })
 export class FlightFiltersComponent {
   @Input() bottomSheet:boolean = false;
