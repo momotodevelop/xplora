@@ -1,0 +1,228 @@
+<mat-form-field subscriptSizing="dynamic" class="w-100">
+    <mat-label>Aeropuerto de Llegada</mat-label>
+    <select [formControl]="airportSelector" matNativeControl required>
+        @for(airport of nearbyAirports; track airport){
+            <option [value]="airport.iataCode">{{airport.address.cityName|titlecase}}, {{airport.address.countryName|titlecase}}. ({{airport.iataCode|uppercase}})</option>
+        }
+    </select>
+</mat-form-field>
+<div class="mat-elevation-z2" #mapContainer style="width: 100%; height: 20vh;"></div>
+<div style="height: calc(80vh - 62px - 20vh); overflow-y: auto;">
+    <div class="row">
+        <div class="col-12 mt-20">
+            <div class="row x-gap-15 px-15 transfer-type-selector mb-20">
+                <div class="col">
+                    <div (click)="changeTransferType('ROUND')" [ngClass]="{'bg-blue-1 text-light-2':transferType==='ROUND', 'bg-light-2 text-blue-1':transferType!=='ROUND'}" class="px-10 rounded-4 transfer-type">
+                        <fa-icon [icon]="airportIcon"></fa-icon>
+                        <fa-icon [icon]="roundtripIcon"></fa-icon>
+                        <fa-icon [icon]="hotelIcon"></fa-icon>
+                    </div>
+                </div>
+                <div class="col">
+                    <div (click)="changeTransferType('HOTEL')" [ngClass]="{'bg-blue-1 text-light-2':transferType==='HOTEL', 'bg-light-2 text-blue-1':transferType!=='HOTEL'}" class="px-10 rounded-4 transfer-type">
+                        <fa-icon [icon]="airportIcon"></fa-icon>
+                        <fa-icon [icon]="airportHotelIcon"></fa-icon>
+                        <fa-icon [icon]="hotelIcon"></fa-icon>
+                    </div>
+                </div>
+                <div class="col">
+                    <div (click)="changeTransferType('APTO')" [ngClass]="{'bg-blue-1 text-light-2':transferType==='APTO', 'bg-light-2 text-blue-1':transferType!=='APTO'}" class="px-10 rounded-4 transfer-type">
+                        <fa-icon [icon]="airportIcon"></fa-icon>
+                        <fa-icon [icon]="hotelAirportIcon"></fa-icon>
+                        <fa-icon [icon]="hotelIcon"></fa-icon>
+                    </div>
+                </div>
+            </div>
+            <mat-radio-group name="fareRadio" class="radiogroup-select-list px-15" (change)="changeRadio($event)">
+                @for (transferFare of displayTransferFares; track transferFare; let i = $index) {
+                    <mat-radio-button [value]="i" color="primary" class="border-light rounded-3 mb-10 pr-10">
+                        <div class="fare-text h-50 md:h-60">
+                            <div class="text-16 lh-12 fw-500">{{transferFare.name}}</div> 
+                            <div class="text-14 lh-12">{{transferFare.vehicle.type}}</div>
+                        </div>
+                        <div class="d-flex fare-price" style="justify-items: center;">{{(transferType==='ROUND'?(transferFare.prices!.total*2):transferFare.prices!.total)|currency:'MXN'}}</div>
+                    </mat-radio-button>
+                }
+            </mat-radio-group>
+            <!-- <div class="text-16" style="text-align: justify;">Llega a tu hotel con total tranquilidad gracias a nuestro servicio de transporte seguro y confiable, con tarifas incluso más económicas que las de Uber. Paga únicamente por los kilómetros recorridos y olvídate de tarifas sorpresa.</div> -->
+        </div>
+    </div>
+    <div class="row py-15 px-15">
+        <div class="col-12">
+            @if(selectedFare){
+                <div class="row x-gap-10 transfer-selected-fare-details">
+                    <div class="col-4">
+                        <img class="rounded-3" [src]="selectedFare.image">
+                    </div>
+                    <div class="col-8">
+                        <div class="text-16 lh-12">
+                            <p class="fw-500 text-dark-1 mb-5"> {{selectedFare.name}}</p> 
+                            @if(selectedFare.type==='SHARED'){
+                                <div class="text-12 lh-12 row x-gap-5 transfer-info">
+                                    <div class="col-1 d-flex"> 
+                                        <fa-icon class="text-12" [icon]="selectedFare.vehicle.icon"></fa-icon>
+                                    </div> 
+                                    <div class="col">{{guests}} Asientos en {{selectedFare.vehicle.type}}</div>
+                                </div>
+                            }@else{
+                                <div class="text-12 lh-12 row x-gap-5 transfer-info">
+                                    <div class="col-1 d-flex"> 
+                                        <fa-icon class="text-12" [icon]="selectedFare.vehicle.icon"></fa-icon>
+                                    </div> 
+                                    <div class="col">{{guests}} Pasajeros en {{selectedFare.prices!.requiredUnits>1?selectedFare.prices!.requiredUnits:'un'}} {{selectedFare.vehicle.type}}</div>
+                                </div>
+                            }
+                            <div class="text-12 lh-12 row x-gap-5 transfer-info">
+                                <div class="col-1 d-flex">
+                                    <fa-icon class="text-12" [icon]="handBaggageIcon"></fa-icon>
+                                </div> 
+                                <div class="col">{{selectedFare.capacityPerPax.handBaggage}} Equipaje de mano p/pasajero</div>
+                            </div>
+                            <div class="text-12 lh-12 row x-gap-5 transfer-info">
+                                <div class="col-1 d-flex">
+                                    <fa-icon class="text-12" [icon]="baggageIcon"></fa-icon>
+                                </div> 
+                                <div class="col">{{selectedFare.capacityPerPax.baggage}} Equipaje documentado p/pasajero</div>
+                            </div>
+                            <div class="text-12 lh-12 row x-gap-5 transfer-info">
+                                <div class="col-1 d-flex">
+                                    <fa-icon class="text-12" [icon]="stopIcon"></fa-icon>
+                                </div> 
+                                @if(selectedFare.type==='SHARED'){
+                                    <div class="col">Servicio compartido con hasta 4 paradas previas.</div>
+                                }@else{
+                                    <div class="col">1 parada de cortesía gratis.</div>
+                                }
+                            </div>
+                            <div class="text-12 lh-12 row x-gap-5 transfer-info">
+                                <div class="col-1 d-flex">
+                                    <fa-icon class="text-12 text-blue-1" [icon]="moreIcon"></fa-icon>
+                                </div> 
+                                <div class="col">
+                                    <a class="text-blue-1">Mas Información</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="col-12">
+            @if(selectedFare){
+                <p class="fw-500 text-16 lh-12 text-dark-1 mt-0 md:mt-10">Desglose de Tarifa</p>
+                @if(transferType==='ROUND'){
+                    <div class="row x-gap-0 text-12 fw-500">
+                        <div class="col-9 ellipsis">
+                            Aeropuerto ({{airportSelector.value}}) - {{hotelName}}
+                        </div>
+                        <div class="col-3 text-right">
+                            {{selectedFare.prices!.total|currency:'MXN'}}
+                        </div>
+                    </div>
+                    
+                    @if(selectedFare.basePrice>0){
+                        <app-hotel-booking-addon-transfer-charge-item 
+                            [description]="'Tarifa Base'"
+                            [unitPrice]="selectedFare.basePrice"
+                            [quantity]="selectedFare.prices!.requiredUnits">
+                        </app-hotel-booking-addon-transfer-charge-item>
+                    }
+    
+                    <app-hotel-booking-addon-transfer-charge-item 
+                        [description]="'Distancia (KMs)'"
+                        [unitPrice]="((selectedFare.pricePerPax.km*selectedFare.billedPax)*selectedFare.prices!.requiredUnits)"
+                        [quantity]="distance"
+                        [measurementUnit]="'Km'">
+                    </app-hotel-booking-addon-transfer-charge-item>
+    
+                    <app-hotel-booking-addon-transfer-charge-item 
+                        [description]="'Tiempo (Mins)'"
+                        [unitPrice]="((selectedFare.pricePerPax.time*selectedFare.billedPax)*selectedFare.prices!.requiredUnits)"
+                        [quantity]="time"
+                        [measurementUnit]="'Min'">
+                    </app-hotel-booking-addon-transfer-charge-item>
+    
+                    <div class="row x-gap-0 text-12 fw-500">
+                        <div class="col-9 ellipsis">
+                            {{hotelName}} - Aeropuerto ({{airportSelector.value}})
+                        </div>
+                        <div class="col-3 text-right">
+                            {{selectedFare.prices!.total|currency:'MXN'}}
+                        </div>
+                    </div>
+                    
+                    @if(selectedFare.basePrice>0){
+                        <app-hotel-booking-addon-transfer-charge-item 
+                            [description]="'Tarifa Base'"
+                            [unitPrice]="selectedFare.basePrice"
+                            [quantity]="selectedFare.prices!.requiredUnits">
+                        </app-hotel-booking-addon-transfer-charge-item>
+                    }
+    
+                    <app-hotel-booking-addon-transfer-charge-item 
+                        [description]="'Distancia (KMs)'"
+                        [unitPrice]="((selectedFare.pricePerPax.km*selectedFare.billedPax)*selectedFare.prices!.requiredUnits)"
+                        [quantity]="distance"
+                        [measurementUnit]="'Km'">
+                    </app-hotel-booking-addon-transfer-charge-item>
+    
+                    <app-hotel-booking-addon-transfer-charge-item 
+                        [description]="'Tiempo (Mins)'"
+                        [unitPrice]="((selectedFare.pricePerPax.time*selectedFare.billedPax)*selectedFare.prices!.requiredUnits)"
+                        [quantity]="time"
+                        [measurementUnit]="'Min'">
+                    </app-hotel-booking-addon-transfer-charge-item>
+                }@else{
+                    @if(transferType==='HOTEL'){
+                        <div class="row x-gap-0 text-12 fw-500">
+                            <div class="col-9 ellipsis">
+                                Aeropuerto ({{airportSelector.value}}) - {{hotelName}}
+                            </div>
+                            <div class="col-3 text-right">
+                                {{selectedFare.prices!.total|currency:'MXN'}}
+                            </div>
+                        </div>
+                    }@else{
+                        <div class="row x-gap-0 text-12 fw-500">
+                            <div class="col-9 ellipsis">
+                                {{hotelName}} - Aeropuerto ({{airportSelector.value}})
+                            </div>
+                            <div class="col-3 text-right">
+                                {{selectedFare.prices!.total|currency:'MXN'}}
+                            </div>
+                        </div>
+                    }
+                    @if(selectedFare.basePrice>0){
+                        <app-hotel-booking-addon-transfer-charge-item 
+                            [description]="'Tarifa Base'"
+                            [unitPrice]="selectedFare.basePrice"
+                            [quantity]="selectedFare.prices!.requiredUnits">
+                        </app-hotel-booking-addon-transfer-charge-item>
+                    }
+    
+                    <app-hotel-booking-addon-transfer-charge-item 
+                        [description]="'Distancia (KMs)'"
+                        [unitPrice]="((selectedFare.pricePerPax.km*selectedFare.billedPax)*selectedFare.prices!.requiredUnits)"
+                        [quantity]="distance"
+                        [measurementUnit]="'Km'">
+                    </app-hotel-booking-addon-transfer-charge-item>
+    
+                    <app-hotel-booking-addon-transfer-charge-item 
+                        [description]="'Tiempo (Mins)'"
+                        [unitPrice]="((selectedFare.pricePerPax.time*selectedFare.billedPax)*selectedFare.prices!.requiredUnits)"
+                        [quantity]="time"
+                        [measurementUnit]="'Min'">
+                    </app-hotel-booking-addon-transfer-charge-item>
+                }
+                <div class="row x-gap-0 text-12 fw-500">
+                    <div class="col-9 ellipsis">
+                        Total ({{guests}} {{guests>1?'Pasajeros':'Pasajero'}})
+                    </div>
+                    <div class="col-3 text-right">
+                        {{selectedFare.prices!.total*(transferType==='ROUND'?2:1)|currency:'MXN'}}
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

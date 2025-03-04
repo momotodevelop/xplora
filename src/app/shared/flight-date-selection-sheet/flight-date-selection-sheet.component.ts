@@ -52,7 +52,6 @@ export class FlightDateSelectionSheetComponent implements OnInit {
         }
       }
     }
-
     return '';
   };
 

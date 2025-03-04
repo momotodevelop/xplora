@@ -1,0 +1,7 @@
+<bottom-sheet-header title="Filtrar Resultados" (close)="close()"></bottom-sheet-header>
+<div class="px-15 py-15" style="overflow-y: auto; max-height: 60vh;">
+    <app-hotel-filters [activeAmenities]="data.activeAmenities" (amenitiesFilter)="updateAmenities($event)" [hotelList]="data.hotelList"></app-hotel-filters>
+</div>
+<div class="px-15 py-15 mat-elevation-z1 cancel-button">
+    <button class="button -md -dark-1 bg-blue-1 text-white" style="width: 100%;">Aplicar Filtros</button>
+</div>

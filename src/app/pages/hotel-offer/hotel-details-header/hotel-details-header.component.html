@@ -1,0 +1,43 @@
+<div class="row y-gap-20 justify-between items-end">
+    <div class="col-auto">
+        <div class="row x-gap-20  items-center">
+            <div class="col-auto">
+                <h1 class="text-30 sm:text-25 fw-600">{{hotelName}}</h1>
+            </div>
+
+            <div class="col-auto">
+                <i class="icon-star text-10 text-yellow-1"></i>
+                <i class="icon-star text-10 text-yellow-1"></i>
+                <i class="icon-star text-10 text-yellow-1"></i>
+                <i class="icon-star text-10 text-yellow-1"></i>
+                <i class="icon-star text-10 text-yellow-1"></i>
+            </div>
+        </div>
+        <div class="row x-gap-20 y-gap-20 items-center">
+            <div class="col-auto">
+                <div class="d-flex items-center text-15 text-light-1">
+                    <i class="icon-location-2 text-16 mr-5"></i>
+                    {{address}}
+                </div>
+            </div>
+            <div class="col-auto">
+                <button class="text-blue-1 text-15 underline">Ver en el mapa</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-auto">
+        <div class="row x-gap-15 y-gap-15 items-center">
+            <div class="col-auto">
+                <div class="text-14">
+                    Desde
+                    <span class="text-22 text-dark-1 fw-500">{{priceFrom|currency:'MXN'}}</span>
+                </div>
+            </div>
+            <div class="col-auto">
+                <a href="#" class="button h-50 px-24 -dark-1 bg-blue-1 text-white">
+                    Ver Habitaciones <div class="icon-arrow-top-right ml-15"></div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

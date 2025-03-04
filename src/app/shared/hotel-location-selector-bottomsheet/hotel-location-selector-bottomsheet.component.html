@@ -1,0 +1,23 @@
+<div class="px-15 py-15 mat-elevation-z1">
+    <div class="form-input">
+        <input [formControl]="searchInput" #search type="text">
+        <label class="lh-1 text-16 text-light-1">¿A donde vamos?</label>
+    </div>
+</div>
+<cdk-virtual-scroll-viewport itemSize="3" style="height: 280px;">
+    <div [@listAnimation] class="y-gap-5">
+        @for (option of options; track option) {
+            <div>
+                <button (click)="selectPlace(option.suggestion)" class="-link d-block col-12 text-left rounded-4 px-15 py-15">
+                    <div class="d-flex">
+                    <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
+                    <div class="ml-10">
+                        <div class="text-15 lh-12 fw-500">{{(option.mainText ?? option.text) | titlecase}}</div>
+                        <div class="text-14 lh-12 text-light-1 mt-5">{{option.secondaryText | titlecase}}</div>
+                    </div>
+                    </div>
+                </button>
+            </div>
+        }
+    </div>
+</cdk-virtual-scroll-viewport>

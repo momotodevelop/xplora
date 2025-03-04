@@ -206,6 +206,9 @@
         font-size: 1.25rem;
         font-weight: 500;
         color: #424242;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .close-button {
         display: flex;
@@ -222,4 +225,83 @@
             color: #424242;
         }
     }
-}  
+} 
+
+.radiogroup-select-list{
+    display: flex;
+    flex-direction: column;
+    mat-radio-button{
+        .mdc-form-field{
+            width: 100%;
+        }
+        .mdc-label{
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            justify-content: space-between;
+            .fare-text{
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .fare-price{
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+    }
+}
+.transfer-type-selector{
+    .transfer-type{
+        display: flex; 
+        align-items: center; 
+        border: #004aad 2px solid;
+        justify-content: space-between;
+    }
+}
+.transfer-selected-fare-details{
+    .transfer-info{
+        .col-1.d-flex{
+            justify-content: flex-end;align-items: flex-end
+        }
+        .col{
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+}
+.ellipsis{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bottomsheet-extras{
+    max-width: 400px;
+}
+
+.payment-type-radiobuton{
+    .mat-internal-form-field{
+        width: 100%;
+        .mdc-label{
+            width: 100% !important;
+            display: flex;
+            justify-content: space-between;
+            padding-right: 10px;
+        }
+    }
+}
+
+.installment-selector-hotel-booking{
+    padding: 0 !important;
+    mat-option{
+        border-bottom: 1px solid #c0c0c0;
+        .text-16{
+            line-height: 18px;
+        }
+        .text-14{
+            line-height: 16px;
+        }
+    }
+}

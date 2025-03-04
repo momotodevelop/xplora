@@ -17,11 +17,16 @@ import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { getMessaging, provideMessaging } from '@angular/fire/messaging';
 import { getStorage, provideStorage } from '@angular/fire/storage';
+import { provideLottieOptions } from 'ngx-lottie';
+import player from 'lottie-web';
 
 registerLocaleData(localeEsMX);
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideLottieOptions({
+      player: () => player,
+    }),
     provideRouter(routes), 
     provideClientHydration(), 
     provideAnimationsAsync(), 

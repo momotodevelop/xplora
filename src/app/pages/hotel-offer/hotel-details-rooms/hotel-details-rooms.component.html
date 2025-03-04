@@ -1,0 +1,12 @@
+<section id="rooms" class="pt-30">
+    <div class="container">
+        <div class="row pb-20">
+            <div class="col-auto">
+                <h3 class="text-22 fw-500">Habitaciones Disponibles</h3>
+            </div>
+        </div>
+        @for(room of rooms; track room){
+            <app-room-details (selectedRoom)="createBooking($event)" [checkIn]="dates[0]" [checkOut]="dates[1]" [room]="room"></app-room-details>
+        }
+    </div>
+</section>

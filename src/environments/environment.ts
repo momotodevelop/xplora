@@ -15,3 +15,4 @@ export const firebaseConfig = {
     measurementId: "G-NMEP31D4X8"
 };
 export const clipToken = "Basic dGVzdF85MzY4NTEyNy1kNzcxLTRhNTQtYTc1Yi1kNWQ5YjY5MzNlMDU6OThlM2M5ZjgtZGFjMS00NjYzLTk2MTEtNzQ2MTcxOTk5ZjY0";
+export const LiteApiKey = "sand_3e9d0cfa-a6cc-4503-b21b-b5edb76303b8";

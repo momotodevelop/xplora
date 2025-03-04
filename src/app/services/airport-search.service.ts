@@ -1,16 +1,17 @@
 import {environment} from '../../environments/environment'
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { mergeMap, Observable, throwError } from 'rxjs';
 import { AmadeusGetLocationResponse, AmadeusLocation, AmadeusSearchLocationResponse } from '../types/amadeus-airport-response.types';
 import { DirectDestination, DirectDestinationsResponse } from '../types/amadeus-direct-airport-response.types';
+import { AmadeusAuthService } from './amadeus-auth.service';
 type LocationTypes = "AIRPORT"|"CITY";
 @Injectable({
   providedIn: 'root'
 })
 export class AirportSearchService {
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private authService: AmadeusAuthService) { }
 
   searchAirports(keyword: string, token:string, types:LocationTypes[]=["AIRPORT", "CITY"]): Observable<AmadeusSearchLocationResponse> {
     const subTypes = types.join(',');
@@ -36,13 +37,20 @@ export class AirportSearchService {
 
     return this.http.get<DirectDestinationsResponse>(url, { headers });
   }
-  getNearbyAirports(lat: number, lon: number, token:string) {
-    const params = `?latitude=${lat}&longitude=${lon}&page[limit]=5`;
-    const url = environment.amadeusApiUrl+"/v1/reference-data/locations/airports" + params;
-    const headers = new HttpHeaders({
-      'Authorization': 'Bearer ' + token
-    });
-    return this.http.get<AmadeusSearchLocationResponse>(url, {headers});
+  getNearbyAirports(lat: number, lng: number, token?:string) {
+    const url = environment.amadeusApiUrl+"/v1/reference-data/locations/airports";
+    return this.authService.getToken().pipe(
+      mergeMap((token: string | null) => {
+        if (token === null) {
+          // Si el token es null, lanzamos un error.
+          return throwError(() => new Error('Token no disponible'));
+        }
+        const headers = new HttpHeaders({
+          'Authorization': `Bearer ${token}`
+        });
+        return this.http.get<AmadeusSearchLocationResponse>(url, { headers: headers, params: {latitude: lat, longitude: lng}});
+      })
+    );
   }
   convertirAmadeusLocationADirectDestination(amadeusLocation: AmadeusLocation): DirectDestination {
     const directDestination: DirectDestination = {

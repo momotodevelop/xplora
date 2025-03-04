@@ -7,6 +7,7 @@ import { Promo } from "../services/xplora-promos.service";
 import { AmadeusLocation } from "./amadeus-airport-response.types";
 import { SeatMapSavingData } from "./amadeus-seat-map.types";
 import { FlightOffer } from "./flight-offer-amadeus.types";
+import { RoomType } from "./lite-api.types";
 import { Payment } from "./mp-response.types";
 
 export interface XploraFlightBooking {
@@ -45,7 +46,7 @@ export interface XploraFlightBooking {
 }
 
 export type BookingStatus = "CONFIRMED"|"PENDING"|"HOLD"|"CANCELED"|"REJECTED"
-
+export type BookingTypes = 'FLIGHT' | 'HOTEL' | 'TRANSPORTATION' | 'ACTIVITY' | 'CAR_RENTAL' | 'CRUISE';
 export interface UpdateResponse{
     status: 'UPDATED';
     booking: XploraFlightBooking

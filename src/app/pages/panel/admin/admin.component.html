@@ -1,0 +1,10 @@
+<div class="dashboard" [ngClass]="{'-is-sidebar-open': !(sharedService.sidebarDashboardOpened|async)}">
+    <div class="dashboard__sidebar bg-white scroll-bar-1">
+        <app-admin-sidebar></app-admin-sidebar>
+    </div>
+    <div class="dashboard__main">
+        <div class="dashboard__content bg-light-2" [ngStyle]="{ 'min-height': (sharedService.headerHeight | async) ? 'calc(100vh - ' + (sharedService.headerHeight | async) + 'px)' : '100vh' }">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
+</div>

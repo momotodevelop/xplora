@@ -1,0 +1,9 @@
+<aside class="sidebar">
+    <app-hotel-sidebar-search-details [rooms]="rooms" [destination]="destination" [checkIn]="checkIn" [checkOut]="checkOut"></app-hotel-sidebar-search-details>
+    <div style="height: 16px;"></div>
+    <app-hotel-filters (hotelFilter)="updateHotelFilter($event)" [activeAmenities]="activeAmenities" (amenitiesFilter)="updateAmenities($event)" [hotelList]="hotelList"></app-hotel-filters>
+    <button (click)="filter()" class="button -dark-1 py-10 px-35 h-50 col-12 rounded-2 bg-blue-1 text-white mt-10">
+        <fa-icon class="text-20 mr-10" [icon]="filterIcon"></fa-icon>
+        Aplicar Filtros
+    </button>
+</aside>

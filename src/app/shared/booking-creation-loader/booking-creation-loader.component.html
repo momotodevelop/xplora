@@ -1,0 +1,90 @@
+<div class="px-24 py-24" [ngStyle]="{'height': 'calc(100vh)'}">
+    <div class="row justify-content-md-center">
+        <div class="col-auto col-md-6 col-xl-4">
+            @if(!delayCompleted){
+                <div>
+                    <div class="text-22 fw-500">Espera un momento por favor...</div>
+                    <ngb-progressbar class="mb-20 mt-20" type="success" [value]="progress" [striped]="true" [animated]="true"></ngb-progressbar>
+                    @for(step of steps; let i = $index; track i){
+                        <div [class]="[progress > (i * (100 / steps.length)) ? 'text-dark-1' : 'text-light-1', progress > ((i + 1) * (100 / steps.length)) ? 'text-green-2' : '']" class="text-18 x-gap-15 row mb-20">
+                            <div class="col-1 col-md-auto text-22 d-flex items-center">
+                                <fa-icon *ngIf="progress > (i * (100 / steps.length))" 
+                                        [icon]="progress > ((i + 1) * (100 / steps.length)) ? readyIcon : workingIcon" 
+                                        [animation]="progress > ((i + 1) * (100 / steps.length)) ? undefined : 'spin'"></fa-icon>
+                                <fa-icon *ngIf="progress <= (i * (100 / steps.length))" [icon]="pendingIcon"></fa-icon>
+                            </div>
+            
+                            <div class="col-11 col-md-auto">
+                                <div class="w-100">{{ step.title }}</div>
+                                <div>
+                                    <div class="text-16 text-dark-1">
+                                        @for(element of step.text; track $index){ 
+                                            <span [ngClass]="{'fw-500': element.bold}">
+                                                @if(element.type === 'text'){
+                                                    {{element.text!}}
+                                                }@else if(element.type === 'currency'){
+                                                    {{element.amount!|currency:'MXN'}}
+                                                }@else if(element.type === 'icon'){
+                                                    <fa-icon [icon]="element.icon!"></fa-icon>
+                                                }@else{
+                                                    {{element.content}}
+                                                }
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="w-100" style="position: absolute; left: 0; bottom: 10px; text-align: center;">
+                    <button [disabled]="progress>50" class="mb-20" mat-fab color="warn">
+                        <mat-icon>close</mat-icon>
+                    </button> 
+                    <div class="d-none d-sm-block">
+                        <p class="text-14 text-light-1">Estamos finalizando tu reservación, espera un momento.</p>
+                        <p class="text-14 text-light-1">No recargues ni cierres la página.</p>
+                    </div>
+                    <div class="d-block d-sm-none">
+                        <p class="text-12 text-light-1">Estamos finalizando tu reservación, espera un momento.</p>
+                        <p class="text-12 text-light-1">No recargues ni cierres la página.</p>
+                    </div>
+                </div>
+            }@else{
+                <div>
+                    <ng-lottie style="width: 50%; margin: auto" (animationCreated)="animationCreated($event)" (loopComplete)="onLoopComplete()" [options]="animationOptions" />
+                    @if(status==='confirmed'){
+                        <p class="text-22 fw-500 text-center text-dark-1">Reservación Confirmada</p>
+                    }@else if(status==='pending'){
+                        <p class="text-22 fw-500 text-center text-dark-1">Reservación Pendiente</p>
+                    }@else if(status==='denied'){
+                        <p class="text-22 fw-500 text-center text-dark-1">Ha ocurrido un error</p>
+                    }
+                </div>
+                <div class="w-100" style="position: absolute; left: 0; bottom: 10px; text-align: center;">
+                    <button class="mb-20 bg-green-1" mat-fab color="primary">
+                        <mat-icon>close</mat-icon>
+                    </button> 
+                    <div class="d-none d-sm-block">
+                        @switch(status){
+                            @case ("confirmed") {
+                                <p class="text-14 text-light-1">Serás redirigido a la confirmación en unos segundos.</p>
+                                <p class="text-14 text-light-1">Si no sucede, haz clic en el botón de arriba.</p>
+                            }
+                            @case ("pending") {
+
+                            }
+                            @case ("denied") {
+
+                            }
+                        }
+                    </div>
+                    <div class="d-block d-sm-none">
+                        <p class="text-12 text-light-1">Serás redirigido a la confirmación en unos segundos.</p>
+                        <p class="text-12 text-light-1">Si no sucede, haz clic en el botón de arriba.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

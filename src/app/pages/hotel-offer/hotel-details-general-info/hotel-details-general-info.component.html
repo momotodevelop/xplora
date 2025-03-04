@@ -1,0 +1,35 @@
+<div id="overview" class="col-12">
+    <h3 class="text-22 fw-500 pt-40 border-top-light">Descripción General</h3>
+    <div class="text-dark-1 text-15 mt-20" [innerHTML]="description"></div>
+    <a href="#" class="d-block text-14 text-blue-1 fw-500 underline mt-10">Show More</a>
+</div>
+<div class="col-12">
+    <h3 class="text-22 fw-500 pt-40 border-top-light">Most Popular Facilities</h3>
+    <div class="row y-gap-10 pt-20">
+        @for(facility of details.facilities; track facility;){
+            <div class="col-md-6">
+                <div class="d-flex x-gap-15 y-gap-15 items-center">
+                    <fa-icon [icon]="getFacilityIcon(facility.facilityId)"></fa-icon>
+                    <div class="text-15">{{getFacilityText(facility)|async}}</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+@if(visits>10){
+    <div class="col-12 mt-20">
+        <div class="px-24 py-20 rounded-4 bg-green-1">
+            <div class="row x-gap-20 y-gap-20 items-center">
+                <div class="col-auto">
+                    <div class="flex-center size-60 rounded-full bg-white">
+                    <i class="icon-star text-yellow-1 text-30"></i>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <h4 class="text-18 lh-15 fw-500">¡Este hotel es muy popular!</h4>
+                    <div class="text-15 lh-15">Otras {{viewers}} personas están viendo este mismo hotel en este momento.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

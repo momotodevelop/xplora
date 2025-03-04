@@ -1,0 +1,49 @@
+@if(loading){
+    <app-booking-creation-loader></app-booking-creation-loader>
+}@else{
+    <section class="pt-40 layout-pb-md">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-7 col-lg-8 mb-40">
+                    <div class="row y-gap-30">
+                        <div class="col-12">
+                            <div class="px-24 py-20 rounded-4 bg-green-1">
+                                <div class="row x-gap-20 y-gap-20 items-center">
+                                    <div class="col-3 col-md-auto">
+                                        <div class="flex-center size-60 rounded-full bg-white">
+                                        <i class="icon-user text-blue-1 text-30"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-9 col-md-auto">
+                                        <h4 class="text-16 lh-15 fw-500">Nuestros miembros reciben tarifas secretas y 10% de bonificación exclusiva.</h4>
+                                        <div class="text-13 lh-15">Inicia Sesión o Regístrate Gratis en <i>Xplorers Club</i> para acceder a estos beneficios.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if(booking){
+                        <div class="col-12">
+                            <app-hotel-booking-room-data (holderData)="roomsChange($event)" [accomodation]="booking.hotelDetails!.accomodation"></app-hotel-booking-room-data>
+                        </div>
+                        <div class="col-12">
+                            <app-hotel-booking-contact-data [roomsHolders]="roomsHolders" (contactData)="contactChange($event)"></app-hotel-booking-contact-data>
+                        </div>
+                        <!-- <div class="col-12">
+                            <app-hotel-booking-addons [hotelName]="booking.hotelDetails!.hotel.name" [guests]="guests" [location]="{lat: booking.hotelDetails!.hotel.lat, lng: booking.hotelDetails!.hotel.lng}"></app-hotel-booking-addons>
+                        </div> -->
+                        <div class="col-12">
+                            <app-hotel-booking-payment-info [amount]="total" (paymentMethod)="paymentMethodChange($event)" (paymentType)="paymentTypeChange($event)" (cardData)="cardDataChange($event)"></app-hotel-booking-payment-info>
+                        </div>
+                        <button [disabled]="!readyToBook()" (click)="confirmBooking()" mat-flat-button color="primary" class="w-100 h-60 mt-20 rounded-4">Reservar</button>
+                    }
+                </div>
+                <div class="col-xl-5 col-lg-4">
+                    @if(booking){
+                        <app-hotel-booking-sidebar [dN]="dN" [promo]="promo" [dates]="dates" [paymentType]="paymentType" [paymentMethod]="paymentMethod" [hotel]="booking.hotelDetails!.hotel" [charges]="charges" [total]="total" (verifyPromo)="verifyPromo($event)"></app-hotel-booking-sidebar>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+}

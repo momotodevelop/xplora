@@ -1,0 +1,56 @@
+<h2 class="text-18 fw-500 mt-20 md:mt-24">Datos de contacto</h2>
+<mat-chip-listbox #chips [value]="selectedHolder" (change)="selectHolder($event)" multiple="false" selectable="true">
+    @for(holder of roomsHoldersFiltered(); track holder; let i = $index){
+        <mat-chip-option [value]="i" class="chip"> {{holder.name}} {{holder.lastname}} </mat-chip-option>
+    }
+</mat-chip-listbox>
+<form [formGroup]="form">
+    <div class="row x-gap-10 y-gap-10 pt-20">
+        <div class="col col-md-6">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                <mat-label>Nombre(s)</mat-label>
+                <input formControlName="name" matInput type="text" placeholder="Nombre(s)">
+            </mat-form-field>
+        </div>
+        <div class="col col-md-6">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                <mat-label>Apellido(s)</mat-label>
+                <input formControlName="lastname" matInput type="text" placeholder="Apellidos(s)">
+            </mat-form-field>
+        </div>
+        <div class="col col-md-6">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                <mat-label>Correo Electrónico</mat-label>
+                <input formControlName="email" matInput type="email" placeholder="ejemplo@mail.com">
+            </mat-form-field>
+        </div>
+        <div class="col col-md-6">
+            <div class="row x-gap-5 y-gap-5">
+                <div class="col col-5">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                        <mat-label>País</mat-label>
+                        <mat-select formControlName="countryCode" placeholder="+52">
+                            @if(selectedCountry){
+                                <mat-select-trigger>
+                                    <img src="{{selectedCountry.flag}}" class="h-20 mr-5">
+                                    {{selectedCountry.callingCode}}
+                                </mat-select-trigger>
+                            }
+                            @for (country of countriesData; track country.code; let i = $index){
+                                <mat-option [value]="country.code">
+                                    {{country.translations['spa'].common}}
+                                </mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col col-7">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                        <mat-label>Teléfono</mat-label>
+                        <input phoneInput formControlName="phone" type="tel" maxlength="14" matInput placeholder="1234567890">
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

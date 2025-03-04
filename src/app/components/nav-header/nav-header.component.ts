@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { SanityService } from '../../services/sanity.service';
 import { NavigationItem } from '../../types/sanity.types';
 import { MenuItem } from '../../types/navigation.types';
+import { FireAuthService } from '../../services/fire-auth.service';
+import { User } from 'firebase/auth';
 
 @Component({
     selector: 'app-nav-header',
@@ -36,13 +38,29 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
     }
   ];
   @ViewChild('header', {read: ElementRef, static:false}) headerElement!: ElementRef;
-  constructor(public shared: SharedDataService, private sanity: SanityService){}
+  constructor(public shared: SharedDataService, private auth: FireAuthService){}
+  user?:User;
+  hide:boolean=false;
   ngOnInit(): void {
     this.shared.headerType.subscribe({next: (type:HeaderType)=>{this.headerType=type}});
     this.shared.headerDashboard.subscribe(isDash=>{this.dashboard=isDash});
     this.shared.headerBooking.subscribe(isBooking=>{this.booking=isBooking});
+    this.shared.hideNav.subscribe(isHidden=>{
+      this.hide=isHidden;
+    })
+    this.auth.user.subscribe(user=>{
+      if(user){
+        this.user=user;
+        console.log(user.displayName);
+      }else{
+        this.user=undefined;
+      }
+    });
   }
   ngAfterViewInit(): void {
     this.shared.changeHeaderHeight(this.headerElement.nativeElement.offsetHeight);
+  }
+  logout(){
+    this.auth.logout();
   }
 }

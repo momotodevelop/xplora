@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { TripadvisorComponent } from './tripadvisor/tripadvisor.component';
 import { SecturComponent } from './sectur/sectur.component';
+import { AmavComponent } from './amav/amav.component';
+import { IataComponent } from './iata/iata.component';
 export interface Opinion {
   nombre: string;
   titulo: string;
@@ -401,9 +403,15 @@ export class AboutComponent {
     return Math.round(promedio * 100) / 100; // Redondear a 2 decimales
   }
   openTA(){
-    this.bs.open(TripadvisorComponent);
+    this.bs.open(TripadvisorComponent, {panelClass: 'bottomsheet-no-padding'});
   }
   openRNT(){
     this.bs.open(SecturComponent, {panelClass: 'bottomsheet-no-padding'})
+  }
+  openAMAV(){
+    this.bs.open(AmavComponent, {panelClass: 'bottomsheet-no-padding'})
+  }
+  openIATA(){
+    this.bs.open(IataComponent, {panelClass: 'bottomsheet-no-padding'})
   }
 }

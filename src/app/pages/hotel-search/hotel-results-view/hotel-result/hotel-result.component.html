@@ -1,0 +1,108 @@
+<div class="border-top-light py-30">
+    <div class="row x-gap-20 y-gap-20">
+        <div class="col-md-auto">
+            <div class="cardImage ratio ratio-1:1 w-250 md:w-1/1 rounded-4">
+                <div class="cardImage__content">
+                    <img class="rounded-4 col-12" src="{{hotelResult.thumbnail ?? hotelResult.main_photo}}" alt="{{hotelResult.name}}">
+                </div>
+                <div class="cardImage__wishlist size-30" style="left: 20px;">
+                    <button class="button -blue-1 bg-white size-30 rounded-full shadow-2">
+                        <i class="icon-heart text-12"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <h3 class="text-18 lh-16 fw-500">
+                {{hotelResult.name|titlecase}}
+                <div class="d-inline-block ml-10">
+                    @if(hotelResult.stars>0){
+                        <i class="icon-star text-10 text-yellow-2"></i>
+                    }
+                    @if(hotelResult.stars>1){
+                        <i class="icon-star text-10 text-yellow-2"></i>
+                    }
+                    @if(hotelResult.stars>2){
+                        <i class="icon-star text-10 text-yellow-2"></i>
+                    }
+                    @if(hotelResult.stars>3){
+                        <i class="icon-star text-10 text-yellow-2"></i>
+                    }
+                    @if(hotelResult.stars>4){
+                        <i class="icon-star text-10 text-yellow-2"></i>
+                    }
+                </div>
+                <!-- <div class="d-inline-block ml-10">
+                    <i class="icon-star text-10 text-yellow-2"></i>
+                    <i class="icon-star text-10 text-yellow-2"></i>
+                    <i class="icon-star text-10 text-yellow-2"></i>
+                    <i class="icon-star text-10 text-yellow-2"></i>
+                    <i class="icon-star text-10 text-yellow-2"></i>
+                </div> -->
+            </h3>
+            <div class="row x-gap-10 y-gap-10 items-center pt-10">
+                <div class="col-auto">
+                    <p style="
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow:
+                        ellipsis;max-width: 400px;" class="text-14">
+                        {{hotelResult.address|titlecase}}
+                    </p>
+                </div>
+                <div class="col-auto">
+                    <div class="size-3 rounded-full bg-light-1"></div>
+                </div>
+                <div class="col-auto">
+                    <button (click)="openMap()" class="d-block text-14 text-blue-1 underline">Ver en el mapa</button>
+                </div>
+            </div>
+            @if(hotelResult.rate){
+                <div class="text-14 lh-15 mt-10">
+                    <div class="fw-500">Habitación King/Queen</div>
+                    <div class="text-light-1">Según disponibilidad</div>
+                </div>
+                <div class="text-14 text-green-2 lh-15 mt-10">
+                    <div class="fw-500"><fa-icon [icon]="cancelIcon"></fa-icon> Cancelación Gratis</div>
+                    <div class="">Puedes cancelar más tarde, así que asegura este excelente precio hoy mismo.</div>
+                </div>
+            }
+            <div class="row x-gap-10 y-gap-10 pt-20">
+                @for(facility of facilitiesArray; track facility){
+                    <div class="col-auto">
+                        <div class="border-light rounded-100 py-5 px-20 text-14 lh-14">{{facility}}</div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-md-auto text-right md:text-left">
+            <div class="row x-gap-10 y-gap-10 justify-end items-center md:justify-start">
+                <div class="col-auto">
+                <div class="text-14 lh-14 fw-500">{{hotelHandler.getRatingDescription(hotelResult.rating)}}</div>
+                <div class="text-14 lh-14 text-light-1">{{hotelResult.reviewCount|number}} opiniones</div>
+                </div>
+                <div class="col-auto">
+                <div class="flex-center text-white fw-600 text-14 size-40 rounded-4 bg-blue-1">{{hotelResult.rating|number}}</div>
+                </div>
+            </div>
+            @if(hotelResult.rate){
+                <div class="">
+                    <div class="text-14 text-light-1 mt-50 md:mt-20">{{dN.d}} Días, {{dN.n}} {{dN.n>1?'Noches':'Noche'}}, {{rooms.length}} {{rooms.length>1?'Habitaciones':'Habitación'}}.</div>
+                    <div class="text-22 lh-12 fw-600 mt-5">{{hotelResult.rate|hotelPrice:20|currency:'MXN'}}</div>
+                    <div class="text-14 text-light-1 mt-5">Incluye Impuestos</div>
+                    <button (click)="openDetails()" class="button -md -dark-1 bg-blue-1 text-white mt-24 w-100">
+                        Detalles <div class="icon-arrow-top-right ml-15"></div>
+                    </button>
+                </div>
+            }@else{
+                <div>
+                    <div class="text-20 mt-50 md:mt-20">Disponibilidad Limitada.</div>
+                    <div class="text-14 text-light-1 mt-50 md:mt-20">Cotiza ahora con un agente</div>
+                    <a href="#" class="button -md -dark-1 bg-blue-1 text-white mt-24">
+                        Cotiza Ahora <fa-icon class="ml-15" [icon]="waIcon"></fa-icon>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

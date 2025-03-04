@@ -18,6 +18,8 @@ export class SharedDataService {
   loading = this._loading.asObservable();
   private _sidebarDashboardOpened = new BehaviorSubject<boolean>(true);
   sidebarDashboardOpened = this._sidebarDashboardOpened.asObservable();
+  private _hideNav = new BehaviorSubject<boolean>(false);
+  hideNav = this._hideNav.asObservable();
   constructor() { }
   changeHeaderType(headerType: HeaderType) {
     this._headerType.next(headerType);
@@ -26,8 +28,21 @@ export class SharedDataService {
     console.log(height);
     this._headerHeight.next(height);
   }
+  toggleHideNav(hidden?:boolean){
+    const isHidden = hidden ?? !this._hideNav.value;
+    if(isHidden){
+      this._headerHeight.next(0);
+    }
+    this._hideNav.next(isHidden);
+  }
   setLoading(loading:boolean){
-    this._loading.next(loading);
+    if(!loading){
+      setTimeout(() => {
+        this._loading.next(false);
+      }, 500);
+    }else{
+      this._loading.next(true);
+    }
   }
   changeHeaderDashboard(isDashboard:boolean){
     this._headerDashboard.next(isDashboard);

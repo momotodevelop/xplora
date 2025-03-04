@@ -1,0 +1,22 @@
+<div class="galleryGrid -type-1 pt-30">
+    <div class="galleryGrid__item relative d-flex">
+        <img [src]="mainPhoto.url" alt="image" class="rounded-4">
+        <div class="absolute px-20 py-20 col-12 d-flex justify-end">
+            <button class="button -blue-1 size-40 rounded-full flex-center bg-white text-dark-1">
+                <i class="icon-heart text-16"></i>
+            </button>
+        </div>
+    </div>
+    @for(photo of secondaryPhotos; track photo; let last = $last){
+        <div class="galleryGrid__item" [ngClass]="{'relative d-flex':last}">
+            <img [src]="photo.url" alt="image" class="rounded-4">
+            @if(last){
+                <div class="absolute px-10 py-10 col-12 h-full d-flex justify-end items-end">
+                    <a href="/assets/img/gallery/1/1.png" class="button -blue-1 px-24 py-15 bg-white text-dark-1">
+                    See All 10 Photos
+                    </a>
+                </div>
+            }
+        </div>
+    }
+</div>

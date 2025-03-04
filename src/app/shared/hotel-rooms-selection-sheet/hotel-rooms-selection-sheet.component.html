@@ -1,0 +1,46 @@
+<bottom-sheet-header [title]="'Habitaciones'" (close)="close()"></bottom-sheet-header>
+<div style="padding: 8px 16px; height: 60vh; overflow-y: auto;">
+    <mat-accordion class="example-headers-align">
+        @for(room of rooms; track room; let i = $index; let first = $first){
+            <mat-expansion-panel [expanded]="first">
+                <mat-expansion-panel-header>
+                    <div class="d-flex w-100" style="justify-content: space-between;">
+                        <div class="text-18 fw-500">Habitación {{i+1}}</div>
+                        <div class="text-16 pr-10 pt-5">{{guestPerRoom(room)}} {{guestPerRoom(room)>1?'Huespedes':'Huesped'}}</div>
+                    </div>
+                </mat-expansion-panel-header>
+                <div class="row">
+                    <div class="col-6">
+                        <mat-form-field class="w-100" appearance="outline" subscriptSizing="dynamic">
+                            <mat-label>Adultos</mat-label>
+                            <mat-select [(value)]="room[0]">
+                                @for(option of adultOptions; track option){
+                                    <mat-option [value]="option">{{option}}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-6">
+                        <mat-form-field class="w-100" appearance="outline" subscriptSizing="dynamic">
+                            <mat-label>Menores</mat-label>
+                            <mat-select [(value)]="room[1]">
+                                @for(option of childrenOptions; track option){
+                                    <mat-option [value]="option">{{option}}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+                @if(!first){
+                    <button (click)="removeRoom(i)" class="mt-10" mat-button color="warn">Eliminar Habitación</button>
+                }
+            </mat-expansion-panel>
+        }
+    </mat-accordion>
+    <button (click)="addRoom()" class="button -md -blue-1 bg-blue-1-05 text-blue-1 w-100 mt-10"><fa-icon [icon]="addIcon" class="mr-5"></fa-icon> Agregar Habitación</button>
+</div>
+<div style="padding: 8px 16px;">
+    <button (click)="save()" style="border-radius: 50px;padding: 25px;" mat-flat-button class="mt-10 w-100" color="primary">
+        <div class="text-18">Guardar</div>
+    </button>
+</div>

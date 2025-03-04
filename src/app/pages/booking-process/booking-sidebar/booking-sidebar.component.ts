@@ -273,10 +273,17 @@ export class BookingSidebarComponent implements OnInit{
     this.promoControl.disable();
     this.promos.getPromoByCode(promoCode.toUpperCase()).subscribe({
       next: promo =>{
-        this.promoControl.setValue(promo.code);
-        this._sb.open('Promoción '+promo.code+' aplicada.', 'Aceptar', {duration: 1500});
-        this.bookingHandler.setPromo(promo);
-        this.updatePrice(this.booking!);
+        if(promo){
+          this.promoControl.setValue(promo.code);
+          this._sb.open('Promoción '+promo.code+' aplicada.', 'Aceptar', {duration: 1500});
+          this.bookingHandler.setPromo(promo);
+          this.updatePrice(this.booking!);
+        }else{
+          console.log("Promo not found");
+          this.promoControl.enable();
+          this.bookingHandler.setPromo(undefined);
+          this._sb.open('Código de promoción invalido', 'Aceptar', {duration: 1500});
+        }
       },
       error: err =>{
         this.promoControl.enable();

@@ -839,7 +839,7 @@ $_displays: none, inline-block, block, flex;
   
   &__header {
     display: grid;
-    grid-template-columns: 180px 1fr 60px 170px 140px 270px;
+    grid-template-columns: 180px 1fr 130px 210px 270px;
     gap: 30px;
     background-color: var(--color-dark-3);
     color: white;
@@ -847,7 +847,7 @@ $_displays: none, inline-block, block, flex;
     padding: 15px 0;
 
     @media (max-width: 1400px) {
-      grid-template-columns: 140px 1fr 60px 170px 140px 180px;
+      grid-template-columns: 140px 1fr 130px 210px 180px;
     }
     
     @include media-below(xl) {
@@ -919,7 +919,7 @@ $_displays: none, inline-block, block, flex;
   
   &__content {
     display: grid;
-    grid-template-columns: 1fr 60px 170px 140px;
+    grid-template-columns: 1fr 130px 210px;
     gap: 30px;
     
     @include media-below(md) {

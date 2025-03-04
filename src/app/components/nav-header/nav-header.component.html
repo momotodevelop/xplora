@@ -143,7 +143,11 @@
             }@else{
               <a href="/inicio" class="button px-30 fw-400 text-14 -white bg-white h-50 text-dark-1">Salir</a>
             }
-            <a href="/entrar" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">Iniciar Sesión / Registrarse</a>
+            @if(!user){
+              <a href="/entrar" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">Iniciar Sesión / Registrarse</a>
+            }@else{
+              <a (click)="logout()" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">{{user.displayName ?? 'Bienvenido'}}</a>
+            }
           </div>
 
           <div class="d-none xl:d-flex x-gap-20 items-center pl-30 text-white" data-x="header-mobile-icons" data-x-toggle="text-white">

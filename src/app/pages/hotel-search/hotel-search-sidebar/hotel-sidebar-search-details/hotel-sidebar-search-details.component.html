@@ -1,0 +1,48 @@
+<div class="sidebar__item -no-border">
+    <div class="px-20 py-20 bg-light-2 rounded-4">
+        <div class="d-flex justify-between">
+            <h5 class="text-18 fw-500 mb-10">Buscar Hoteles</h5>
+            @if(isBottomsheet){
+                <button [mat-dialog-close] class="d-flex items-top icon-close text-inherit text-14 text-dark-1"></button>
+            }
+        </div>
+        <div class="row y-gap-20 pt-20">
+            <div class="col-12">
+                <div class="searchMenu-loc px-20 py-10 bg-white rounded-4">
+                    <div (click)="openHotelDestination()">
+                        <h4 class="text-15 fw-500 ls-2 lh-16">Destino</h4>
+                        <div class="text-15 text-light-1 ls-2 lh-16">
+                            {{destination.displayName!}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div (click)="openHotelDateSelection()" class="searchMenu-date px-20 py-10 bg-white rounded-4">
+                    <div>
+                        <h4 class="text-15 fw-500 ls-2 lh-16">Entrada - Salida</h4>
+                        <div class="text-15 text-light-1 ls-2 lh-16">
+                            {{checkIn|date:'mediumDate'|titlecase}} - {{checkOut|date:'mediumDate'|titlecase}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div (click)="openRoomSelector()" class="searchMenu-guests px-20 py-10 bg-white rounded-4 js-form-dd js-form-counters">
+                    <div data-x-dd-click="searchMenu-guests">
+                        <h4 class="text-15 fw-500 ls-2 lh-16">Habitaciones</h4>
+                        <div class="text-15 text-light-1 ls-2 lh-16">
+                            {{getRoomsText(false, true)}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <button (click)="searchHotels()" class="button -dark-1 py-15 px-35 h-60 col-12 rounded-4 bg-blue-1 text-white">
+                    <i class="icon-search text-20 mr-10"></i>
+                    Buscar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

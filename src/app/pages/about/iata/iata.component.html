@@ -1,1 +1,16 @@
-<p>iata works!</p>
+<bottom-sheet-header 
+    [title]="'Certificado IATA'" 
+    (close)="close()">
+</bottom-sheet-header>
+<div style="height: 55vh;">
+    <ngx-extended-pdf-viewer 
+        [showToolbar]="false"
+        [src]="src"
+        [zoom]="zoom">
+    </ngx-extended-pdf-viewer>
+</div>
+<div style="padding: 16px;">
+    <mat-slider class="w-100 m-0" min="20" max="40" step="1">
+        <input class="p-0" (valueChange)="setZoom($event)" [value]="zoom" matSliderThumb>
+    </mat-slider>
+</div>

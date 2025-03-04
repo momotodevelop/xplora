@@ -1,0 +1,33 @@
+<app-hotel-details-breadcrumb></app-hotel-details-breadcrumb>
+<section class="pt-40">
+    <div class="container">
+        @if(details){
+            <app-hotel-details-header [address]="details.address" [hotelName]="details.name!" [priceFrom]="0"></app-hotel-details-header>
+            <app-hotel-details-photos [photos]="details.hotelImages ?? []"></app-hotel-details-photos>
+        }
+    </div>
+</section>
+<section class="pt-30">
+    <div class="container">
+        <div class="row y-gap-30">
+            <div class="col-xl-8">
+                @if(details){
+                    <app-hotel-details-general-info [details]="details"></app-hotel-details-general-info>
+                }
+            </div>
+            <div class="col-xl-4">
+                <div class="ml-50 lg:ml-0">
+                    <app-hotel-details-check-availability></app-hotel-details-check-availability>
+                    <app-hotel-details-location></app-hotel-details-location>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</section>
+@if(details){
+    <app-hotel-details-rooms [dates]="[checkIn, checkOut]" [details]="details" [rates]="rates ?? []"></app-hotel-details-rooms>
+}
+@if(false){
+    <!-- <app-hotel-details-reviews [rating]="googlePlace.rating" [reviews]="googlePlace.reviews" [reviewsCount]="googlePlace.userRatingCount" [sentiments]="amadeusSentiments"></app-hotel-details-reviews> -->
+}

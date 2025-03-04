@@ -1,0 +1,25 @@
+<form [formGroup]="form">
+    <div formArrayName="rooms">
+        @for(room of accomodation; track room; let index = $index){
+            @if(room.childrens&&room.childrens>0){
+                <h2 class="text-18 fw-500 mt-20 md:mt-24">Habitación {{index+1}} ({{room.adults}} {{room.adults>1?'adultos':'adultos'}}, {{room.childrens}} {{room.childrens>1?'menores':'menor'}}).</h2>
+            }@else{
+                <h2 class="text-18 fw-500 mt-20 md:mt-24">Habitación {{index+1}} ({{room.adults}} {{room.adults>1?'adultos':'adultos'}}, sin menores).</h2>
+            }
+            <div class="row x-gap-15 y-gap-15 mt-10" [formGroupName]="index">
+                <div class="col col-md-6">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                        <mat-label>Nombre(s) del titular</mat-label>
+                        <input matInput formControlName="name" placeholder="Nombre(s)">
+                    </mat-form-field>
+                </div>
+                <div class="col col-md-6">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                        <mat-label>Apellido(s) del titular</mat-label>
+                        <input formControlName="lastname" matInput placeholder="Apellidos(s)">
+                    </mat-form-field>
+                </div>
+            </div>
+        }
+    </div>
+</form>

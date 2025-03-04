@@ -154,8 +154,13 @@ export class BookingProcessComponent implements OnInit {
   getPromo(promoCode:string){
     this.promos.getPromoByCode(promoCode).subscribe({
       next: promo =>{
-        this._sb.open('Promoción '+promo.code+' aplicada.', 'Aceptar', {duration: 1500});
-        this.bookingHandler.setPromo(promo);
+        if(promo){
+          this._sb.open('Promoción '+promo.code+' aplicada.', 'Aceptar', {duration: 1500});
+          this.bookingHandler.setPromo(promo);
+        }else{
+          this._sb.open('Código de promoción invalido', 'Aceptar', {duration: 1500});
+          this.bookingHandler.setPromo(undefined);
+        }
       },
       error: err =>{
         this.bookingHandler.setPromo(undefined);

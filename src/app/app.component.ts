@@ -35,13 +35,14 @@ import {
 })
 export class AppComponent implements OnInit {
   title = 'xplora';
+  hideNav:boolean = false
   constructor(public shared: SharedDataService, private cdr: ChangeDetectorRef){
     this.shared.headerHeight.subscribe(height=>{
       console.log(height);
     });
-    this.shared.headerType.subscribe(htype=>{
-      
-    })
+    this.shared.hideNav.subscribe(hidden=>{
+      this.hideNav = hidden;
+    });
   }
   ngOnInit(): void {
     this.cdr.detectChanges();

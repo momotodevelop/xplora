@@ -14,4 +14,5 @@ export const firebaseConfig = {
     appId: "1:1079047158992:web:f946cb0bdb10834d51b2d5",
     measurementId: "G-NMEP31D4X8"
 };
-export const clipToken = "Basic NWQ5YmUwZjktYmY1NC00ZTBiLTg4YjUtMDA0NjVkODM4ZmU0OjIzMWFiZTdmLWNhMmEtNGQ0OS04ZTIxLTFiYTM5MTYyNDk1Mg=="
+export const clipToken = "Basic NWQ5YmUwZjktYmY1NC00ZTBiLTg4YjUtMDA0NjVkODM4ZmU0OjIzMWFiZTdmLWNhMmEtNGQ0OS04ZTIxLTFiYTM5MTYyNDk1Mg==";
+export const LiteApiKey = "prod_69fc1f97-7d9a-42cd-993f-4210d578c1f6";

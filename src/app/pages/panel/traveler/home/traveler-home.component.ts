@@ -2,9 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { SharedDataService } from '../../../../services/shared-data.service';
 import { CommonModule } from '@angular/common';
 import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
-import { faPlaneTail, faTicketPerforated, faBed, faCar, faCab, faBoxHeart } from '@fortawesome/pro-regular-svg-icons';
+import { faPlane, faBed, faCar, faCab, faBoxOpen, faTicket } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { XplorersPointsApiService } from '../../../../services/xplorers-points-api.service';
+import { XplorersPointsService } from '../../../../services/xplorers-points.service';
+import { FireAuthService } from '../../../../services/fire-auth.service';
+
 export interface UpcomingTrips{
   type:"FLIGHT"|"HOTEL"|"PACKAGE"|"TOUR"|"TRANSFER"|"CARRENTAL",
   destination: string,
@@ -18,12 +20,12 @@ export interface UpcomingTrips{
     styleUrl: './traveler-home.component.scss'
 })
 export class TravelerHomeComponent implements OnInit {
-  planeIcon=faPlaneTail;
+  planeIcon=faPlane;
   hotelIcon=faBed;
   carIcon=faCar;
   transferIcon=faCab;
-  tourIcon=faTicketPerforated;
-  packageIcon=faBoxHeart;
+  tourIcon=faTicket;
+  packageIcon=faBoxOpen;
   xpsBalance:number=0;
   upcomingTrips:UpcomingTrips[]=[
     {type: "FLIGHT", destination: "Cancún, México", date: new Date()},
@@ -34,16 +36,19 @@ export class TravelerHomeComponent implements OnInit {
     {type: "CARRENTAL", destination: "Hertz Apto Cancún", date: new Date()}
 
   ]
-  constructor (public sharedService:SharedDataService, private xplorersPoints:XplorersPointsApiService){}
+  constructor (
+    public sharedService:SharedDataService,
+    private xPoints: XplorersPointsService,
+    private auth: FireAuthService
+  ){}
 
   ngOnInit(): void {
-    this.xplorersPoints.getBalance("user123").subscribe({
-      next: (response=>{
-        this.xpsBalance=response.balance;
-      }),
-      error: (err=>{
-        console.log(err);
-      })
+    this.auth.user.subscribe(user=>{
+      if(user){
+        this.xPoints.getUserPoints(user.uid).then(balance=>{
+          this.xpsBalance = balance;
+        }); 
+      }
     })
   }
 } 

@@ -1,0 +1,22 @@
+<div class="row x-gap-0 text-12" style="line-height: 15px;">
+    <div class="ellipsis col-5">
+        {{description}}
+    </div>
+    <div class="col-2">
+        @if(measurementUnit!==undefined){
+            {{quantity}} {{measurementUnit}}s
+        }@else{
+            {{quantity}}
+        }
+    </div>
+    <div class="col-2 text-right">
+        @if(measurementUnit!==undefined){
+            {{unitPrice|currency:'MXN'}}/{{measurementUnit}}
+        }@else{
+            {{unitPrice|currency:'MXN'}}
+        }
+    </div>
+    <div class="col-3 text-right">
+        {{total|currency:'MXN'}}
+    </div>
+</div>

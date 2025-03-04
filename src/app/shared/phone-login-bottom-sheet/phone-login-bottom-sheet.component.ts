@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { countries } from '../../static/phone-country-codes.static';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { faPaperPlaneTop } from '@fortawesome/pro-thin-svg-icons'
+import { faPaperPlane } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FireAuthService } from '../../services/fire-auth.service';
@@ -21,7 +21,7 @@ export class PhoneLoginBottomSheetComponent implements OnInit {
   countries=countries;
   country:string="52";
   phone:FormControl = new FormControl('', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]);
-  sendIcon=faPaperPlaneTop;
+  sendIcon=faPaperPlane;
   ngOnInit(): void {
     (window as any).recaptcha = this.auth.setupRecaptcha("recaptcha-container");
     (window as any).recaptcha.render();

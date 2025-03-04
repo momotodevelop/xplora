@@ -1,0 +1,11 @@
+<app-hotel-results-header [hotelList]="hotels" [activeAmenitiesFilter]="activeAmenitiesFilter" [resultsCount]="hotelsList.total" [rooms]="rooms" [checkIn]="checkIn" [checkOut]="checkOut" [destination]="destination"></app-hotel-results-header>
+<div class="mt-30"></div>
+<div class="row y-gap-30">
+    <div class="col-12">
+        @for(hotel of hotels; track hotel; let i = $index){
+            @if(hotel.hotelDescription.length>0||hotel.facilityIds.length>0){
+                <app-hotel-result [dates]="[checkIn, checkOut]" [rooms]="rooms" [hotelResult]="hotel" [dN]="dN"></app-hotel-result>
+            }
+        }
+    </div>
+</div>

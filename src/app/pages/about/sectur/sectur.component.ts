@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService } from 'ngx-extended-pdf-viewer';
 import { BottomSheetHeaderComponent } from '../../../shared/bottom-sheet-header/bottom-sheet-header.component';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 @Component({
     selector: 'app-sectur',
@@ -11,8 +12,14 @@ import { MatSliderModule } from '@angular/material/slider';
     styleUrl: './sectur.component.scss'
 })
 export class SecturComponent {
+  zoom=50;
   src="/assets/docs/04230055f32e1-cert-sm.pdf"
+  constructor(private _ref:MatBottomSheetRef<SecturComponent>){}
   close(){
-
+    this._ref.dismiss();
+  }
+  setZoom(zoom:number){
+    console.log(zoom);
+    this.zoom=zoom;
   }
 }

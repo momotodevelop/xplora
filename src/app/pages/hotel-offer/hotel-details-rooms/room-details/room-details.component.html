@@ -1,0 +1,109 @@
+<div class="border-light rounded-4 px-30 py-30 mb-30 sm:px-20 sm:py-20 xplora-rooms">
+    <div class="row y-gap-20">
+        <div class="col-12">
+            <h3 class="text-18 fw-500 mb-15">{{room.roomName | translate:'es' | titlecase}}</h3>
+            <div class="roomGrid">
+                <div class="roomGrid__header">
+                    <div>Tipo de habitación</div>
+                    <div>Selecciona tu tarifa</div>
+                    <div>Ocupación Max.</div>
+                    <div>Precio por {{nights}} {{nights>1?'noches':'noche'}}</div>
+                </div> 
+                <div class="roomGrid__grid">
+                    <div>
+                        <div class="ratio ratio-1:1">
+                            <img src="{{room.photos[0].url}}" alt="image" class="img-ratio rounded-4">
+                        </div>
+                        <div class="y-gap-5 mt-20">
+                            <div class="d-flex items-center">
+                                <i class="icon-no-smoke text-20 mr-10"></i>
+                                <div class="text-15">Non-smoking rooms</div>
+                            </div>
+                            <div class="d-flex items-center">
+                                <i class="icon-wifi text-20 mr-10"></i>
+                                <div class="text-15">Free WiFi</div>
+                            </div>
+                            <div class="d-flex items-center">
+                                <i class="icon-parking text-20 mr-10"></i>
+                                <div class="text-15">Parking</div>
+                            </div>
+                            <div class="d-flex items-center">
+                                <i class="icon-kitchen text-20 mr-10"></i>
+                                <div class="text-15">Kitchen</div>
+                            </div>
+                        </div>
+                        <a href="#" class="d-block text-15 fw-500 underline text-blue-1 mt-15">Show Room Information</a>
+                    </div>
+                    <form [formGroup]="rateForm">
+                        <div class="y-gap-30">
+                            @for(offer of room.offers; track offer; let first = $first){
+                                <div class="roomGrid__content">
+                                    <div>
+                                        <div class="form-radio d-flex items-center mb-10">
+                                            <div class="radio">
+                                                <input type="radio" formControlName="rate" [value]="offer.offerId">
+                                                <div class="radio__mark">
+                                                    <div class="radio__icon"></div>
+                                                </div>
+                                            </div>
+                                            <div class="text-15 fw-500 lh-1 ml-10">{{getBoardTypeText(offer.rates[0].boardType, offer.rates[0].boardName) | titlecase}}</div>
+                                        </div>
+                                        <div class="y-gap-8">
+                                            <div class="d-flex items-center text-dark-1">
+                                                <i class="icon-bed text-12 mr-10"></i>
+                                                <div class="text-15">{{offer.rates[0].name | translate:'es' | titlecase}}</div>
+                                            </div>
+                                            @if(offer.rates[0].board){
+                                                <div class="d-flex items-center text-dark-1">
+                                                    <i class="icon-food text-12 mr-10"></i>
+                                                    <div class="text-15">{{offer.rates[0].board.description.es}}</div>
+                                                </div>
+                                            }@else{
+                                                <div class="d-flex items-center text-dark-1">
+                                                    <i class="icon-food text-12 mr-10"></i>
+                                                    <div class="text-15">Plan de alimentos: {{offer.rates[0].boardName | translate:'es'}}</div>
+                                                </div>
+                                            }
+                                            <div class="d-flex items-center text-green-2">
+                                                <i class="icon-check text-12 mr-10"></i>
+                                                <div class="text-15">Cancelación gratis hasta el {{cancelationLimit|date:'mediumDate'}}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-14">
+                                        Hasta
+                                        <div class="d-flex items-center text-center text-light-1">
+                                            @for(icon of offer.rates[0].occupancyIcons; let i = $index; track i){
+                                                <fa-icon class="text-20 mr-5" [icon]="icon"></fa-icon>
+                                            }
+                                        </div>
+                                        Por habitación
+                                    </div>
+                                    <div>
+                                        <div class="text-18 lh-15 fw-500">{{offer.offerRetailRate.amount|hotelPrice:20|currency:'MXN'}}</div>
+                                        <div class="text-14 lh-18 text-light-1">Precio final.<br>Todos los impuestos incluidos.</div> 
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </form>
+                    @if(activeOffer){
+                        <div>
+                            <div class="text-14 lh-1">Precio total por {{activeOffer.rates.length}} {{activeOffer.rates.length>1?'Habitaciones':'Habitación'}}</div>
+                            <div class="text-22 fw-500 lh-17 mt-5">{{activeOffer.offerRetailRate.amount|hotelPrice:20|currency:'MXN'}}</div>
+                            <a (click)="selectRoomType()" class="button h-50 px-24 -dark-1 bg-blue-1 text-white mt-10">
+                                Reservar <div class="icon-arrow-top-right ml-15"></div>
+                            </a>
+                            <div class="text-15 fw-500 mt-30">Solo falta un paso para completar tu reserva.</div>
+                            <ul class="list-disc y-gap-4 pt-5">
+                                <li class="text-14">Paga a MSI con tarjetas participantes.</li>
+                                <li class="text-14">No necesitas registrarte.</li>
+                                <li class="text-14">Precio final garantizado, sin cargos ocultos.</li>
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

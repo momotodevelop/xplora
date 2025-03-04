@@ -18,10 +18,14 @@
   <div class="preloader__title">Xplora Travel</div>
 </div>
 <main>
-  <app-nav-header></app-nav-header>
+  @if(!hideNav){
+    <app-nav-header></app-nav-header>
+  }
   @if((shared.headerType|async)==='dark'&&shared.headerHeight!==undefined){
     <div [ngStyle]="{'height': (shared.headerHeight|async)+'px'}" style="width: 100%;"></div>
   }
   <router-outlet></router-outlet>
-  <app-footer></app-footer>
+  @if(!hideNav){
+    <app-footer></app-footer>
+  }
 </main>
