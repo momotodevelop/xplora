@@ -1,0 +1,54 @@
+@if(post){
+    <section data-anim="fade" class="d-flex items-center py-15 border-top-light">
+        <div class="container">
+            <div class="row y-gap-10 items-center justify-between">
+                <div class="col-auto">
+                    <div class="row x-gap-10 y-gap-5 items-center text-14 text-light-1">
+                        <div class="col-auto">
+                            <div class="">Xplora Travel</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="">></div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="">Blog</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="">></div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="text-dark-1">{{post.title}}</div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!--<div class="col-auto">
+                    <a href="#" class="text-14 text-light-1">London Tourism: Best of London</a>
+                </div>-->
+            </div>
+        </div>
+    </section>
+    <section data-anim="slide-up" class="layout-pt-md">
+        <div class="container">
+            <div class="row y-gap-40 justify-center text-center">
+                <div class="col-auto">
+                    <div class="text-15 fw-500 text-blue-1 mb-8">{{post.categories[0].name}}</div>
+                    <h1 class="text-30 fw-600">{{post.title}}</h1>
+                    <div class="text-15 text-light-1 mt-10">{{post.date}}</div>
+                </div>
+                <div class="col-12">
+                    <img [src]="post.featuredMediaUrl" alt="image" class="col-12 rounded-8">
+                </div>
+            </div>
+        </div>
+    </section>
+    <section data-anim="slide-up" class="layout-pt-md layout-pb-md">
+        <div class="container">
+            <div class="row y-gap-30 justify-center">
+                <div class="col-xl-8 col-lg-10">
+                    <div [innerHTML]="post.content"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+}

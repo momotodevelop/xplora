@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import * as moment from 'moment';
-import * as humanizeDuration from 'humanize-duration';
+import moment from 'moment';
+import humanizeDuration from 'humanize-duration';
 @Pipe({
     name: 'duration',
     standalone: true

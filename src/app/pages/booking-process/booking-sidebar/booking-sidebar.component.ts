@@ -18,11 +18,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { UppercaseDirective } from '../../../uppercase.directive';
 import { AmadeusAirlinesService } from '../../../services/amadeus-airlines.service';
 import { BrandfetchService } from '../../../services/brandfetch.service';
+import { FirebaseBooking, FlightAdditionalServiceItem, FlightFirebaseBooking } from '../../../types/booking.types';
 
 export interface Charge{
   amount: number,
   description: string,
-  aditional_info?: string
+  currency?: string,
+  aditional_info?: string[]
 }
 
 @Component({
@@ -34,7 +36,7 @@ export interface Charge{
 })
 export class BookingSidebarComponent implements OnInit{
   @Output() openInsuranceExtra: EventEmitter<void> = new EventEmitter();
-  booking?:XploraFlightBooking;
+  booking?:FlightFirebaseBooking;
   dates!: {outbound:Date[], inbound?:Date[]};
   promoControl: FormControl = new FormControl('', [Validators.required, Validators.minLength(3)]);
   appliedPromo?:Promo;
@@ -60,105 +62,89 @@ export class BookingSidebarComponent implements OnInit{
       console.log(booking);
       if(booking!==undefined){
         this.booking = booking;
-        this.totalPassengers = booking.passengers.adults+booking.passengers.childrens+booking.passengers.infants;
-        this.chargeablePassengers = booking.passengers.adults+booking.passengers.childrens;
+        this.totalPassengers = booking.flightDetails.passengers.counts.adults+booking.flightDetails.passengers.counts.childrens+booking.flightDetails.passengers.counts.infants;
+        this.chargeablePassengers = booking.flightDetails.passengers.counts.adults+booking.flightDetails.passengers.counts.childrens;
         this.dates = {
           outbound: [
-            new Date(this.booking.flights.outbound!.offer!.itineraries[0].segments[0].departure.at),
-            new Date(_.last(this.booking.flights.outbound!.offer!.itineraries[0].segments)!.arrival.at)
+            new Date(this.booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments[0].departure.at),
+            new Date(_.last(this.booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments)!.arrival.at)
           ]
         }
-        if(booking.flights.outbound!==undefined){
+        if(booking.flightDetails.flights.outbound!==undefined){
           this.flightCharges = [
             {
-              description: booking.flights.outbound.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flights.outbound.offer.itineraries[0].segments)!.arrival.iataCode,
-              amount: this.priceMultiplier(booking.flights.outbound.offer.price.base),
-              aditional_info: "Tarifa Aerea"
+              description: booking.flightDetails.flights.outbound.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flightDetails.flights.outbound.offer.itineraries[0].segments)!.arrival.iataCode,
+              amount: this.priceMultiplier(booking.flightDetails.flights.outbound.offer.price.base),
+              aditional_info: ["Tarifa Aerea"]
             },
             {
-              description: booking.flights.outbound.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flights.outbound.offer.itineraries[0].segments)!.arrival.iataCode,
-              amount: this.priceMultiplier(parseInt(booking.flights.outbound.offer.price.grandTotal as string)-parseInt(booking.flights.outbound.offer.price.base as string)),
-              aditional_info: "Impuestos"
+              description: booking.flightDetails.flights.outbound.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flightDetails.flights.outbound.offer.itineraries[0].segments)!.arrival.iataCode,
+              amount: this.priceMultiplier(parseInt(booking.flightDetails.flights.outbound.offer.price.grandTotal as string)-parseInt(booking.flightDetails.flights.outbound.offer.price.base as string)),
+              aditional_info: ["Impuestos"]
             }
           ]
-          this.outboundAirlineCode = booking.flights.outbound!.offer.validatingAirlineCodes[0];
+          this.outboundAirlineCode = booking.flightDetails.flights.outbound!.offer.validatingAirlineCodes[0];
         }
-        if(booking.round&&booking.flights.inbound!==undefined){
+        if(booking.flightDetails.round&&booking.flightDetails.flights.inbound!==undefined){
           this.dates.inbound = [
-            new Date(this.booking.flights.inbound!.offer!.itineraries[0].segments[0].departure.at),
-            new Date(_.last(booking.flights.inbound.offer!.itineraries[0].segments)!.arrival.at)
+            new Date(this.booking.flightDetails.flights.inbound!.offer!.itineraries[0].segments[0].departure.at),
+            new Date(_.last(booking.flightDetails.flights.inbound.offer!.itineraries[0].segments)!.arrival.at)
           ]
           this.flightCharges.push({
-            description: booking.flights.inbound.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flights.inbound.offer.itineraries[0].segments)!.arrival.iataCode,
-            amount: this.priceMultiplier(booking.flights.inbound.offer.price.base),
-            aditional_info: "Tarifa Aerea"
+            description: booking.flightDetails.flights.inbound.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flightDetails.flights.inbound.offer.itineraries[0].segments)!.arrival.iataCode,
+            amount: this.priceMultiplier(booking.flightDetails.flights.inbound.offer.price.base),
+            aditional_info: ["Tarifa Aerea"]
           });
           this.flightCharges.push({
-            description: booking.flights.inbound.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flights.inbound.offer.itineraries[0].segments)!.arrival.iataCode,
-            amount: this.priceMultiplier(parseInt(booking.flights.inbound.offer.price.grandTotal as string)-parseInt(booking.flights.inbound.offer.price.base as string)),
-            aditional_info: "Impuestos"
+            description: booking.flightDetails.flights.inbound.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flightDetails.flights.inbound.offer.itineraries[0].segments)!.arrival.iataCode,
+            amount: this.priceMultiplier(parseInt(booking.flightDetails.flights.inbound.offer.price.grandTotal as string)-parseInt(booking.flightDetails.flights.inbound.offer.price.base as string)),
+            aditional_info: ["Impuestos"]
           });
-          this.inboundAirlineCode = booking.flights.inbound.offer.validatingAirlineCodes[0];
+          this.inboundAirlineCode = booking.flightDetails.flights.inbound.offer.validatingAirlineCodes[0];
         }
-        if(this.booking.aditionalServices!==undefined){
-          if(this.booking.aditionalServices.insurance!==undefined){
-            let insuranceTotal=0;
-            this.booking.aditionalServices.insurance.forEach(insuranceFlight=>{
-              insuranceFlight.forEach(insurancePassanger=>{
-                insuranceTotal+=ExtrasPrices.insurance
-              })
-            });
-            if(insuranceTotal>0){
-              this.aditionalServiceCharges.push({
-                description: "Allianz Travel Premium",
-                amount: insuranceTotal
-              });
-            }
-            this.activeInsurance = insuranceTotal;
+        if (this.booking.flightDetails?.aditionalServices) {
+          const aditional = this.booking.flightDetails.aditionalServices;
+
+          const getActives = (additionals: {outbound: FlightAdditionalServiceItem[], inbound:FlightAdditionalServiceItem[]}) => {
+            const outbound = additionals.outbound.filter(item => item.value>0).length;
+            const inbound = additionals.inbound.filter(item => item.value>0).length;
+            return outbound + inbound;
+          };
+          const getPieces = (additionals: {outbound: FlightAdditionalServiceItem[], inbound:FlightAdditionalServiceItem[]})=>{
+            const outboundPieces = additionals.outbound.reduce((total, item) => total + item.value, 0);
+            const inboundPieces = additionals.inbound.reduce((total, item) => total + item.value, 0);
+            return outboundPieces + inboundPieces;
           }
-          if(this.booking.aditionalServices.flexpass!==undefined){
-            let flexpassTotal:number=0;
-            this.booking.aditionalServices.flexpass.forEach(flexPassFlight=>{
-              flexPassFlight.forEach(()=>{
-                flexpassTotal+=ExtrasPrices.flexpass;
-              })
+          
+          const insuranceActives = getActives(aditional.insurance!);
+          const flexpassActives = getActives(aditional.flexpass!);
+          const carryonActives = getPieces(aditional.carryOn!);
+          const baggageActives = getPieces(aditional.baggage!);
+          if(insuranceActives>0){
+            this.aditionalServiceCharges.push({
+              description: 'Allianz Travel Premium',
+              amount: Math.round(ExtrasPrices.insurance * insuranceActives)
             });
-            if(flexpassTotal>0){
-              this.aditionalServiceCharges.push({
-                description: "FlexPass",
-                amount: flexpassTotal
-              });
-            }
           }
-          if(this.booking.aditionalServices.carryon!==undefined){
-            let carryOnTotal:number=0;
-            this.booking.aditionalServices.carryon.forEach(fligthCarryOn=>{
-              fligthCarryOn.forEach(carryOnPassenger=>{
-                carryOnTotal+=carryOnPassenger.pieces*ExtrasPrices.carryon;
-              })
+          if(flexpassActives>0){
+            this.aditionalServiceCharges.push({
+              description: 'FlexPass',
+              amount: Math.round(ExtrasPrices.flexpass * flexpassActives)
             });
-            if(carryOnTotal>0){
-              this.aditionalServiceCharges.push({
-                description: "Equipaje de mano",
-                amount: carryOnTotal
-              });
-            }
           }
-          if(this.booking.aditionalServices.baggage!==undefined){
-            let baggageTotal:number=0;
-            this.booking.aditionalServices.baggage.forEach(baggageCarryOn=>{
-              baggageCarryOn.forEach(baggagePassenger=>{
-                baggageTotal+=baggagePassenger.pieces*ExtrasPrices.baggage;
-              });
+          if(carryonActives>0){
+            this.aditionalServiceCharges.push({
+              description: 'Equipaje de mano',
+              amount: Math.round(ExtrasPrices.carryon * carryonActives)
             });
-            if(baggageTotal>0){
-              this.aditionalServiceCharges.push({
-                description: "Equipaje documentado",
-                amount: baggageTotal
-              });
-            }
           }
-        }
+          if(baggageActives>0){
+            this.aditionalServiceCharges.push({
+              description: 'Equipaje documentado',
+              amount: Math.round(ExtrasPrices.baggage * baggageActives)
+            });
+          }
+        }        
         this.updatePrice(booking);
         if(this.outboundAirlineCode){
           this.airlines.getAirlineInfo(this.outboundAirlineCode).subscribe(airline=>{
@@ -231,11 +217,11 @@ export class BookingSidebarComponent implements OnInit{
     const discountedAmmount:number = type==='fixed'?discount:(ammount*(discount/100))
     return [Math.round(ammount-discountedAmmount), Math.round(discountedAmmount)];
   }
-  bookingTotalCalculator(booking:XploraFlightBooking):number{
-    let flightTotal:number = this.priceMultiplier(booking.flights!.outbound!.offer.price.grandTotal);
+  bookingTotalCalculator(booking:FlightFirebaseBooking):number{
+    let flightTotal:number = this.priceMultiplier(booking.flightDetails.flights!.outbound!.offer.price.grandTotal);
     let discounted = 0;
-    if(booking.round&&booking.flights!.inbound !== undefined){
-      flightTotal += this.priceMultiplier(booking.flights!.inbound.offer.price.grandTotal);
+    if(booking.flightDetails.round&&booking.flightDetails.flights!.inbound !== undefined){
+      flightTotal += this.priceMultiplier(booking.flightDetails.flights!.inbound.offer.price.grandTotal);
     }
     if(this.appliedPromo!==undefined){
       const promoPrices = this.applyPromo(flightTotal, this.appliedPromo.discountAmount, this.appliedPromo.discountType);
@@ -248,9 +234,9 @@ export class BookingSidebarComponent implements OnInit{
     }
     return flightTotal;
   }
-  updatePrice(booking:XploraFlightBooking){
+  updatePrice(booking:FlightFirebaseBooking){
     this.grandTotal=this.bookingTotalCalculator(booking);
-    const charges:Charge[] = [...this.flightCharges, {description: "Cargo por servicio", amount: 0, aditional_info: "GRATIS"}, ...this.aditionalServiceCharges]
+    const charges:Charge[] = [...this.flightCharges, {description: "Cargo por servicio", amount: 0, aditional_info: ["GRATIS"]}, ...this.aditionalServiceCharges]
     if(this.appliedPromo&&this.discountedAmmount){
       const discount:string = this.appliedPromo.discountType==="percentage"?this.appliedPromo.discountAmount+"%":this.currencyPipe.transform(this.appliedPromo.discountAmount, "MXN")!;
       let promoCharge:Charge = {

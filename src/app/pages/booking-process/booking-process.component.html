@@ -1,3 +1,6 @@
+@if(confirmationLoader){
+    <app-booking-creation-loader (completed)="completeLoader()" [steps]="confirmationLoaderSteps" [paymentMethod]="'CASH'" [paymentType]="'NOW'"></app-booking-creation-loader>
+}
 @if(booking!==undefined){
     <!-- <section class="layout-pt-md">
         <div class="section-bg__item col-12">
@@ -15,11 +18,11 @@
     <div class="container mt-40">
         <div class="row">
             <div class="col-xl-7 col-lg-8">
-                <mat-vertical-stepper class="booking-stepper" #stepper>
+                <mat-vertical-stepper class="booking-stepper" #stepper [linear]="true">
                     <mat-step [completed]="passengers!==undefined">
                         <ng-template matStepLabel><h2 class="text-16 fw-500">Pasajeros</h2></ng-template>
                         @if(booking){
-                            <app-passengers [adults]="booking.passengers.adults" [childrens]="booking.passengers.childrens" [infants]="booking.passengers.infants" [passengersData]="booking.passengersData ?? []" (valid)="passengers = $event"></app-passengers>
+                            <app-passengers [adults]="booking.flightDetails.passengers.counts.adults" [childrens]="booking.flightDetails.passengers.counts.childrens" [infants]="booking.flightDetails.passengers.counts.infants" [passengersData]="booking.flightDetails.passengers.details ?? []" (valid)="passengers = $event"></app-passengers>
                         }
                         <div>
                             <button [disabled]="!passengers" (click)="processPassengers()" color="primary" mat-raised-button class="w-100">
@@ -44,7 +47,7 @@
                     </mat-step>
                     <mat-step [ngClass]="{'payment-step': true}">
                         <ng-template matStepLabel>Pagar Reservación</ng-template>
-                        <app-payment></app-payment>
+                        <app-payment (selectedPaymentMethod)="changePaymentMethod($event)"></app-payment>
                     </mat-step>
                 </mat-vertical-stepper>
             </div>

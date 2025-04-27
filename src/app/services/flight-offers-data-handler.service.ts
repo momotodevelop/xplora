@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Dictionaries, FlightOffer, Segment } from '../types/flight-offer-amadeus.types';
 import { BehaviorSubject } from 'rxjs';
-import * as moment from 'moment';
-import * as _ from 'lodash';
+import moment from 'moment';
+import _ from 'lodash';
 import { FilterFormValue } from '../pages/flight-search/sidebar/sidebar.component';
 import { XploraFlightBooking } from '../types/xplora-api.types';
 export interface FilterOptions{
@@ -93,6 +93,9 @@ export class FlightOffersDataHandlerService {
       flights
     }
     return bookingData;
+  }
+  getFlights():SelectedFlights{
+    return this._selected.value;
   }
   resetFlightSelection(){
     this._selected.next({});

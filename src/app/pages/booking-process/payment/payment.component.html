@@ -1,14 +1,14 @@
 <mat-accordion class="payment-accordion">
-    <mat-expansion-panel hideToggle #panelTarjeta (opened)="openedPanel('tarjeta')" (closed)="closedPanel('tarjeta')" expanded>
+    <mat-expansion-panel hideToggle #panelTarjeta (opened)="openedPanel('CARD')" (closed)="closedPanel('CARD')" expanded>
             <mat-expansion-panel-header>
-                <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='tarjeta'}" class="mr-5 text-14" [icon]="cardIcon"></fa-icon> Tarjeta de Crédito o Débito</mat-panel-title>
+                <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='CARD'}" class="mr-5 text-14" [icon]="cardIcon"></fa-icon> CARD de Crédito o Débito</mat-panel-title>
             </mat-expansion-panel-header>
             <!-- <div id="clip_checkout" style="margin-bottom: -25px;margin-top: 10px;"></div> -->
             <form [formGroup]="cardForm">
                 <div class="row">
                     <div class="col-12 col-md-6">
                         <mat-form-field appearance="outline" class="w-100">
-                            <mat-label>Número de Tarjeta</mat-label>
+                            <mat-label>Número de CARD</mat-label>
                             <input matInput placeholder="0000 0000 0000 0000" type="tel" ccNumber #ccNumber="ccNumber" formControlName="number">
                             <mat-icon matSuffix>credit_card</mat-icon>
                             <mat-hint class="text-12">Visa, MasterCard, American Express</mat-hint>
@@ -34,7 +34,7 @@
                             <mat-label>Nombre del Titular</mat-label>
                             <input matInput placeholder="Titular" type="text" formControlName="holder">
                             <mat-icon matSuffix>account_circle</mat-icon>
-                            <mat-hint class="text-12">Como aparece en la tarjeta</mat-hint>
+                            <mat-hint class="text-12">Como aparece en la CARD</mat-hint>
                         </mat-form-field>
                     </div>
                 </div>
@@ -65,9 +65,9 @@
 
             </div>
     </mat-expansion-panel>
-    <mat-expansion-panel hideToggle #panelEfectivo (opened)="openedPanel('efectivo')" (closed)="closedPanel('efectivo')">
+    <mat-expansion-panel hideToggle #panelEfectivo (opened)="openedPanel('CASH')" (closed)="closedPanel('CASH')">
         <mat-expansion-panel-header>
-            <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='efectivo'}" class="mr-5 text-14" [icon]="cashIcon"></fa-icon> Efectivo</mat-panel-title>
+            <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='CASH'}" class="mr-5 text-14" [icon]="cashIcon"></fa-icon> Efectivo</mat-panel-title>
         </mat-expansion-panel-header>
         <mat-selection-list color="primary" #paymentOfficeList (selectionChange)="paymentOfficeChange($event)" [multiple]="false" >
             @for(paymentOffice of paymentOffices; track paymentOffice){
@@ -93,9 +93,9 @@
             <p class="text-dark-1 text-14 mt-10" style="text-align: justify;">Una vez que confirmes tu reservación, recibirás un número de referencia que deberás proporcionar al momento de hacer el pago. Los detalles para completar la transacción serán enviados a tu correo electrónico.</p>
         }
     </mat-expansion-panel>
-    <mat-expansion-panel hideToggle #panelSpei (opened)="openedPanel('spei')" (closed)="closedPanel('spei')">
+    <mat-expansion-panel hideToggle #panelSpei (opened)="openedPanel('SPEI')" (closed)="closedPanel('SPEI')">
         <mat-expansion-panel-header>
-            <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='spei'}" class="mr-5 text-14" [icon]="speiIcon"></fa-icon> SPEI</mat-panel-title>
+            <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='SPEI'}" class="mr-5 text-14" [icon]="speiIcon"></fa-icon> SPEI</mat-panel-title>
         </mat-expansion-panel-header>
         <div class="row">
             <div class="col-md-4 d-flex items-center justify-center">
@@ -109,12 +109,12 @@
 </mat-accordion>
 
 <!-- <div id="paymentBrick_container"></div> -->
-<button [disabled]="!selectedPayment||(selectedPayment==='tarjeta'&&!cardForm.valid)||(selectedPayment==='efectivo'&&!selectedPaymentOffice)||loading" (click)="makePayment()" mat-raised-button style="margin-top: 16px;" color="primary" class="w-100" >
+<button [disabled]="!selectedPayment||(selectedPayment==='CARD'&&!cardForm.valid)||(selectedPayment==='CASH'&&!selectedPaymentOffice)||loading" (click)="makePaymentFirebase()" mat-raised-button style="margin-top: 16px;" color="primary" class="w-100" >
     @if(loading){
         Procesando tu pago <fa-icon [icon]="spinnerIcon" [animation]="'spin'"></fa-icon>
     }@else{
         @if(selectedPayment!==undefined){
-            @if(selectedPayment==='tarjeta'){
+            @if(selectedPayment==='CARD'){
                 Pagar {{total|currency:'MXN'}}
             }@else{
                 Confirmar Reservación

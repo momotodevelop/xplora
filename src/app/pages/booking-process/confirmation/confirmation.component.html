@@ -17,26 +17,22 @@
                         <div class="text-15 text-light-1 mt-10">Gracias por elegirnos para tu próximo viaje. A continuación, encontrarás los detalles de tu reservación.</div>
                     } @else if (booking.status==="HOLD"){
                         <div class="text-30 lh-1 fw-600 mt-20">Reservación En Espera</div>
-                        @if(booking.activePayment!.type === "efectivo"){
+                        @if(booking.payment!.method === "CASH"){
                             <div class="text-15 text-light-1 mt-10">Recuerda que tu pago debe realizarse en efectivo para confirmar la reservación. Te sugerimos acudir a nuestras oficinas o un centro autorizado.</div>
-                        } @else if(booking.activePayment!.type === "spei"){
+                        } @else if(booking.payment!.method === "SPEI"){
                             <div class="text-15 text-light-1 mt-10">Para confirmar tu reservación, realiza una transferencia SPEI. Una vez recibamos el pago, tu reservación será confirmada.</div>
-                        } @else if(booking.activePayment!.type === "tarjeta"){
+                        } @else if(booking.payment!.method === "CARD"){
                             <div class="text-15 text-light-1 mt-10">Estamos procesando el pago con tarjeta. Te notificaremos una vez se confirme el cargo y la reservación.</div>
-                        } @else if(booking.activePayment!.type === "tarjeta-declinada"){
-                            <div class="text-15 text-light-1 mt-10">Tu pago con tarjeta fue declinado. Por favor, intenta con otro método de pago para confirmar la reservación.</div>
                         }
                     
                     } @else if (booking.status==="CANCELED"){
                         <div class="text-30 lh-1 fw-600 mt-20">{{booking.contact!.name}}, Tu reservación ha sido cancelada</div>
-                        @if(booking.activePayment!.type === "efectivo"){
+                        @if(booking.payment!.method === "CASH"){
                             <div class="text-15 text-light-1 mt-10">Tu reservación ha sido cancelada debido a la falta de pago en efectivo. Contáctanos si necesitas ayuda para reactivar tu reservación.</div>
-                        } @else if(booking.activePayment!.type === "spei"){
+                        } @else if(booking.payment!.method === "SPEI"){
                             <div class="text-15 text-light-1 mt-10">Tu reservación ha sido cancelada porque no se recibió la transferencia SPEI a tiempo. Por favor, contáctanos para más información.</div>
-                        } @else if(booking.activePayment!.type === "tarjeta"){
+                        } @else if(booking.payment!.method === "CARD"){
                             <div class="text-15 text-light-1 mt-10">Tu reservación ha sido cancelada debido a un problema con el pago con tarjeta. Contáctanos si deseas intentar nuevamente.</div>
-                        } @else if(booking.activePayment!.type === "tarjeta-declinada"){
-                            <div class="text-15 text-light-1 mt-10">Tu reservación ha sido cancelada porque el pago con tarjeta fue declinado. Por favor, utiliza otro método de pago o contáctanos para más opciones.</div>
                         }
                     }                    
                 </div>
@@ -44,7 +40,7 @@
                     <div class="row">
                         <div class="col-lg-3 col-md-6">
                             <div class="text-15 lh-12">Localizador</div>
-                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">{{booking.created.toString().slice(-8)}}</div>
+                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">{{booking.created!}}</div>
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <div class="text-15 lh-12">Estatus</div>
@@ -56,33 +52,26 @@
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <div class="text-15 lh-12">Metodo de Pago</div>
-                            @switch(booking.activePayment!.type) {
-                                @case ("efectivo") {
+                            @switch(booking.payment!.method) {
+                                @case ("CASH") {
                                     <div 
                                         style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"
                                         class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">
-                                            Efectivo <small>({{booking.activePayment!.office|titlecase}})</small>
+                                            Efectivo
                                     </div>
                                 }
-                                @case ("spei") {
+                                @case ("SPEI") {
                                     <div 
                                         style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"
                                         class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">
                                             Transferencia Interbancaria
                                     </div>
                                 }
-                                @case ("tarjeta") {
+                                @case ("CARD") {
                                     <div 
                                         style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"
                                         class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">
                                             Tarjeta
-                                    </div>
-                                }
-                                @case ("tarjeta-declinada") {
-                                    <div 
-                                        style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;"
-                                        class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">
-                                            Tarjeta (declinada)
                                     </div>
                                 }
                             }
@@ -115,7 +104,7 @@
                 <div class="border-light rounded-8 px-50 py-40 mt-40">
                     <h4 class="text-20 fw-500 mb-30">Pasajeros</h4>
                     <div class="row y-gap-10">
-                        @for(passenger of booking.passengersData; track passenger){
+                        @for(passenger of booking.flightDetails!.passengers.details; track passenger){
                         <div class="col-12">
                             <div class="d-flex justify-between border-top-light pt-10">
                                     <div class="text-15 lh-16">{{passenger.name}} {{passenger.lastname}}</div>
@@ -144,11 +133,9 @@
                             <div class="d-flex justify-between border-top-light pt-10">
                                 <div class="text-15 lh-16">Metodo de pago:</div>
                                 <div class="text-15 lh-16 fw-500 text-blue-1">
-                                    @switch(booking.activePayment!.type) {
-                                        @case ("efectivo") {Efectivo}
-                                        @case ("spei") {Transferencia SPEI}
-                                        @case ("tarjeta") {Tarjeta}
-                                        @case ("tarjeta-declinada"){Tarjeta}
+                                    @switch(booking.payment!.type) {
+                                        @case ("NOW") {Ahora}
+                                        @case ("DELAYED") {Despues}
                                     }
                                 </div>
                             </div>
@@ -157,39 +144,29 @@
                             <div class="d-flex justify-between border-top-light pt-10">
                                 <div class="text-15 lh-16">Estatus del pago:</div>
                                 <div class="text-15 lh-16 fw-500 text-blue-1">
-                                    @if(booking.status==="CONFIRMED"){
-                                        Completado
-                                    }@else if(booking.status==="HOLD"){
-                                        @if(booking.activePayment!.type==='tarjeta'||booking.activePayment!.type==='tarjeta-declinada'){
-                                            Declinado
-                                        }@else{
-                                            Pendiente
-                                        }
-                                    }@else{
-                                        Cancelado
-                                    }
+                                    
                                 </div>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="d-flex justify-between border-top-light pt-10">
                                 <div class="text-15 lh-16">Total a pagar:</div>
-                                <div class="text-15 lh-16 fw-500 text-blue-1">{{booking.activePayment!.amount|currency:'MXN'}}</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1">{{booking.payment!.amount|currency:'MXN'}}</div>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="d-flex justify-between border-top-light pt-10">
                                 <div class="text-15 lh-16">Total pagado:</div>
-                                <div class="text-15 lh-16 fw-500 text-blue-1">{{booking.activePayment!.amount-booking.activePayment!.totalDue|currency:'MXN'}}</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1">{{booking.payment!.amount-booking.payment!.totalDue|currency:'MXN'}}</div>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="d-flex justify-between border-top-light pt-10">
                                 <div class="text-15 lh-16">Saldo pendiente:</div>
-                                <div class="text-15 lh-16 fw-500 text-blue-1">{{booking.activePayment!.totalDue|currency:'MXN'}}</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1">{{booking.payment!.totalDue|currency:'MXN'}}</div>
                             </div>
                         </div>
-                        @if(booking.status==="HOLD"&&booking.activePayment!.totalDue>0){
+                        @if(booking.status==="HOLD"&&booking.payment!.totalDue>0){
                             <div class="col-12" style="display: flex; justify-content: flex-end;">
                                 <button class="button -md -blue-1 bg-dark-3 text-white">Completar Pago</button>
                             </div>

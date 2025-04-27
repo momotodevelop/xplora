@@ -16,7 +16,8 @@ export interface PaymentCardData{
   cvv: string,
   holderName: string,
   holderLastName: string,
-  installments: number
+  installments: number,
+  brand: "visa"|"mastercard"|"amex"|string
 }
 
 @Component({
@@ -96,7 +97,10 @@ export class HotelBookingPaymentInfoComponent implements OnInit {
     });
     this.ccForm.valueChanges.subscribe((value:PaymentCardData)=>{
       if(this.ccForm.valid){
-        this.cardData.emit(value);
+        this.cardData.emit({
+          ...value,
+          brand:this.ccNumber.resolvedScheme$.value
+        });
       }else{
         this.cardData.emit(undefined);
       }
@@ -115,10 +119,10 @@ export class HotelBookingPaymentInfoComponent implements OnInit {
         this.paymentMethod.emit("CARD");
         break;
       case 1:
-        this.paymentMethod.emit("CASH");
+        this.paymentMethod.emit("SPEI");
         break;
       case 2:
-        this.paymentMethod.emit("SPEI");
+        this.paymentMethod.emit("CASH");
         break;
     }
   }

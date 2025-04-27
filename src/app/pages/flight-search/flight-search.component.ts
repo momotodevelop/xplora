@@ -14,7 +14,9 @@ import { TranslateService } from '../../services/translate.service';
 import { SelectedFlightComponent } from './selected-flight/selected-flight.component';
 import { FlightOffersDataHandlerService } from '../../services/flight-offers-data-handler.service';
 import { XploraApiService } from '../../services/xplora-api.service';
-import { BookingStatus } from '../../types/xplora-api.types';
+import { FireBookingService } from '../../services/fire-booking.service';
+import { Timestamp } from 'firebase/firestore';
+import { BookingStatus } from '../../types/booking.types';
 export interface SearchParams{
   adults: string
   childrens: string
@@ -60,6 +62,7 @@ export class FlightSearchComponent implements OnInit {
     private airports: AirportSearchService, 
     private amadeusToken:AmadeusAuthService, 
     private translate: TranslateService, 
+    private fireBooking: FireBookingService,
     private flightOffersHandler: FlightOffersDataHandlerService,
     private xplora: XploraApiService){}
 
@@ -108,23 +111,28 @@ export class FlightSearchComponent implements OnInit {
       if(status==="FULL"){
         const round = this.return!==undefined;
         this.sharedService.setLoading(true);
-        let item:SimpleBookingItem = {
-          origin: this.origin,
-          destination: this.destination,
-          departure: this.departure,
-          passengers: this.passengers,
+        this.fireBooking.addBooking({
+          type: "FLIGHT",
           status: "PENDING",
-          round
-        }
-        if(item.round){
-          item.return=this.return;
-        }
-        this.xplora.createBooking(this.flightOffersHandler.createBookingAddFlights(item)).subscribe((resp)=>{
-          console.log(resp);
-          if(resp&&resp.status==="CREATED"){
-            const url = `/reservar/vuelos/${resp.id}`;
-            window.location.href = url;
+          flightDetails: {
+            departure: this.departure,
+            return: this.return,
+            origin: this.origin,
+            destination: this.destination,
+            passengers: {
+              counts: this.passengers,
+              details: []
+            },
+            round,
+            flights: this.flightOffersHandler.getFlights()
           }
+        }).then(ok=>{
+          console.log(ok);
+          const url = `/reservar/vuelos/${ok}`;
+          window.location.href = url;
+        }).catch(err=>{
+          console.error(err);
+          this.sharedService.setLoading(false);
         });
       }
     })

@@ -1,6 +1,6 @@
 <div class="px-24 py-24" [ngStyle]="{'height': 'calc(100vh)'}">
     <div class="row justify-content-md-center">
-        <div class="col-auto col-md-6 col-xl-4">
+        <div class="col-12 col-md-6 col-xl-4">
             @if(!delayCompleted){
                 <div>
                     <div class="text-22 fw-500">Espera un momento por favor...</div>
@@ -17,21 +17,23 @@
                             <div class="col-11 col-md-auto">
                                 <div class="w-100">{{ step.title }}</div>
                                 <div>
-                                    <div class="text-16 text-dark-1">
-                                        @for(element of step.text; track $index){ 
-                                            <span [ngClass]="{'fw-500': element.bold}">
-                                                @if(element.type === 'text'){
-                                                    {{element.text!}}
-                                                }@else if(element.type === 'currency'){
-                                                    {{element.amount!|currency:'MXN'}}
-                                                }@else if(element.type === 'icon'){
-                                                    <fa-icon [icon]="element.icon!"></fa-icon>
-                                                }@else{
-                                                    {{element.content}}
-                                                }
-                                            </span>
-                                        }
-                                    </div>
+                                    @for(line of step.lines; track $index;){
+                                        <div class="text-16 text-dark-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            @for(element of line.content; track $index){ 
+                                                <span [ngClass]="{'fw-500': element.bold}">
+                                                    @if(element.type === 'text'){
+                                                        {{element.text!}}
+                                                    }@else if(element.type === 'currency'){
+                                                        {{element.amount!|currency:'MXN'}}
+                                                    }@else if(element.type === 'icon'){
+                                                        <fa-icon [icon]="element.icon!"></fa-icon>
+                                                    }@else{
+                                                        {{element.content}}
+                                                    }
+                                                </span>
+                                            }
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -60,28 +62,70 @@
                     }@else if(status==='denied'){
                         <p class="text-22 fw-500 text-center text-dark-1">Ha ocurrido un error</p>
                     }
+                    @if(paymentMethod==='CARD'){
+                        @if(paymentType==='NOW'){
+                            <p class="text-22 text-center text-dark-1">El cargo a tu tarjeta ha sido declinado.</p>
+                        }@else{
+                            <p class="text-22 text-center text-dark-1">Tu reservación ha sido confirmada.</p>
+                        }
+                    }@else{
+                        <p class="text-22 text-center text-dark-1">Completa tu pago ahora para garantizar tu reservación.</p>
+                    }
                 </div>
                 <div class="w-100" style="position: absolute; left: 0; bottom: 10px; text-align: center;">
-                    <button class="mb-20 bg-green-1" mat-fab color="primary">
-                        <mat-icon>close</mat-icon>
+                    <button class="mb-20 bg-green-2" mat-fab>
+                        <mat-icon>refresh</mat-icon>
+                    </button> 
+                    <button class="mb-20 ml-10" mat-fab color="primary">
+                        <mat-icon>arrow_forward</mat-icon>
                     </button> 
                     <div class="d-none d-sm-block">
-                        @switch(status){
-                            @case ("confirmed") {
+                        @switch(paymentMethod){
+                            @case ("CARD") {
+                                @if(paymentType==='NOW'){
+                                    <p class="text-14 text-light-1">El cargo a tu tarjeta ha sido declinado.</p>
+                                    <p class="text-14 text-light-1">Por favor intenta con otro método de pago.</p>
+                                }@else{
+                                    <p class="text-14 text-light-1">El pago se realizará en el hotel.</p>
+                                    <p class="text-14 text-light-1">Serás redirigido a la confirmación en unos segundos.</p>
+                                    <p class="text-14 text-light-1">Si no sucede, haz clic en el botón de arriba.</p>
+                                }
+                            }
+                            @case ("CASH") {
+                                <p class="text-14 text-light-1">El pago se realizará por adelantado en efectivo.</p>
                                 <p class="text-14 text-light-1">Serás redirigido a la confirmación en unos segundos.</p>
                                 <p class="text-14 text-light-1">Si no sucede, haz clic en el botón de arriba.</p>
                             }
-                            @case ("pending") {
-
-                            }
-                            @case ("denied") {
-
+                            @case ("SPEI") {
+                                <p class="text-14 text-light-1">El pago se realizará por adelantado mediante Transferencia Bancaria.</p>
+                                <p class="text-14 text-light-1">Serás redirigido a la confirmación en unos segundos.</p>
+                                <p class="text-14 text-light-1">Si no sucede, haz clic en el botón de arriba.</p>
                             }
                         }
                     </div>
                     <div class="d-block d-sm-none">
-                        <p class="text-12 text-light-1">Serás redirigido a la confirmación en unos segundos.</p>
-                        <p class="text-12 text-light-1">Si no sucede, haz clic en el botón de arriba.</p>
+                        @switch(paymentMethod){
+                            @case ("CARD") {
+                                @if(paymentType==='NOW'){
+                                    <p class="text-12 text-light-1">El cargo a tu tarjeta ha sido declinado.</p>
+                                    <p class="text-12 text-light-1">Por favor intenta con otro método de pago.</p>
+                                }@else{
+                                    <p class="text-12 text-light-1">El pago se realizará en el hotel.</p>
+                                    <p class="text-12 text-light-1">Serás redirigido a la confirmación en unos segundos.</p>
+                                    <p class="text-12 text-light-1">Si no sucede, haz clic en el botón de arriba.</p>
+                                }
+                            }
+                            @case ("CASH") {
+                                <p class="text-12 text-light-1">El pago se realizará por adelantado en efectivo.</p>
+                                <p class="text-12 text-light-1">Serás redirigido a la confirmación en unos segundos.</p>
+                                <p class="text-12 text-light-1">Si no sucede, haz clic en el botón de arriba.</p>
+                            }
+                            @case ("SPEI") {
+                                <p class="text-12 text-light-1">El pago se realizará por adelantado mediante Transferencia Bancaria.</p>
+                                <p class="text-12 text-light-1">Serás redirigido a la confirmación en unos segundos.</p>
+                                <p class="text-12 text-light-1">Si no sucede, haz clic en el botón de arriba.</p>
+                            }
+                        }
                     </div>
                 </div>
             }

@@ -1,4 +1,4 @@
-import { Component, Inject, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatListModule, MatSelectionList } from '@angular/material/list';
 import { ExtraBaggageData } from '../add-carry-on/add-carry-on.component';
@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
+import { FlightAdditionalServiceItem } from '../../../../types/booking.types';
 
 @Component({
     selector: 'app-add-baggage',
@@ -14,50 +15,62 @@ import { MatTabsModule } from '@angular/material/tabs';
     templateUrl: './add-baggage.component.html',
     styleUrl: './add-baggage.component.scss'
 })
-export class AddBaggageComponent {
+export class AddBaggageComponent implements OnInit {
   price:number;
   total:number=0;
   @ViewChild('outbound') outbound!:MatSelectionList;
   @ViewChild('inbound') inbound?:MatSelectionList;
-  extraBaggage:ExtraBaggageData[][];
+  extraBaggage:{outbound: FlightAdditionalServiceItem[], inbound: FlightAdditionalServiceItem[]};
   constructor(@Inject(MAT_BOTTOM_SHEET_DATA) public data: ExtraServiceBottomSheetData,
   private _bottomSheetRef: MatBottomSheetRef<AddBaggageComponent>){
     this.price = this.data.price;
-    this.extraBaggage = this.data.flights.map(flight=>{
-      let selectionArray:{passengerID: number, pieces: number}[] = []
-      this.data.passengers.forEach((passenger,i)=>{
-        selectionArray.push({passengerID: i, pieces: 0});
-      })
-      return selectionArray
-    });
+    this.extraBaggage = this.data.saved;
   }
-  ngAfterViewInit(): void {
+  ngOnInit(): void {
     if(this.data.saved){
+      console.log(this.data.saved);
       this.extraBaggage = this.data.saved;
       this.change();
     }
   }
-  addPiece(flightI:number, passengerI:number){
-    this.extraBaggage[flightI][passengerI].pieces = this.extraBaggage[flightI][passengerI].pieces+1;
+  addPiece(scope:'INBOUND'|'OUTBOUND', passengerI:number){
+    let item:FlightAdditionalServiceItem;
+    if(scope==='OUTBOUND'){
+      item = this.extraBaggage.outbound[passengerI];
+    }else{
+      item = this.extraBaggage.inbound[passengerI];
+    }
+    const actualValue = (item.value ?? 0)+1;
+    item.value = actualValue;
+    item.active = actualValue>0;
     this.change();
   }
-  removePiece(flightI:number, passengerI:number){
-    this.extraBaggage[flightI][passengerI].pieces = this.extraBaggage[flightI][passengerI].pieces-1;
+  removePiece(scope:'INBOUND'|'OUTBOUND', passengerI:number){
+    let item:FlightAdditionalServiceItem;
+    if(scope==='OUTBOUND'){
+      item = this.extraBaggage.outbound[passengerI];
+    }else{
+      item = this.extraBaggage.inbound[passengerI];
+    }
+    const actualValue = (item.value ?? 0)-1;
+    item.value = actualValue;
+    item.active = actualValue>0;
     this.change();
   }
   close(){
     this._bottomSheetRef.dismiss();
   }
   save(){
+    console.log(this.extraBaggage);
     this._bottomSheetRef.dismiss(this.extraBaggage);
   }
   change(){
-    let total:number = 0;
-    this.extraBaggage.forEach(extraBaggageFlight=>{
-      extraBaggageFlight.forEach(extraItem=>{
-        total+=extraItem.pieces*this.price;
-      });
-    })
-    this.total=total
+    const outboundPieces = this.extraBaggage.outbound.reduce((total, item)=>{
+      return total+(item.value?item.value:0);
+    },0)
+    const inboundPieces = this.extraBaggage.inbound.reduce((total, item)=>{
+      return total+(item.value?item.value:0);
+    },0)
+    this.total=this.data.price*(outboundPieces+inboundPieces);
   }
 }

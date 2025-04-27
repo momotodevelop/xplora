@@ -8,6 +8,8 @@ import { ConfirmationSidebarComponent } from '../confirmation-sidebar/confirmati
 import { Charge } from '../booking-sidebar/booking-sidebar.component';
 import { CommonModule } from '@angular/common';
 import { map } from 'rxjs';
+import { FlightFirebaseBooking } from '../../../types/booking.types';
+import { FireBookingService } from '../../../services/fire-booking.service';
 
 @Component({
     selector: 'app-confirmation',
@@ -20,9 +22,10 @@ export class ConfirmationComponent implements OnInit {
     public bookingHandler: BookingHandlerService,
     private route: ActivatedRoute, 
     private xplora: XploraApiService, 
-    private sharedService: SharedDataService
+    private sharedService: SharedDataService,
+    private fireBooking: FireBookingService
   ){}
-  booking?:XploraFlightBooking;
+  booking?:FlightFirebaseBooking;
   pnr!:string;
   total:number=0;
   originalPrice=0;
@@ -37,16 +40,15 @@ export class ConfirmationComponent implements OnInit {
     this.sharedService.settBookingMode(true);
     this.route.params.subscribe(paramsData=>{
       const params:{bookingID:string} = paramsData as {bookingID:string};
-      this.xplora.getBooking(params.bookingID).subscribe(booking=>{
-        console.log(booking);
-        this.booking=booking;
+      this.fireBooking.getBooking(params.bookingID).subscribe(booking=>{
+        this.booking=booking as FlightFirebaseBooking;
         this.pnr = booking.bookingID!.slice(-6);
-        this.total = booking.activePayment!.totalDue;
-        this.originalPrice = booking.activePayment!.originalAmount
-        this.bookingHandler.setBookingInfo(booking);
+        this.total = booking.payment!.totalDue;
+        this.originalPrice = booking.payment!.originalAmount;
+        this.bookingHandler.setBookingInfo(booking as FlightFirebaseBooking);
         this.sharedService.setLoading(false);
         if(booking.contact!.phone){}
-      });
+      })
     });
   }
 }

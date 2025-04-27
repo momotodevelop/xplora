@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ApplicationRef, ChangeDetectorRef, Component, Input, NgZone, OnInit } from '@angular/core';
+import { ApplicationRef, ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCcVisa } from '@fortawesome/free-brands-svg-icons';
@@ -14,6 +14,8 @@ import { SweetAlert2LoaderService, SweetAlert2Module } from '@sweetalert2/ngx-sw
 import { AnimationOptions, LottieComponent } from 'ngx-lottie';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { AnimationItem } from 'lottie-web';
+import { PaymentMethod, PaymentType } from '../../types/booking.types';
+import { MatGridTileHeaderCssMatStyler } from '@angular/material/grid-list';
 
 export const fadeInOutAnimation = trigger('fadeInOut', [
   transition(':enter', [
@@ -50,7 +52,7 @@ export const fadeInUpAnimation = trigger('fadeInUp', [
   ])
 ]);
 
-interface StepTextElement {
+export interface StepTextElement {
   type: 'text' | 'icon' | 'currency';
   content?: any;
   text?: string;
@@ -59,10 +61,13 @@ interface StepTextElement {
   bold?: boolean;
 }
 
-interface Step {
+export interface Step {
   title: string;
-  text: StepTextElement[];
+  lines: Line[];
   duration: number;
+}
+export interface Line {
+  content: StepTextElement[]
 }
 
 @Component({
@@ -82,10 +87,13 @@ interface Step {
   styleUrl: './booking-creation-loader.component.scss',
   animations: [fadeInOutAnimation, fadeInAnimation, fadeInOutUpAnimation, fadeInUpAnimation]
 })
-export class BookingCreationLoaderComponent implements OnInit {
+export class BookingCreationLoaderComponent implements OnInit, OnChanges {
   @Input() status: 'confirmed' | 'denied' | 'pending' = 'pending';
   @Input() steps: Step[] = [];
   @Input() bookingId!: string;
+  @Input() paymentType!:PaymentType;
+  @Input() paymentMethod!:PaymentMethod;
+  @Output() completed: EventEmitter<boolean> = new EventEmitter(false);
   progress: number = 0;
   pendingIcon = faCircle;
   readyIcon = faCheckCircle;
@@ -109,6 +117,10 @@ export class BookingCreationLoaderComponent implements OnInit {
       }
     });
   }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log(changes);
+  }
   
 
   ngOnInit(): void {
@@ -116,18 +128,27 @@ export class BookingCreationLoaderComponent implements OnInit {
     this.shared.headerHeight.subscribe(h => {
       this.offset = 0;
     });
+    console.log(this.paymentMethod);
+    console.log(this.paymentType);
+    if(this.paymentMethod==="CARD"){
+      if(this.paymentType==='DELAYED'){
+        this.status = 'confirmed'
+      }else{
+        this.status = 'pending'
+      }
+    }else{
+      this.status = 'confirmed';
+    }
     let animationUrl;
     switch (this.status) {
       case 'confirmed':
         animationUrl = 'https://lottie.host/9517d359-1e35-4e61-b044-8556e33d9d27/4Va26pzsXX.json';
         break;
-      case 'denied':
-        animationUrl = 'https://lottie.host/0f547918-f032-40b9-802b-2d366e02310b/5rsP4bHWZu.json';
-        break;
       case 'pending':
         animationUrl = 'https://lottie.host/9227e2f1-2cf9-4a34-abc3-71dc783cb5cf/Wur0DM0g2N.json';
         break;
       default:
+        animationUrl = 'https://lottie.host/0f547918-f032-40b9-802b-2d366e02310b/5rsP4bHWZu.json';
         break;
     }
     this.animationOptions = {
@@ -135,41 +156,10 @@ export class BookingCreationLoaderComponent implements OnInit {
       loop: false,
       autoplay: true
     }
-    this.initializeSteps();
+    //this.initializeSteps();
     this.totalDuration = this.calculateTotalDuration();
     console.log(this.totalDuration);
     this.startProgress();
-  }
-
-  private initializeSteps() {
-    this.steps = [
-      {
-        title: 'Confirmando disponibilidad...',
-        text: [
-          { type: 'text', text: 'Hotel Emperador', bold: true },
-          { type: 'text', text: ' - 24 Feb 2025 - 3 Noches' }
-        ],
-        duration: 3000
-      },
-      {
-        title: 'Creando tu reservación...',
-        text: [
-          { type: 'text', text: '3 Habitaciones', bold: true },
-          { type: 'text', text: ' - 6 Huéspedes' }
-        ],
-        duration: 2000
-      },
-      {
-        title: 'Confirmando tu pago...',
-        text: [
-          { type: 'icon', icon: this.visaIcon},
-          { type: 'text', text: '****4689', bold: true },
-          { type: 'text', text: ' - '},
-          { type: 'currency', amount: 22890 }
-        ],
-        duration: 3000
-      }
-    ];
   }
 
   private calculateTotalDuration(): number {
@@ -178,6 +168,7 @@ export class BookingCreationLoaderComponent implements OnInit {
 
   onLoopComplete(){
     console.log("Completed Loop");
+    this.completed.emit(true);
   }
 
   animationCreated(animationItem: AnimationItem): void {
@@ -189,6 +180,7 @@ export class BookingCreationLoaderComponent implements OnInit {
     this.ngZone.runOutsideAngular(() => { // 🔥 Ejecutamos el setInterval fuera de Angular
       const processStep = () => {
         if (this.currentStepIndex >= this.steps.length) {
+          //this.completed.emit(true);
           setTimeout(() => {
             this.ngZone.run(() => { // 🔥 Volvemos a Angular solo cuando se completa
               this.delayCompleted = true;

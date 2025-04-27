@@ -6,12 +6,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
+import { Timestamp } from 'firebase/firestore';
 
 export interface PassengerValue {
   id:       number;
   name:     string;
   lastname: string;
-  birth:    Date;
+  birth:    Date|Timestamp;
   gender:   string;
   type:     "ADULT"|"CHILDREN"|"INFANT";
   minDate?:      Date;
@@ -85,7 +86,7 @@ export class PassengersComponent implements OnInit {
     console.log(this.passengers);
     this.bookingHandler.booking.subscribe(booking=>{
       if(booking!==undefined){
-        let passengersData = booking.passengersData;
+        let passengersData = booking.flightDetails!.passengers.details;
         if(passengersData!==undefined&&passengersData.length>0){
           passengersData.forEach((passenger,i)=>{
             let passengerGroup = (this.form.get('passengers') as FormArray).controls[i] as FormGroup;
@@ -96,7 +97,7 @@ export class PassengersComponent implements OnInit {
               passengerGroup.get('lastname')?.setValue(passenger.lastname)
             }
             if(passenger.birth!==undefined&&passenger.birth!==null){
-              passengerGroup.get('birth')?.setValue(passenger.birth)
+              passengerGroup.get('birth')?.setValue((passenger.birth as Timestamp).toDate())
             }
             if(passenger.gender!==undefined&&passenger.gender!==null){
               passengerGroup.get('gender')?.setValue(passenger.gender)

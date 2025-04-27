@@ -11,10 +11,10 @@ export interface CustomerData{
   phone: string;
 }
 export interface PaymentDetails {
-  number: string;        // Número de la tarjeta en formato string
-  expiration: string;    // Fecha de expiración en formato MM/YY
-  cvv: string;           // Código CVV de la tarjeta
-  holder: string;        // Nombre del titular de la tarjeta
+  number: string;         // Número de la tarjeta en formato string
+  expiration: string;     // Fecha de expiración en formato MM/YY
+  cvv: string;            // Código CVV de la tarjeta
+  holder: string;     // Nombre del titular de la tarjeta
   installments?: number;  // Número de pagos a plazos
 }
 

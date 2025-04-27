@@ -15,15 +15,25 @@ import { LoginPageComponent } from './pages/login-page/login-page.component';
 import { roleGuard } from './guards/role.guard';
 import { loginGuard } from './guards/login.guard';
 import { HotelBookingComponent } from './pages/hotel-booking/hotel-booking.component';
+import { BlogListComponent } from './pages/blog-list/blog-list.component';
+import { BlogSingleComponent } from './pages/blog-single/blog-single.component';
 
 export const routes: Routes = [
-    { path: '', redirectTo: 'overview', pathMatch: 'full' },
+    { path: '', redirectTo: 'inicio', pathMatch: 'full' },
     { path: 'inicio', loadChildren: () => import('./pages/home/home.module').then(m => m.HomeModule) },
     { path: 'entrar', component: LoginPageComponent, data: { headerType:"dark" }, canActivate: [loginGuard] },
     { path: 'nosotros', component: AboutComponent, data: { headerType:"dark" } },
+    { path: 'blog', data: { headerType:"dark"}, children: [
+      {path: '', component: BlogListComponent},
+      {path: ':id', component: BlogSingleComponent}
+    ]},
     { path: 'resultados', 
       children: [
-        {path: 'vuelos/:origin/:destination/:departure/:return/:adults/:childrens/:infants/:flightClass', component: FlightSearchComponent, data: {headerType:"dark"}},
+        {path: 'vuelos',
+          children: [
+            {path: ':origin/:destination/:departure/:return/:adults/:childrens/:infants/:flightClass', component: FlightSearchComponent, data: {headerType:"dark"}}
+          ]
+        },
         {
           path: 'hoteles', 
           children: [

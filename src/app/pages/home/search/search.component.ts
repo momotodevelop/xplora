@@ -184,7 +184,7 @@ export class SearchComponent {
   }
   searchFlights(){
     if(this.areTravelParamsDefined()){
-      const url:string = "resultados/vuelos/"
+      const url:string = "/resultados/vuelos/"
       +(this.origin?.subType==="AIRPORT"?'A':'C')+this.origin?.iataCode+"/"
       +(this.destination?.subType==="AIRPORT"?'A':'C')+this.destination?.iataCode+"/"
       +this.datepipe.transform(this.dates[0], "YYYY-MM-dd")+"/"

@@ -17,6 +17,7 @@ import { FlightOffer } from '../../../types/flight-offer-amadeus.types';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faSpinner, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { FlightBookingDetails } from '../../../types/booking.types';
 
 export interface SelectionDisplay{
   initial:string,
@@ -46,10 +47,11 @@ export class SeatsComponent implements OnInit {
   }
   ngOnInit(): void {
     console.log(this.passengersData);
-    this.bookingHandler.booking.subscribe((booking)=>{
+    this.bookingHandler.booking.subscribe((bookingData)=>{
+      const booking:FlightBookingDetails = bookingData?.flightDetails as FlightBookingDetails;
       if(booking!==undefined){
-        if(booking.passengersData!==undefined){
-          this.passengersData = booking.passengersData;
+        if(booking.passengers.details!==undefined){
+          this.passengersData = booking.passengers.details;
           this.seatMapStatus="PENDING";
         }else{
           this.seatMapStatus="NOT_PASSENGERS";

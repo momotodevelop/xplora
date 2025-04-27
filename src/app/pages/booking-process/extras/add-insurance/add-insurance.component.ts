@@ -5,69 +5,83 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatListModule, MatSelectionList, MatListOption } from "@angular/material/list";
 import { MatTabsModule } from "@angular/material/tabs";
 import { ExtraServiceBottomSheetData } from "../extras.component";
+import { FlightAdditionalServiceItem } from "../../../../types/booking.types";
 
 @Component({
-    selector: 'app-extras-insurance',
-    imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule],
-    templateUrl: './add-insurance.component.html'
+  selector: 'app-extras-insurance',
+  standalone: true,
+  imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule],
+  templateUrl: './add-insurance.component.html'
 })
-export class AddPremiumInsuranceComponent implements AfterViewInit{
-  price:number;
-  total:number=0;
-  @ViewChild('outbound') outbound!:MatSelectionList;
-  @ViewChild('inbound') inbound?:MatSelectionList;
-  constructor(@Inject(MAT_BOTTOM_SHEET_DATA) public data: ExtraServiceBottomSheetData,
-  private _bottomSheetRef: MatBottomSheetRef<AddPremiumInsuranceComponent>){
+export class AddPremiumInsuranceComponent implements AfterViewInit {
+  price: number;
+  total: number = 0;
+
+  @ViewChild('outbound') outbound!: MatSelectionList;
+  @ViewChild('inbound') inbound?: MatSelectionList;
+
+  constructor(
+    @Inject(MAT_BOTTOM_SHEET_DATA) public data: ExtraServiceBottomSheetData,
+    private _bottomSheetRef: MatBottomSheetRef<AddPremiumInsuranceComponent>
+  ) {
     this.price = this.data.price;
   }
+
   ngAfterViewInit(): void {
-    if(this.data.saved){
-      const saved = this.data.saved as number[][];
-      if(saved[0].length>0){
-        const selectedOptions:MatListOption[] = saved[0].map(selected=>{
-          return this.outbound.options.find(option=>option.value===selected)
-        }).filter(option => option!==undefined) as MatListOption[];
+    if (this.data.saved) {
+      const saved = this.data.saved;
+
+      // Outbound
+      if (saved.outbound?.length > 0) {
+        const selectedOptions: MatListOption[] = saved.outbound
+          .map(item => this.outbound.options.find((option,i) => option.value === i))
+          .filter(option => option !== undefined) as MatListOption[];
         this.outbound.selectedOptions.select(...selectedOptions);
       }
-      if(saved[1]!==undefined&&this.inbound){
-        if(saved[1].length>0){
-          const selectedOptions:MatListOption[] = saved[1].map(selected=>{
-            return this.inbound!.options.find(option=>option.value===selected)
-          }).filter(option => option!==undefined) as MatListOption[];
-          this.inbound.selectedOptions.select(...selectedOptions);
-        }
+
+      // Inbound
+      if (saved.inbound?.length > 0 && this.inbound) {
+        const selectedOptions: MatListOption[] = saved.inbound
+          .map(item => this.inbound!.options.find((option,i) => option.value === i))
+          .filter(option => option !== undefined) as MatListOption[];
+        this.inbound.selectedOptions.select(...selectedOptions);
       }
+
       this.change();
     }
   }
-  close(){
+
+  close() {
     this._bottomSheetRef.dismiss();
   }
-  save(){
-    const selectedOutbound:number[] = this.outbound.selectedOptions.selected.map(selected=>{
-      return selected.value as number;
+
+  save() {
+    const selectedOutbound: FlightAdditionalServiceItem[] = this.data.saved.outbound.map((item,i)=>{
+      return {
+        ...item,
+        active: this.outbound.selectedOptions.selected[i]?.selected ?? false,
+        value: this.outbound.selectedOptions.selected[i]?.selected ? 1 : 0
+      }
     });
-    const selectedInbound:number[]|undefined = this.inbound?.selectedOptions.selected.map(selected=>{
-      return selected.value as number;
-    });
-    const selectByFlight:number[][] = [selectedOutbound];
-    if(selectedInbound){
-      selectByFlight.push(selectedInbound);
-    }
+
+    const selectedInbound: FlightAdditionalServiceItem[] = this.data.saved.inbound.map((item,i)=>{
+      return {
+        ...item,
+        active: this.inbound?.selectedOptions.selected[i]?.selected ?? false,
+        value: this.inbound?.selectedOptions.selected[i]?.selected ? 1 : 0
+      }
+    })
+
+    const selectByFlight: { outbound: FlightAdditionalServiceItem[], inbound?: FlightAdditionalServiceItem[] } = {
+      outbound: selectedOutbound,
+      inbound: selectedInbound
+    };
     this._bottomSheetRef.dismiss(selectByFlight);
   }
-  change(){
-    const selectedOutbound:number[] = this.outbound.selectedOptions.selected.map(selected=>{
-      return selected.value as number;
-    });
-    const selectedInbound:number[]|undefined = this.inbound?.selectedOptions.selected.map(selected=>{
-      return selected.value as number;
-    });
-    let total = this.price*selectedOutbound.length;
-    console.log(selectedOutbound);
-    if(selectedInbound){
-      total += this.price*selectedInbound.length;
-    }
-    this.total=total
+
+  change() {
+    const outboundCount = this.outbound.selectedOptions.selected.length;
+    const inboundCount = this.inbound?.selectedOptions.selected.length || 0;
+    this.total = this.price * (outboundCount + inboundCount);
   }
 }

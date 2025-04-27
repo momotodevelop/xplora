@@ -1462,6 +1462,10 @@ function testimonialsSlider3() {
       el: '.js-scrollbar',
       draggable: true,
     },
+    autoplay: {
+      delay: 6000, // Delay between transitions in milliseconds
+      disableOnInteraction: false, // Autoplay continues after user interactions
+    },
   })
 
   if (document.querySelector('.js-testimonials-slider-3')) {

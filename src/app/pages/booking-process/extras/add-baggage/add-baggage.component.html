@@ -14,13 +14,13 @@
                     </div>
                     <div class="col-auto">
                         <div class="d-flex items-center">
-                            <button [disabled]="extraBaggage[0][i].pieces<1" (click)="removePiece(0, i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
+                            <button [disabled]="extraBaggage.outbound[i].value!<1" (click)="removePiece('OUTBOUND', i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
                                 <i class="icon-minus text-12"></i>
                             </button>
                             <div class="flex-center size-20 ml-10 mr-10">
-                                <div class="text-15">{{extraBaggage[0][i].pieces}}</div>
+                                <div class="text-15">{{extraBaggage.outbound[i].value}}</div>
                             </div>
-                            <button [disabled]="extraBaggage[0][i].pieces>4" (click)="addPiece(0, i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
+                            <button [disabled]="extraBaggage.outbound[i].value!>4" (click)="addPiece('OUTBOUND', i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
                                 <i class="icon-plus text-12"></i>
                             </button>
                         </div>
@@ -42,7 +42,7 @@
                                     <i class="icon-minus text-12"></i>
                                 </button>
                                 <div class="flex-center size-20 ml-10 mr-10">
-                                    <div class="text-15">{{extraBaggage[1][i]}}</div>
+                                    <div class="text-15">{{extraBaggage.inbound[i].value}}</div>
                                 </div>
                                 <button class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
                                     <i class="icon-plus text-12"></i>

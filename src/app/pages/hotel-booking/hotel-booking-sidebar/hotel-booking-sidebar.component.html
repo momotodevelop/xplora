@@ -84,11 +84,12 @@
             <div class="row y-gap-5 mt-10">
                 <div class="col-8 d-flex items-center" style="flex-direction: column;">
                     <div style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" class="text-15 lh-13 w-100">{{charge.description}}</div>
-                    <div style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" class="text-13 lh-11 text-light-1 w-100">{{charge.secondLine}}</div>
-                    <div style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" class="text-13 lh-11 text-light-1 w-100">{{charge.thirdLine}}</div>
+                    @for(line of charge.aditional_info; track $index){
+                        <div style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" class="text-13 lh-11 text-light-1 w-100">{{line}}</div>
+                    }
                 </div>
                 <div class="col-4 d-flex items-center justify-end">
-                    <div class="text-15 lh-13">{{charge.total|currency:'MXN'}}</div>
+                    <div class="text-15 lh-13">{{charge.amount|currency:'MXN'}}</div>
                 </div>
             </div>
         }

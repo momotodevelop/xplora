@@ -8,7 +8,7 @@ import { CountryData, CountryDataDisplay, RestcountriesService } from '../../../
 import { MatSelectModule } from '@angular/material/select';
 import { PhoneFormatDirective } from '../../../phone-format.directive';
 
-export interface ContactData {name:string, lastname: string, email: string, phone: string};
+export interface ContactData {name:string, lastname: string, email: string, phone: string, countryCode: string};
 
 @Component({
   selector: 'app-hotel-booking-contact-data',
@@ -32,7 +32,7 @@ export class HotelBookingContactDataComponent implements OnInit, OnChanges {
   countriesData:CountryDataDisplay[]=[];
   selectedCountry?:CountryDataDisplay;
   ngOnInit(): void {
-    this.form.valueChanges.subscribe((value:{name:string, lastname: string, email: string, phone: string})=>{
+    this.form.valueChanges.subscribe((value:ContactData)=>{
       if(this.form.controls['name'].value !== this.selectedHolderData?.name){
         //this.selectedHolder = undefined;
         this.chipSet.writeValue(undefined);

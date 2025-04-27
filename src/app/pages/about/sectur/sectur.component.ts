@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService } from 'ngx-extended-pdf-viewer';
+import { NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
 import { BottomSheetHeaderComponent } from '../../../shared/bottom-sheet-header/bottom-sheet-header.component';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
@@ -14,7 +14,9 @@ import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 export class SecturComponent {
   zoom=50;
   src="/assets/docs/04230055f32e1-cert-sm.pdf"
-  constructor(private _ref:MatBottomSheetRef<SecturComponent>){}
+  constructor(private _ref:MatBottomSheetRef<SecturComponent>){
+    pdfDefaultOptions.workerSrc = ()=>'./pdf.worker-4.7.728.min.mjs';
+  }
   close(){
     this._ref.dismiss();
   }

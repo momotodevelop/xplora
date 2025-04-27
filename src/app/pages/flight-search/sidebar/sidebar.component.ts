@@ -30,6 +30,7 @@ export class SidebarComponent implements OnInit {
   constructor(private offersData:FlightOffersDataHandlerService){}
 
   ngOnInit(): void {
+    
   }
 
   updateFilterValue(value: {filters: FilterOptions, sorting: SortOptions}){

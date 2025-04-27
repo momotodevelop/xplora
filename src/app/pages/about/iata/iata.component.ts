@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatSliderModule } from '@angular/material/slider';
-import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+import { NgxExtendedPdfViewerModule, pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
 import { BottomSheetHeaderComponent } from '../../../shared/bottom-sheet-header/bottom-sheet-header.component';
 
 @Component({
@@ -13,7 +13,9 @@ import { BottomSheetHeaderComponent } from '../../../shared/bottom-sheet-header/
 export class IataComponent {
     zoom=20;
     src="/assets/docs/IATA-Xplora.pdf"
-    constructor(private _ref:MatBottomSheetRef<IataComponent>){}
+    constructor(private _ref:MatBottomSheetRef<IataComponent>){
+        pdfDefaultOptions.workerSrc = ()=>'./pdf.worker-4.7.728.min.mjs';
+    }
     close(){
         this._ref.dismiss();
     }

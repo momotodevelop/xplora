@@ -22,7 +22,9 @@ export class SharedDataService {
   hideNav = this._hideNav.asObservable();
   constructor() { }
   changeHeaderType(headerType: HeaderType) {
-    this._headerType.next(headerType);
+    if(headerType){
+      this._headerType.next(headerType);
+    }
   }
   changeHeaderHeight(height:number){
     console.log(height);
@@ -48,6 +50,9 @@ export class SharedDataService {
     this._headerDashboard.next(isDashboard);
   }
   settBookingMode(isBooking:boolean){
+    if(isBooking){
+      this._headerType.next("dark");
+    }
     this._headerBooking.next(isBooking);
   }
   toggleDashboardSidebar(){

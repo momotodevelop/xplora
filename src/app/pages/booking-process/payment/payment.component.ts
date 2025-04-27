@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter } from '@angular/core';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
 import { XploraPaymentsService } from '../../../services/xplora-payments.service';
 import { debounceTime, first, forkJoin, from, lastValueFrom, map } from 'rxjs';
@@ -36,8 +36,14 @@ import { Installment, Issuer } from '../../../types/installments.clip.type';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { trigger, transition, style, stagger, animate, query } from '@angular/animations';
+import { BookingStatus, FirebaseBooking, FlightFirebaseBooking, PaymentMethod } from '../../../types/booking.types';
+import { FireBookingService } from '../../../services/fire-booking.service';
+import { FireAuthService } from '../../../services/fire-auth.service';
+import { User, user } from '@angular/fire/auth';
+import { StoredCardPaymentData, XploraCardServicesService } from '../../../services/xplora-card-services.service';
+import { NotificationService } from '../../../services/notifications.service';
 
-export type AvailablePaymentMethods = "efectivo"|"tarjeta"|"spei";
+export type AvailablePaymentMethods = "CASH"|"CARD"|"SPEI";
 
 export interface PaymentOffice{
   name: string,
@@ -53,6 +59,28 @@ export interface PaymentOffice{
   delayHours: number,
   type: "bank"|"convenience"|"supermarket"|"pharmacy"
 }
+
+export interface confirmationEmailData {
+  pnr: string,
+  name: string,
+  year: string,
+  total: string,
+  status: string,
+  locator: string,
+  service: string,
+  bookingURL: string,
+  paymentURL: string,
+  receiptLink: string,
+  whatsappURL: string,
+  account_name: string
+}
+
+export interface PaymentProceesData{
+  paymentMethod: PaymentMethod,
+  amount: number,
+  office?: string
+}
+
 export const PAYMENT_OFFICES:PaymentOffice[] = [
   {
     name: "Oxxo",
@@ -243,13 +271,15 @@ declare global {
         ])
     ]
 })
-export class PaymentComponent implements OnInit {
+export class PaymentComponent implements OnInit, AfterViewChecked {
   @ViewChild('panelTarjeta') panelTarjeta!:MatExpansionPanel;
   @ViewChild('panelEfectivo') panelEfectivo!:MatExpansionPanel;
   @ViewChild('panelSpei') panelSpei!:MatExpansionPanel;
   @ViewChild('paymentOfficeList') list!: MatSelectionList;
   @ViewChild('installments') installmentsList?: MatSelectionList;
   @ViewChild('ccNumber') ccNumber!: CreditCardFormatDirective;
+  @Output() paymentStarted:EventEmitter<any> = new EventEmitter<any>(false);
+  @Output() selectedPaymentMethod:EventEmitter<PaymentMethod> = new EventEmitter<PaymentMethod>(false);
   total:number=0;
   secureIcon=faLock;
   spinnerIcon=faSpinner;
@@ -262,10 +292,11 @@ export class PaymentComponent implements OnInit {
   bookingID?:string;
   chargeResume?:Charge[];
   clipCard:any;
-  selectedPayment?: AvailablePaymentMethods = 'tarjeta';
+  user?:User;
+  selectedPayment?: AvailablePaymentMethods = 'CARD';
   paymentOffices=PAYMENT_OFFICES.sort((a,b)=>a.fee-b.fee);
   selectedPaymentOffice?:string;
-  booking!:XploraFlightBooking;
+  booking!:FlightFirebaseBooking;
   cardForm:FormGroup = new FormGroup({
     number: new FormControl('', [CreditCardValidators.validateCCNumber]),
     expiration: new FormControl('', [CreditCardValidators.validateExpDate]),
@@ -285,14 +316,20 @@ export class PaymentComponent implements OnInit {
     private xplora: XploraApiService,
     private datePipe: DatePipe,
     private title: TitleCasePipe,
-    private notifications: XploraNotificationsService,
+    private notifications: NotificationService,
     private pdf:PdfGeneratorService,
     private fileUpload: FileUploadService,
-    private clip: ClipSDKService
+    private clip: ClipSDKService,
+    private fireBooking: FireBookingService,
+    private auth: FireAuthService,
+    private card: XploraCardServicesService,
   ){
     
   }
   ngOnInit(): void {
+    this.auth.user.subscribe(user=>{
+      this.user = user ?? undefined;
+    });
     this.bookingHandler.promo.subscribe(promo=>{
       this.activePromo = promo;
     });
@@ -326,7 +363,6 @@ export class PaymentComponent implements OnInit {
         this.availableInstallments=undefined;
       }
     });
-    
     this.bookingHandler.prices.pipe(debounceTime(1500)).subscribe(prices=>{
       console.log(prices);
       console.log(this.total);
@@ -343,9 +379,9 @@ export class PaymentComponent implements OnInit {
                 this.initializeMercadoPago(preference.id, [prices[0], prices[1]], preferenceData.contact_info, pnr, prices[2]);
               }); */
               // this.initializeClipPayment(prices[0], true, true);
-              if(booking.activePayment){
-                console.log(this.parseDataEmail(booking));
-                console.log(this.parseDataDocument(booking));
+              if(booking){
+                //console.log(this.parseDataEmail(booking));
+                //console.log(this.parseDataDocument(booking));
               }
           }
         }});
@@ -355,229 +391,46 @@ export class PaymentComponent implements OnInit {
       console.log(charges);
       this.chargeResume=charges;
     });
+  }
+  ngAfterViewChecked(): void {
     this.panelTarjeta.expandedChange.subscribe(expanded=>{
       console.log(expanded);
-    })
+    });
   }
   installmentsChange(event:MatSelectionListChange){
     console.log(event.options[0].value);
-    this.cardForm.controls['installments'].setValue(event.options[0].value)
+    this.cardForm.controls['installments'].setValue(event.options[0].value);
   }
-  parseDataEmail(booking:XploraFlightBooking){
-    const total = booking.activePayment!.totalDue || 0;
-    const payed = 0;
-    let PaymentMethod!:string;
-    let PaymentDetails!:string;
-    let previewText!:string;
-    let titleText!:string;
-    let footerText!:string;
-    let actionText!:string;
-    let buttonText!:string;
-    let actionURL!:string;
-    if(booking.activePayment!.type==="efectivo"){
-      PaymentMethod = "Efectivo";
-      PaymentDetails = this.title.transform(this.paymentOffices.find(office => office.id === booking.activePayment!.office)?.name) ?? "Pendiente";
-      previewText = "Su reservación está pendiente; por favor, realice el pago para confirmar la disponibilidad y tarifa.";
-      titleText = "Reservación Pendiente";
-      footerText = "Su reservación está en espera de confirmación; el pago es necesario para asegurar la tarifa y disponibilidad."
-      actionText = "Paga tu reservación ahora";
-      buttonText = "Pagar Ahora";
-      actionURL = "https://xploratravel.com.mx/resevar/vuelos/completar-pago/efectivo/"+booking.bookingID!;
-    }else if(booking.activePayment?.type==="spei"){
-      PaymentMethod = "Transferencia Interbancaria";
-      PaymentDetails = "Pendiente de Pago";
-      previewText = "Su reservación está pendiente; por favor, realice el pago para confirmar la disponibilidad y tarifa.";
-      titleText = "Reservación Pendiente";
-      footerText = "Su reservación está en espera de confirmación; el pago es necesario para asegurar la tarifa y disponibilidad.";
-      actionText = "Paga tu reservación ahora";
-      buttonText = "Pagar Ahora";
-      actionURL = "https://xploratravel.com.mx/resevar/vuelos/completar-pago/spei/"+booking.bookingID!
-    }else if(booking.activePayment?.type==="tarjeta"){
-      PaymentMethod = "Tarjeta de crédito/débito";
-      PaymentDetails = "Pendiente de Pago";
-      previewText = "Su reservación está pendiente; por favor, realice el pago para confirmar la disponibilidad y tarifa.";
-      titleText = "Reservación Pendiente";
-      footerText = "Su reservación está en espera de confirmación; el pago es necesario para asegurar la tarifa y disponibilidad.";
-      actionText = "Paga tu reservación ahora";
-      buttonText = "Pagar Ahora";
-      actionURL = "https://xploratravel.com.mx/resevar/vuelos/completar-pago/tarjeta/"+booking.bookingID!
-    }else{
-      PaymentMethod = "Otro";
-      PaymentDetails = "Pendiente de Pago";
-      previewText = "Su reservación está pendiente; por favor, realice el pago para confirmar la disponibilidad y tarifa.";
-      titleText = "Reservación Pendiente";
-      footerText = "Su reservación está en espera de confirmación; el pago es necesario para asegurar la tarifa y disponibilidad.";
-      actionText = "Paga tu reservación ahora";
-      buttonText = "Pagar Ahora";
-      actionURL = "https://xploratravel.com.mx/confirmacion/vuelos/"+booking.bookingID!
+  getBookingStatusText(status:BookingStatus){
+    switch(status){
+      case "PENDING":
+        return "Pendiente";
+      case "HOLD":
+        return "En Espera";
+      case "CONFIRMED":
+        return "Confirmada";
+      case "CANCELED":
+        return "Cancelada";
+      case "REJECTED":
+        return "Rechazada";
+      default:
+        return "";
     }
-    const dynamicTemplateData = {
-      previewText,
-      titleText,
-      actionText,
-      buttonText,
-      footerText,
-      actionURL,
-      customer_name: booking.contact!.name+" "+booking.contact!.lastname,
-      customer_email: booking.contact!.email,
-      customer_phone: "+"+booking.contact!.country_code+" "+booking.contact!.phone,
-      payment_method: PaymentMethod,
-      payment_details: PaymentDetails,
-      confirmation_code: booking.bookingID!.slice(-6),
-      locator: booking.created.toString().slice(-8),
-      confirmation_date: new Date(booking.created).toLocaleDateString(),
-      status: booking.status==="CONFIRMED"?"Confirmada":booking.status==="HOLD"?"En espera":"Pendiente",
-      payed: this.currency.transform(payed, "MXN"),
-      balance_due: this.currency.transform(total-payed<1?0:total-payed, "MXN"), // Ajusta según sea necesario
-      flights: [
-        ...booking.flights.outbound!.offer.itineraries.map(itinerary => ({
-          title: itinerary.segments[0].departure.iataCode+" ➜ "+_.last(itinerary.segments)!.arrival.iataCode,
-          destination: itinerary.segments[0].arrival.iataCode,
-          departure_time: this.datePipe.transform(new Date(itinerary.segments[0].departure.at), "hh:mm a'"),
-          departure_date: this.datePipe.transform(new Date(itinerary.segments[0].departure.at), "mediumDate"),
-          arrival_time: this.datePipe.transform(new Date(_.last(itinerary.segments)!.arrival.at), "hh:mm a'"),
-          arrival_date: this.datePipe.transform(new Date(_.last(itinerary.segments)!.arrival.at), "mediumDate"),
-          terminal: itinerary.segments[0].departure.terminal || "N/D",
-          segments: itinerary.segments.length,
-          awb: new Date(itinerary.segments[0].departure.at).getTime().toString().slice(0,8), // Ajusta según sea necesario
-          image_url: "https://images.daisycon.io/airline/?width=150&height=150&iata="+itinerary.segments[0].carrierCode// Ajusta según sea necesario
-        })),
-        ...(booking.flights.inbound ? booking.flights.inbound.offer.itineraries.map(itinerary => ({
-          title: itinerary.segments[0].departure.iataCode+" ➜ "+_.last(itinerary.segments)!.arrival.iataCode,
-          destination: itinerary.segments[0].arrival.iataCode,
-          departure_time: this.datePipe.transform(new Date(itinerary.segments[0].departure.at), "hh:mm a'"),
-          departure_date: this.datePipe.transform(new Date(itinerary.segments[0].departure.at), "mediumDate"),
-          arrival_time: this.datePipe.transform(new Date(_.last(itinerary.segments)!.arrival.at), "hh:mm a'"),
-          arrival_date: this.datePipe.transform(new Date(_.last(itinerary.segments)!.arrival.at), "mediumDate"),
-          terminal: itinerary.segments[0].departure.terminal || "N/D",
-          segments: itinerary.segments.length,
-          awb: new Date(itinerary.segments[0].departure.at).getTime().toString().slice(0,8), // Ajustado según sea necesario
-          image_url: "https://images.daisycon.io/airline/?width=150&height=150&iata="+itinerary.segments[0].carrierCode// Ajustado según sea necesario
-        })) : [])
-      ],
-      passenger: [
-        ...booking.passengersData!.map(passenger=>({
-          name: passenger.name,
-          lastname: passenger.lastname,
-          type: passenger.type!==null?(passenger.type==="ADULT"?"Adulto":passenger.type==="CHILDREN"?"Menor":"Infante"):"Adulto"
-        }))
-      ],
-      charges: [
-        ...booking.charges!.map(charge=> ({
-          description: charge.description,
-          ammount: this.currency.transform(charge.amount, "MXN"),
-          aditional_info: charge.aditional_info
-        }))
-      ],
-      total: this.currency.transform(total, "MXN")
-    };
-    return dynamicTemplateData;
   }
-  parseDataDocument(booking:XploraFlightBooking){
-    const total = booking.activePayment!.totalDue || 0;
-    const payed = 0;
-    let PaymentMethod!:string;
-    let PaymentDetails!:string;
-    let notesText!:string;
-    if(booking.activePayment?.type==='efectivo'){
-      PaymentMethod = "Efectivo";
-      PaymentDetails = this.title.transform(this.paymentOffices.find(office => office.id === booking.activePayment!.type)?.name) ?? "Pendiente";
-      notesText = "Su reservación está en espera de confirmación; el pago es necesario para asegurar la tarifa y disponibilidad.";
-    }else if(booking.activePayment?.type==="tarjeta-declinada"){
-      PaymentMethod = "Tarjeta de crédito/débito";
-      PaymentDetails = "Transacción Declinada"
-      notesText = "Su reservación ha sido confirmada. Si tienes alguna pregunta sobre tu itinerario, no dudes en contactarnos. ¡Te deseamos un excelente viaje!";
-    }else{
-      PaymentMethod = "Otro";
-      PaymentDetails = "Pendiente de Pago";
-      notesText = "Su reservación está en espera de confirmación; el pago es necesario para asegurar la tarifa y disponibilidad.";
-    }
-    const dynamicTemplateData = {
-      notesText,
-      voucher: uuid(),
-      customer_name: booking.contact!.name+" "+booking.contact!.lastname,
-      customer_email: booking.contact!.email,
-      customer_phone: "+"+booking.contact!.country_code+" "+booking.contact!.phone,
-      payment_method: PaymentMethod,
-      payment_details: PaymentDetails,
-      pnr: booking.bookingID!.slice(-6),
-      locator: booking.created.toString().slice(-8),
-      confirmation_date: new Date(booking.created).toLocaleDateString(),
-      status: {
-        id: booking.status,
-        name: booking.status==="CONFIRMED"?"Confirmada":booking.status==="HOLD"?"En espera":"Pendiente"
-      },
-      payed: this.currency.transform(payed, "MXN"),
-      balance_due: this.currency.transform(total-payed<1?0:total-payed, "MXN"), // Ajusta según sea necesario
-      flights: {
-        outbound: booking.flights.outbound!.offer.itineraries.map(itinerary => ({
-          title: itinerary.segments[0].departure.iataCode+"--"+_.last(itinerary.segments)!.arrival.iataCode,
-          destination: itinerary.segments[0].arrival.iataCode,
-          departure_time: this.datePipe.transform(new Date(itinerary.segments[0].departure.at), "hh:mm a'"),
-          departure_date: this.datePipe.transform(new Date(itinerary.segments[0].departure.at), "mediumDate"),
-          arrival_time: this.datePipe.transform(new Date(_.last(itinerary.segments)!.arrival.at), "hh:mm a'"),
-          arrival_date: this.datePipe.transform(new Date(_.last(itinerary.segments)!.arrival.at), "mediumDate"),
-          terminal: itinerary.segments[0].departure.terminal || "N/D",
-          segments: itinerary.segments.length,
-          hasStops: itinerary.segments.length>1?(itinerary.segments.length>2?itinerary.segments.length+" Escalas":" Escala"):"Directo",
-          airline_iata: itinerary.segments[0].carrierCode,
-          awb: new Date(itinerary.segments[0].departure.at).getTime().toString().slice(0,8), // Ajusta según sea necesario
-        }))[0],
-        inbound: booking.round?(booking.flights.inbound ? booking.flights.inbound.offer.itineraries.map(itinerary => ({
-          title: itinerary.segments[0].departure.iataCode+"--"+_.last(itinerary.segments)!.arrival.iataCode,
-          destination: itinerary.segments[0].arrival.iataCode,
-          departure_time: this.datePipe.transform(new Date(itinerary.segments[0].departure.at), "hh:mm a'"),
-          departure_date: this.datePipe.transform(new Date(itinerary.segments[0].departure.at), "mediumDate"),
-          arrival_time: this.datePipe.transform(new Date(_.last(itinerary.segments)!.arrival.at), "hh:mm a'"),
-          arrival_date: this.datePipe.transform(new Date(_.last(itinerary.segments)!.arrival.at), "mediumDate"),
-          terminal: itinerary.segments[0].departure.terminal || "N/D",
-          segments: itinerary.segments.length,
-          hasStops: itinerary.segments.length>1?(itinerary.segments.length>2?itinerary.segments.length+" Escalas":" Escala"):"Directo",
-          airline_iata: itinerary.segments[0].carrierCode,
-          awb: new Date(itinerary.segments[0].departure.at).getTime().toString().slice(0,8), // Ajustado según sea necesario
-        })) : [])[0]:undefined
-      },
-      passenger: [
-        ...booking.passengersData!.map(passenger=>({
-          name: passenger.name,
-          lastname: passenger.lastname,
-          type: passenger.type!==null?(passenger.type==="ADULT"?"Adulto":passenger.type==="CHILDREN"?"Menor":"Infante"):"Adulto"
-        }))
-      ],
-      charges: [
-        ...booking.charges!.map(charge=> ({
-          description: charge.description,
-          ammount: this.currency.transform(charge.amount, "MXN"),
-          aditional_info: charge.aditional_info
-        }))
-      ],
-      total: this.currency.transform(total, "MXN"),
-      passengerNumber: {
-        ...booking.passengers,
-        total: booking.passengers.adults+booking.passengers.childrens+booking.passengers.infants
-      },
-      round: booking.round?"Redondo":"Sencillo",
-      origin: booking.flights.outbound!.offer.itineraries[0].segments[0].departure.iataCode,
-      destination: _.last(booking.flights.outbound!.offer.itineraries[0].segments)!.arrival.iataCode,
-      outbound_date: booking.flights.outbound!.offer.itineraries[0].segments[0].departure.at,
-      inbound_date: booking.round ? booking.flights.inbound?.offer.itineraries[0].segments[0].departure.at : "N/A",
-      route: booking.flights.outbound!.offer.itineraries[0].segments[0].departure.iataCode+" - "+_.last(booking.flights.outbound!.offer.itineraries[0].segments)!.arrival.iataCode+(booking.round?(" - "+booking.flights.outbound!.offer.itineraries[0].segments[0].departure.iataCode):"")
-    };
-    return dynamicTemplateData;
-  }
-  changePayment(event:'efectivo'|'tarjeta'|'spei'){
+  changePayment(event:'CASH'|'CARD'|'SPEI'){
     this.selectedPayment=event;
+    this.selectedPaymentMethod.emit(event);
     console.log(event); 
     switch(event){
-      case 'tarjeta':
+      case 'CARD':
         this.panelTarjeta.open();
         this.panelTarjeta.toggle();
       break;
-      case 'efectivo':
+      case 'CASH':
         this.panelEfectivo.open();
         this.panelEfectivo.toggle();
       break;
-      case 'spei':
+      case 'SPEI':
         this.panelSpei.open();
         this.panelSpei.toggle();
       break;
@@ -639,10 +492,54 @@ export class PaymentComponent implements OnInit {
       }
     }
   }
+  makePaymentFirebase(){
+    console.log(this.selectedPayment);
+    if(this.selectedPayment){
+      let BookingUpdateData:Partial<FlightFirebaseBooking>={
+        payment: {
+          amount: this.total,
+          originalAmount: this.total+this.discounted,
+          type: "NOW",
+          office: this.selectedPaymentOffice ?? "NA",
+          totalDue: this.total,
+          method: this.selectedPayment
+        },
+        charges: this.chargeResume,
+        status: "PENDING"
+      }
+      if(this.user){
+        console.log(this.user);
+        BookingUpdateData.uid = this.user.uid;
+      }
+      if(this.activePromo){
+        BookingUpdateData.payment!.promo = this.activePromo;
+      }
+      console.log(BookingUpdateData);
+      const request:[Promise<FirebaseBooking>, Promise<string>?] = [this.fireBooking.updateBooking(this.bookingID!, BookingUpdateData)];
+      if(this.selectedPayment==="CARD"){
+        const card = this.cardForm.value as PaymentDetails;
+        const cardPaymentData = {
+          ...card,
+          amount: this.total,
+          createdAt: new Date(),
+          bookingId: this.bookingID!,
+          status: "failed",
+        }
+        request.push(this.card.addPayment(cardPaymentData as StoredCardPaymentData))
+      }
+      console.log(request);
+      Promise.all(request).then(results=>{
+        console.log(results);
+        this.confirmBooking(results[0] as FlightFirebaseBooking).then(confirmed=>{
+          console.log(confirmed);
+        });
+      }).catch(err=>{});
+    }
+  }
   makePayment(){
     if(this.selectedPayment){
       switch(this.selectedPayment){
-        case "tarjeta":
+        case "CARD":
           this.loading = true;
           const card = this.cardForm.value as PaymentDetails;
           this.cardForm.disable();
@@ -673,10 +570,10 @@ export class PaymentComponent implements OnInit {
                 }).subscribe({
                   next: (ok) =>{
                     console.log(ok)
-                    this.confirmBooking(ok.booking).then(confirmed=>{
+                    /* this.confirmBooking(ok.booking).then(confirmed=>{
                       const url = `/confirmacion/vuelos/${this.bookingID!}`;
                       window.location.href = url;
-                    });
+                    }); */
                   },
                   error: (err) => {console.error(err);}
                 });
@@ -686,7 +583,7 @@ export class PaymentComponent implements OnInit {
           console.log(this.cardForm.value);
           console.log(this.cardForm.controls['installments']);
         break;
-        case "efectivo":
+        case "CASH":
           this.shared.setLoading(true);
           this.xplora.updateBooking(this.bookingID!, {
             charges: this.chargeResume,
@@ -704,15 +601,15 @@ export class PaymentComponent implements OnInit {
           }).subscribe({
             next: (ok) =>{
               console.log(ok)
-              this.confirmBooking(ok.booking).then(confirmed=>{
+              /* this.confirmBooking(ok.status).then(confirmed=>{
                 const url = `/confirmacion/vuelos/${this.bookingID!}`;
                 window.location.href = url;
-              });
+              }); */
             },
             error: (err) => {console.error(err);}
           });
         break;
-        case "spei":
+        case "SPEI":
           this.shared.setLoading(true);
           this.xplora.updateBooking(this.bookingID!, {
             charges: this.chargeResume,
@@ -729,10 +626,10 @@ export class PaymentComponent implements OnInit {
           }).subscribe({
             next: (ok) =>{
               console.log(ok)
-              this.confirmBooking(ok.booking).then(confirmed=>{
+              /* this.confirmBooking(ok.booking).then(confirmed=>{
                 const url = `/confirmacion/vuelos/${this.bookingID!}`;
                 window.location.href = url;
-              });
+              }); */
             },
             error: (err) => {console.error(err);}
           });
@@ -831,24 +728,44 @@ export class PaymentComponent implements OnInit {
       settings
     );
   }
-  async confirmBooking(booking:XploraFlightBooking):Promise<Object>{
-    try{
-      const BookingResumePDF = await this.pdf.getPDFDocumentData("1245928", this.parseDataDocument(booking));
-      const emailSend = this.notifications.flightBookingConfirmation(booking.contact!.email, this.parseDataEmail(booking), [{
-        content: BookingResumePDF.data,
-        filename: BookingResumePDF.name,
-        type: "application/pdf",
-        disposition: "attachment",
-        content_id: 'confirmation'
-      }]);
-      const upload = this.fileUpload.uploadConfirmation('confirmations', BookingResumePDF.name, BookingResumePDF.data)
-      const response = await Promise.all([lastValueFrom(emailSend), lastValueFrom(upload)]);
-      return response;
-    }catch(err){
-      console.log(err);
-      const emailSend = await lastValueFrom(this.notifications.flightBookingConfirmation(booking.contact!.email, this.parseDataEmail(booking), []));
-      return emailSend;
+  async confirmBooking(booking:FlightFirebaseBooking):Promise<Object>{
+    const personalizationData:confirmationEmailData = {
+      account_name: "Xplora Travel",
+      service: "Vuelo "+booking.flightDetails!.round?"redondo":"sencillo",
+      pnr: booking.bookingID!.slice(-6),
+      locator: booking.created?.toString().slice(-8) ?? "XPLORA",
+      name: booking.contact!.name,
+      year: this.datePipe.transform(new Date(), "yyyy")!,
+      total: this.currency.transform(booking.payment!.totalDue, "MXN")!,
+      status: this.getBookingStatusText(booking.status),
+      whatsappURL: "",
+      bookingURL: "",
+      paymentURL: "",
+      receiptLink: "",
     }
+    const emailRequest = this.notifications.sendEmail({
+      to: [
+        {
+          name: booking.contact!.name+" "+booking.contact!.lastname,
+          email: booking.contact!.email
+        }
+      ],
+      subject: "Confirmación de Reservación",
+      from: {
+        email: "no-reply@xploratravel.com.mx",
+        name: "Xplora Travel"
+      },
+      template_id: "0r83ql3mxjmgzw1j",
+      personalization: [
+        {
+          email: booking.contact!.email,
+          data: personalizationData
+        }
+      ]
+    });
+    //const BookingResumePDF = await this.pdf.getPDFDocumentData("1245928", this.parseDataDocument(booking));
+    //const upload = this.fileUpload.uploadConfirmation('confirmations', BookingResumePDF.name, BookingResumePDF.data)
+    return emailRequest;
   }
   createPayment(){
     this.loading=true;
@@ -868,13 +785,13 @@ export class PaymentComponent implements OnInit {
                     status: "CONFIRMED"
                   }).subscribe(ok=>{
                     this.shared.setLoading(true);
-                    console.log(this.parseDataEmail(ok.booking));
+                    //console.log(this.parseDataEmail(ok.booking));
                     // SENDEMAIL
-                    this.confirmBooking(ok.booking).then(ok=>{
+                    /* this.confirmBooking(ok.booking).then(ok=>{
                       console.log(ok);
                     }).catch(err=>{
                       console.log(err);
-                    });
+                    }); */
                   });
                 }else{
                   switch(payment.status_detail){
@@ -921,11 +838,11 @@ export class PaymentComponent implements OnInit {
               console.log(ok);
               this.shared.setLoading(true);
               // SEND EMAIL
-              this.confirmBooking(ok.booking).then(ok=>{
+              /* this.confirmBooking(ok.booking).then(ok=>{
                 console.log(ok);
               }).catch(err=>{
                 console.log(err);
-              });
+              }); */
             });
           }),
           error: (err=>{

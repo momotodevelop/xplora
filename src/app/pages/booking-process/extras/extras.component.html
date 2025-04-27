@@ -64,7 +64,7 @@
             <p class="mb-0 text-12 lh-12">Impuestos Incluidos</p>
         </div>
         <div>
-            @if(baggage===undefined){
+            @if(baggageTotal>0){
                 <button (click)="openBaggage()" mat-stroked-button color="primary">Agregar</button>
             }@else{
                 <button (click)="openBaggage()" mat-flat-button color="primary">Editar</button>
@@ -104,7 +104,7 @@
 }@else{
     <button mat-stroked-button (click)="skip.emit()" class="w-100 mt-4">Continuar sin adicionales <fa-icon [icon]="loading?spinnerIcon:nextIcon" [animation]="loading?'spin':undefined"></fa-icon></button>
 }
-<button mat-flat-button color="primary" (click)="saveExtras()" [disabled]="!insuranceActive&&!flexpass&&!carryOn&&!baggage||!hasChanges" class="w-100 mt-4">{{isUpdate?'Actualizar':'Guardar'}} adicionales <fa-icon [icon]="isUpdate?updateIcon:(loading?spinnerIcon:saveIcon)" [animation]="loading?'spin':undefined"></fa-icon></button>
+<button mat-flat-button color="primary" (click)="saveExtras()" class="w-100 mt-4">{{isUpdate?'Actualizar':'Guardar'}} adicionales <fa-icon [icon]="isUpdate?updateIcon:(loading?spinnerIcon:saveIcon)" [animation]="loading?'spin':undefined"></fa-icon></button>
 <!--<mat-card class="mt-20">
     <mat-card-header>
         <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/pets.png');"></div>

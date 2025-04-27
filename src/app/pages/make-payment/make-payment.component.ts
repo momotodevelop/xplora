@@ -8,6 +8,8 @@ import { BookingHandlerService } from '../../services/booking-handler.service';
 import { XploraPromosService } from '../../services/xplora-promos.service';
 import { XploraFlightBooking } from '../../types/xplora-api.types';
 import { PaymentComponent } from '../booking-process/payment/payment.component';
+import { FireBookingService } from '../../services/fire-booking.service';
+import { FirebaseBooking, FlightFirebaseBooking } from '../../types/booking.types';
 
 @Component({
     selector: 'app-make-payment',
@@ -17,13 +19,14 @@ import { PaymentComponent } from '../booking-process/payment/payment.component';
 })
 export class MakePaymentComponent implements OnInit {
   bookingID!:string;
-  booking!: XploraFlightBooking;
+  booking!: FlightFirebaseBooking;
   constructor(
     private route: ActivatedRoute, 
     private xplora: XploraApiService, 
     private sharedService: SharedDataService,
     public bookingHandler: BookingHandlerService,
-    private promos: XploraPromosService
+    private promos: XploraPromosService,
+    private fireBooking: FireBookingService
   ){}
 
   ngOnInit(): void {
@@ -38,9 +41,9 @@ export class MakePaymentComponent implements OnInit {
       const params:{bookingID:string} = p as {bookingID:string};
       const queryParams:{promo?:string} = q as {promo?:string};
       this.bookingID = params.bookingID;
-      this.xplora.getBooking(this.bookingID).subscribe(booking=>{
-        this.booking = booking;
-        this.bookingHandler.setBookingInfo(booking);
+      this.fireBooking.getBooking(this.bookingID).subscribe(booking=>{
+        this.bookingHandler.setBookingInfo(booking as FlightFirebaseBooking);
+        this.booking = booking as FlightFirebaseBooking;
       });
     });
   }

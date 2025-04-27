@@ -7,6 +7,7 @@ import { MatListModule, MatSelectionList, MatListOption } from "@angular/materia
 import { MatTabsModule } from "@angular/material/tabs";
 import { ExtraServiceBottomSheetData } from "../extras.component";
 import { AddPremiumInsuranceComponent } from "../add-insurance/add-insurance.component";
+import { FlightAdditionalServiceItem } from "../../../../types/booking.types";
 export interface ExtraBaggageData{passengerID: number, pieces: number}
 
 @Component({
@@ -19,17 +20,11 @@ export class AddCarryOnComponent implements AfterViewInit{
   total:number=0;
   @ViewChild('outbound') outbound!:MatSelectionList;
   @ViewChild('inbound') inbound?:MatSelectionList;
-  extraBaggage:ExtraBaggageData[][];
+  extraBaggage:{outbound: FlightAdditionalServiceItem[], inbound: FlightAdditionalServiceItem[]};
   constructor(@Inject(MAT_BOTTOM_SHEET_DATA) public data: ExtraServiceBottomSheetData,
   private _bottomSheetRef: MatBottomSheetRef<AddPremiumInsuranceComponent>){
     this.price = this.data.price;
-    this.extraBaggage = this.data.flights.map(flight=>{
-      let selectionArray:{passengerID: number, pieces: number}[] = []
-      this.data.passengers.forEach((passenger,i)=>{
-        selectionArray.push({passengerID: i, pieces: 0});
-      })
-      return selectionArray
-    });
+    this.extraBaggage = this.data.saved;
   }
   ngAfterViewInit(): void {
     if(this.data.saved){
@@ -37,12 +32,24 @@ export class AddCarryOnComponent implements AfterViewInit{
       this.change();
     }
   }
-  addPiece(flightI:number, passengerI:number){
-    this.extraBaggage[flightI][passengerI].pieces = this.extraBaggage[flightI][passengerI].pieces+1;
+  addPiece(scope:'INBOUND'|'OUTBOUND', passengerI:number){
+    let item:FlightAdditionalServiceItem;
+    if(scope==='OUTBOUND'){
+      item = this.extraBaggage.outbound[passengerI];
+    }else{
+      item = this.extraBaggage.inbound[passengerI];
+    }
+    item.value = (item.value?item.value:0)+1;
     this.change();
   }
-  removePiece(flightI:number, passengerI:number){
-    this.extraBaggage[flightI][passengerI].pieces = this.extraBaggage[flightI][passengerI].pieces-1;
+  removePiece(scope:'INBOUND'|'OUTBOUND', passengerI:number){
+    let item:FlightAdditionalServiceItem;
+    if(scope==='OUTBOUND'){
+      item = this.extraBaggage.outbound[passengerI];
+    }else{
+      item = this.extraBaggage.inbound[passengerI];
+    }
+    item.value = (item.value?item.value:0)-1;
     this.change();
   }
   close(){
@@ -52,12 +59,12 @@ export class AddCarryOnComponent implements AfterViewInit{
     this._bottomSheetRef.dismiss(this.extraBaggage);
   }
   change(){
-    let total:number = 0;
-    this.extraBaggage.forEach(extraBaggageFlight=>{
-      extraBaggageFlight.forEach(extraItem=>{
-        total+=extraItem.pieces*this.price;
-      });
-    })
-    this.total=total
+    const outboundPieces = this.extraBaggage.outbound.reduce((total, item)=>{
+      return total+(item.value?item.value:0);
+    },0)
+    const inboundPieces = this.extraBaggage.inbound.reduce((total, item)=>{
+      return total+(item.value?item.value:0);
+    },0)
+    this.total=this.data.price*(outboundPieces+inboundPieces);
   }
 }

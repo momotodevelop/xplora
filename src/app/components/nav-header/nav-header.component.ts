@@ -35,6 +35,18 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
       tipoEnlace: "interno",
       route: "contacto",
       openInNewTab: false
+    },
+    {
+      name: "Blog",
+      tipoEnlace: "interno",
+      route: "blog",
+      openInNewTab: false
+    },
+    {
+      name: "Ayuda",
+      tipoEnlace: "interno",
+      route: "blog",
+      openInNewTab: false
     }
   ];
   @ViewChild('header', {read: ElementRef, static:false}) headerElement!: ElementRef;
@@ -42,7 +54,11 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
   user?:User;
   hide:boolean=false;
   ngOnInit(): void {
-    this.shared.headerType.subscribe({next: (type:HeaderType)=>{this.headerType=type}});
+    this.shared.headerType.subscribe((type:HeaderType)=>{
+      if(type!==undefined){
+        this.headerType=type;
+      }
+    });
     this.shared.headerDashboard.subscribe(isDash=>{this.dashboard=isDash});
     this.shared.headerBooking.subscribe(isBooking=>{this.booking=isBooking});
     this.shared.hideNav.subscribe(isHidden=>{

@@ -1,5 +1,5 @@
 @if(loading){
-    <app-booking-creation-loader></app-booking-creation-loader>
+    <app-booking-creation-loader (completed)="completeLoader()" [steps]="loaderSteps!" [paymentMethod]="paymentMethod" [paymentType]="paymentType"></app-booking-creation-loader>
 }@else{
     <section class="pt-40 layout-pb-md">
         <div class="container">
@@ -35,7 +35,7 @@
                         <div class="col-12">
                             <app-hotel-booking-payment-info [amount]="total" (paymentMethod)="paymentMethodChange($event)" (paymentType)="paymentTypeChange($event)" (cardData)="cardDataChange($event)"></app-hotel-booking-payment-info>
                         </div>
-                        <button [disabled]="!readyToBook()" (click)="confirmBooking()" mat-flat-button color="primary" class="w-100 h-60 mt-20 rounded-4">Reservar</button>
+                        <button (click)="testConfirm()" mat-flat-button color="primary" class="w-100 h-60 mt-20 rounded-4">Reservar</button>
                     }
                 </div>
                 <div class="col-xl-5 col-lg-4">

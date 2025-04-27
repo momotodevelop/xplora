@@ -2,25 +2,27 @@
     <div class="ml-20 md:ml-0">
         <div class="px-30 py-30 border-light rounded-4">
             <div class="text-20 fw-500 mb-30">Detalles de tu reservación</div>
-            @if(booking.round){
+            @if(booking.flightDetails!.round){
             <div class="row y-gap-20 justify-center">
                 <div class="col-6 text-right">
                     <div style="width: 100%; height: 65px; display: flex; justify-content: flex-end; align-items: center;">
-                        <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/'+(booking.flights.outbound!.offer!.itineraries[0].segments[0].carrierCode)+'.svg'" style="max-height: 65px;">
+                        <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/' + (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments[0].carrierCode) + '.svg'" style="max-height: 65px;">
                     </div>
                     <div class="lh-17 fw-500">
-                        {{booking.origin.address.cityName|titlecase}}<br>{{booking.destination.address.cityName|titlecase}}
+                        {{booking.flightDetails.origin.address.cityName | titlecase}}<br>{{booking.flightDetails.destination.address.cityName | titlecase}}
                     </div>
-                    @if(booking.flights.outbound!.offer!.itineraries[0].segments.length===1){
+                    @if(booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length === 1){
                     <div class="text-14 lh-15 mt-5">Directo</div>
                     }@else{
-                    <div class="text-14 lh-15 mt-5">{{(booking.flights.outbound!.offer!.itineraries[0].segments.length-1)}}
-                        Escala{{booking.flights.outbound!.offer!.itineraries[0].segments.length>2?'s':''}}</div>
+                    <div class="text-14 lh-15 mt-5">
+                        {{ (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length - 1) }}
+                        Escala{{ booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length > 2 ? 's' : '' }}
+                    </div>
                     }
                     <div class="row x-gap-10 y-gap-10 items-center pt-10" style="float: right">
                         <div class="col-auto">
                             <div class="d-flex items-center" style="justify-content: flex-end;">
-                                @switch(booking.flights.outbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
+                                @switch(booking.flightDetails.flights.outbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
                                     @case("ECONOMY"){
                                     <div class="text-14 fw-500 mr-10">Economica</div>
                                     }
@@ -36,7 +38,7 @@
                                 }
                                 <div class="size-30 flex-center bg-blue-1 rounded-4">
                                     <div class="text-12 fw-600 text-white d-flex">
-                                        @switch(booking.flights.outbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
+                                        @switch(booking.flightDetails.flights.outbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
                                             @case("ECONOMY"){
                                                 <mat-icon class="flight-class-icon">savings</mat-icon>
                                             }
@@ -58,23 +60,25 @@
                 </div>
                 <div class="col-6">
                     <div style="width: 100%; height: 65px; display: flex; justify-content: flex-start; align-items: center;">
-                        <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/'+(booking.flights.inbound!.offer!.itineraries[0].segments[0].carrierCode)+'.svg'" style="max-height: 65px;">
+                        <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/' + (booking.flightDetails.flights.inbound!.offer!.itineraries[0].segments[0].carrierCode) + '.svg'" style="max-height: 65px;">
                     </div>
                     <div class="lh-17 fw-500">
-                        {{booking.destination.address.cityName|titlecase}}<br>{{booking.origin.address.cityName|titlecase}}
+                        {{booking.flightDetails.destination.address.cityName | titlecase}}<br>{{booking.flightDetails.origin.address.cityName | titlecase}}
                     </div>
-                    @if(booking.flights.outbound!.offer!.itineraries[0].segments.length===1){
+                    @if(booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length === 1){
                     <div class="text-14 lh-15 mt-5">Directo</div>
                     }@else{
-                    <div class="text-14 lh-15 mt-5">{{(booking.flights.inbound!.offer!.itineraries[0].segments.length-1)}}
-                        Escala{{booking.flights.inbound!.offer!.itineraries[0].segments.length>2?'s':''}}</div>
+                    <div class="text-14 lh-15 mt-5">
+                        {{ (booking.flightDetails.flights.inbound!.offer!.itineraries[0].segments.length - 1) }}
+                        Escala{{ booking.flightDetails.flights.inbound!.offer!.itineraries[0].segments.length > 2 ? 's' : '' }}
+                    </div>
                     }
                     <div class="row x-gap-10 y-gap-10 items-center pt-10">
                         <div class="col-auto">
                             <div class="d-flex items-center">
                                 <div class="size-30 flex-center bg-blue-1 rounded-4">
                                     <div class="text-12 fw-600 text-white d-flex">
-                                        @switch(booking.flights.inbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
+                                        @switch(booking.flightDetails.flights.inbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
                                             @case("ECONOMY"){
                                                 <mat-icon class="flight-class-icon">savings</mat-icon>
                                             }
@@ -90,7 +94,7 @@
                                         }
                                     </div>
                                 </div>
-                                @switch(booking.flights.inbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
+                                @switch(booking.flightDetails.flights.inbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
                                     @case("ECONOMY"){
                                     <div class="text-14 fw-500 ml-10">Economica</div>
                                     }
@@ -113,22 +117,27 @@
             <div class="row y-gap-20">
                 <div class="col-12">
                     <div class="mb-10" style="width: 100%; height: 65px; display: flex; justify-content: flex-start; align-items: center;">
-                        <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/'+(booking.flights.outbound!.offer!.itineraries[0].segments[0].carrierCode)+'.svg'" style="max-height: 65px;">
+                        <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/' + (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments[0].carrierCode) + '.svg'" style="max-height: 65px;">
                     </div>
-                    <div class="lh-17 fw-500">{{booking.origin.address.cityName|titlecase}} - {{booking.destination.address.cityName|titlecase}}</div>
-                    @if(booking.flights.outbound!.offer!.itineraries[0].segments.length===1){
-                    <div class="text-14 lh-15 mt-5">Directo
-                        ({{booking.flights.outbound!.offer!.itineraries[0].duration|duration}})</div>
+                    <div class="lh-17 fw-500">
+                        {{booking.flightDetails.origin.address.cityName | titlecase}} - {{booking.flightDetails.destination.address.cityName | titlecase}}
+                    </div>
+                    @if(booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length === 1){
+                    <div class="text-14 lh-15 mt-5">
+                        Directo ({{booking.flightDetails.flights.outbound!.offer!.itineraries[0].duration | duration}})
+                    </div>
                     }@else{
-                    <div class="text-14 lh-15 mt-5">{{(booking.flights.outbound!.offer!.itineraries[0].segments.length-1)}}
-                        Escala{{booking.flights.outbound!.offer!.itineraries[0].segments.length>2?'s':''}}</div>
+                    <div class="text-14 lh-15 mt-5">
+                        {{ (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length - 1) }}
+                        Escala{{ booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length > 2 ? 's' : '' }}
+                    </div>
                     }
                     <div class="row x-gap-10 y-gap-10 items-center pt-10">
                         <div class="col-auto">
                             <div class="d-flex items-center" style="justify-content: flex-end;">
                                 <div class="size-30 flex-center bg-blue-1 rounded-4">
                                     <div class="text-12 fw-600 text-white d-flex">
-                                        @switch(booking.flights.outbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
+                                        @switch(booking.flightDetails.flights.outbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
                                             @case("ECONOMY"){
                                                 <mat-icon class="flight-class-icon">savings</mat-icon>
                                             }
@@ -144,7 +153,7 @@
                                         }
                                     </div>
                                 </div>
-                                @switch(booking.flights.outbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
+                                @switch(booking.flightDetails.flights.outbound!.offer!.travelerPricings[0].fareDetailsBySegment[0].cabin){
                                     @case("ECONOMY"){
                                     <div class="text-14 fw-500 ml-10">Economica</div>
                                     }
@@ -167,28 +176,35 @@
             <div class="border-top-light mt-20 mb-20"></div>
             <div class="row y-gap-20 justify-between">
                 <div class="col-auto">
-                    <div class="text-15">{{booking.round?'Ida':'Fecha de viaje'}}</div>
-                    <div class="fw-500">{{dates.outbound[0]|date:'mediumDate'|titlecase}}</div>
-                    @if(booking.round){
-                    <div class="text-15 text-light-1">{{dates.outbound[0]|date:'H:mm'}} – {{dates.outbound[1]|date:'H:mm'}}
+                    <div class="text-15">
+                        {{ booking.flightDetails.round ? 'Ida' : 'Fecha de viaje' }}
+                    </div>
+                    <div class="fw-500">{{dates.outbound[0] | date:'mediumDate' | titlecase}}</div>
+                    @if(booking.flightDetails.round){
+                    <div class="text-15 text-light-1">
+                        {{dates.outbound[0] | date:'H:mm'}} – {{dates.outbound[1] | date:'H:mm'}}
                     </div>
                     }@else{
-                    <div class="text-15 text-light-1">{{dates.outbound[0]|date:'h:mm aaa'}} – {{dates.outbound[1]|date:'h:mm
-                        aaa'}}</div>
+                    <div class="text-15 text-light-1">
+                        {{dates.outbound[0] | date:'h:mm aaa'}} – {{dates.outbound[1] | date:'h:mm aaa'}}
+                    </div>
                     }
-                    <div class="text-14 text-light-1">{{booking.flights.outbound!.offer!.itineraries[0].duration|duration}}
+                    <div class="text-14 text-light-1">
+                        {{booking.flightDetails.flights.outbound!.offer!.itineraries[0].duration | duration}}
                     </div>
                 </div>
-                @if(booking.round){
+                @if(booking.flightDetails.round){
                 <div class="col-auto md:d-none">
                     <div class="h-full w-1 bg-border"></div>
                 </div>
                 <div class="col-auto text-right md:text-left">
                     <div class="text-15">Regreso</div>
-                    <div class="fw-500">{{dates.inbound![0]|date:'mediumDate'|titlecase}}</div>
-                    <div class="text-15 text-light-1">{{dates.inbound![0]|date:'H:mm'}} – {{dates.inbound![1]|date:'H:mm'}}
+                    <div class="fw-500">{{dates.inbound![0] | date:'mediumDate' | titlecase}}</div>
+                    <div class="text-15 text-light-1">
+                        {{dates.inbound![0] | date:'H:mm'}} – {{dates.inbound![1] | date:'H:mm'}}
                     </div>
-                    <div class="text-14 text-light-1">{{booking.flights.inbound!.offer!.itineraries[0].duration|duration}}
+                    <div class="text-14 text-light-1">
+                        {{booking.flightDetails.flights.inbound!.offer!.itineraries[0].duration | duration}}
                     </div>
                 </div>
                 }
@@ -221,21 +237,27 @@
             @for(charge of booking.charges; track charge;){
                 <div class="row y-gap-5 justify-between">
                     <div class="col-auto">
-                        <div class="text-15">{{charge.description}} <span class="text-12 fw-400">{{charge.aditional_info}}</span></div>
+                        <div class="text-15">
+                            {{charge.description}}
+                        </div>
+                        @for(line of charge.aditional_info; track $index){
+                            <div class="text-12 text-light-1">{{line}}</div>
+                        }
                     </div>
                     <div class="col-auto">
-                        <div class="text-15">{{charge.amount|currency:'MXN'}}</div>
+                        <div class="text-15">{{charge.amount | currency:'MXN'}}</div>
                     </div>
                 </div>
             }
             <div class="px-20 py-20 bg-blue-2 rounded-4 mt-20">
                 <div class="row y-gap-5 justify-between">
                     <div class="col-auto">
-                        <div class="text-18 lh-13 fw-500">Total <span class="text-13 fw-400">{{totalPassengers}}
-                                Pasajero{{totalPassengers>1?'s':''}}</span></div>
+                        <div class="text-18 lh-13 fw-500">
+                            Total <span class="text-13 fw-400">{{totalPassengers}} Pasajero{{totalPassengers > 1 ? 's' : ''}}</span>
+                        </div>
                     </div>
                     <div class="col-auto">
-                        <div class="text-18 lh-13 fw-500">{{grandTotal|currency:'MXN'}}</div>
+                        <div class="text-18 lh-13 fw-500">{{grandTotal | currency:'MXN'}}</div>
                     </div>
                 </div>
             </div>
@@ -247,11 +269,11 @@
                     <div class="text-15">Al momento de reservar pagaras:</div>
                 </div>
                 <div class="col-auto">
-                    <div class="text-15">{{grandTotal|currency:'MXN'}}</div>
+                    <div class="text-15">{{grandTotal | currency:'MXN'}}</div>
                 </div>
             </div>
         </div>
-        @if(booking.activePayment!.promo!==undefined){
+        @if(booking.payment!.promo !== undefined){
             <div class="px-30 py-30 border-light rounded-4 mt-30">
                 <div class="text-20 fw-500 mb-20">Promoción Aplicada</div>
                 <div class="row y-gap-5 justify-between">
@@ -259,10 +281,10 @@
                         <div class="text-15">Descuento Aplicado:</div>
                     </div>
                     <div class="col-auto">
-                        @if(booking.activePayment!.promo.discountType==='percentage'){
-                            {{booking.activePayment!.promo.discountAmount}}%
+                        @if(booking.payment!.promo.discountType === 'percentage'){
+                            {{booking.payment!.promo.discountAmount}}%
                         }@else{
-                            {{booking.activePayment!.promo.discountAmount|currency:'MXN'}}
+                            {{booking.payment!.promo.discountAmount | currency:'MXN'}}
                         }
                     </div>
                 </div>
@@ -271,7 +293,7 @@
                         <div class="text-15">Total Ahorrado:</div>
                     </div>
                     <div class="col-auto fw-700" style="color: green;">
-                        {{discountedAmmount|currency:'MXN'}}
+                        {{discountedAmmount | currency:'MXN'}}
                     </div>
                 </div>
                 <div class="row y-gap-5 justify-between">
@@ -279,12 +301,14 @@
                         <div class="text-15">Folio Cupón:</div>
                     </div>
                     <div class="col-auto">
-                        {{booking.activePayment!.promo.promoID}}
+                        {{booking.payment!.promo.promoID}}
                     </div>
                 </div>
                 <div class="row y-gap-5 justify-between">
                     <div class="col-auto">
-                        <div style="text-align: justify;" class="text-15 lh-12">{{booking.activePayment!.promo.description}}</div>
+                        <div style="text-align: justify;" class="text-15 lh-12">
+                            {{booking.payment!.promo.description}}
+                        </div>
                     </div>
                 </div>
             </div>

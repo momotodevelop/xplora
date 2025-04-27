@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { HotelCharge } from '../hotel-booking.component';
 import { HotelInfoBookingDetails } from '../../../types/booking.types';
 import { HotelHandlerService } from '../../../services/hotel-handler.service';
 import { CommonModule } from '@angular/common';
@@ -9,6 +8,7 @@ import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { MatButtonModule } from '@angular/material/button';
 import { Promo } from '../../../services/xplora-promos.service';
 import { UppercaseDirective } from '../../../uppercase.directive';
+import { Charge } from '../../booking-process/booking-sidebar/booking-sidebar.component';
 
 @Component({
   selector: 'app-hotel-booking-sidebar',
@@ -25,7 +25,7 @@ import { UppercaseDirective } from '../../../uppercase.directive';
   styleUrl: './hotel-booking-sidebar.component.scss'
 })
 export class HotelBookingSidebarComponent implements OnInit, OnChanges {
-  @Input() charges: HotelCharge[] = [];
+  @Input() charges: Charge[] = [];
   @Input() hotel!: HotelInfoBookingDetails;
   @Input() total!: number;
   @Input() guests!: {adults: number, childrens: number};

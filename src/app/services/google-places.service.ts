@@ -9,7 +9,7 @@ declare const google: any;
 })
 export class GooglePlacesService {
   constructor(private http: HttpClient) { }
-  private apiKey = 'AIzaSyCu0Vjm1GoMAZQCtNQpRiI1fbhmwpTBkHI';
+  private apiKey = 'AIzaSyCwN2eT2aShJs4qjwPQGUVxdVP4yu9-6Io';
   private baseUrl = 'https://maps.googleapis.com/maps/api/place';
   private googleMapsLibrary?: google.maps.PlacesLibrary;
   

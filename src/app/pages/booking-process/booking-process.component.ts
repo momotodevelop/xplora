@@ -16,7 +16,7 @@ import { SeatMap, SeatMapSavingData, SelectedSeat } from '../../types/amadeus-se
 import { BookingHandlerService } from '../../services/booking-handler.service';
 import { AmadeusLocation } from '../../types/amadeus-airport-response.types';
 import * as _ from 'lodash'
-import { ExtrasComponent } from './extras/extras.component';
+import { ExtrasComponent, ExtrasPrices } from './extras/extras.component';
 import { ContactInfoComponent, ContactInfoValue } from './contact-info/contact-info.component';
 import { PaymentComponent } from './payment/payment.component';
 import { XploraPromosService } from '../../services/xplora-promos.service';
@@ -29,6 +29,9 @@ import { faSpinner, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { GoogleMapsService } from '../../services/google-maps.service'
 import { GoogleMapsModule, GoogleMap } from '@angular/google-maps';
 import { HeaderMapComponent } from '../../shared/header-map/header-map.component';
+import { FireBookingService } from '../../services/fire-booking.service';
+import { FirebaseBooking, FlightFirebaseBooking } from '../../types/booking.types';
+import { BookingCreationLoaderComponent, Step } from '../../shared/booking-creation-loader/booking-creation-loader.component';
 
 declare const MercadoPago: any;
 declare const ClipSDK: any;
@@ -59,7 +62,8 @@ export type Steps = "PASSENGERS"|"SEATS"|"CONTACT"|"EXTRAS"|"PAYMENT";
         MatIconModule,
         MatProgressSpinnerModule,
         FontAwesomeModule,
-        HeaderMapComponent
+        HeaderMapComponent,
+        BookingCreationLoaderComponent
     ],
     templateUrl: './booking-process.component.html',
     styleUrl: './booking-process.component.scss'
@@ -72,9 +76,12 @@ export class BookingProcessComponent implements OnInit {
     private seatMapService: AmadeusSeatmapService,
     public bookingHandler: BookingHandlerService,
     private promos: XploraPromosService,
-    private _sb: MatSnackBar
+    private _sb: MatSnackBar,
+    private fireBooking: FireBookingService,
   ){}
-  booking?: XploraFlightBooking;
+  confirmationLoader:boolean=false;
+  confirmationLoaderSteps:Step[]=[];
+  booking?: FlightFirebaseBooking;
   bookingID?:string;
   passengers?:PassengerValue[];
   seatMaps!:SeatMap[];
@@ -88,46 +95,42 @@ export class BookingProcessComponent implements OnInit {
   @ViewChild(GoogleMap, { static: false }) map!: GoogleMap;
   @ViewChild('extras') extras!: ExtrasComponent;
   ngOnInit():void {
+    console.log("Inicia componente");
+    //this.sharedService.changeHeaderType("dark");
     this.sharedService.settBookingMode(true);
-    this.route.data.pipe(
-      map(data => data["headerType"])
-    ).subscribe((type: "light"|"dark") => {
-      console.log(type);
-      //this.headerType = type;
-      this.sharedService.changeHeaderType(type);
-    });
     this.sharedService.setLoading(true);
     combineLatest([this.route.params,this.route.queryParams]).subscribe(([p, q])=>{
+      console.log(q);
+      console.log(p);
       const params:{bookingID:string} = p as {bookingID:string, step: Steps};
-      const queryParams:{promo?:string} = q as {promo?:string};
       const bookingID:string = params.bookingID;
       var actualStep:Steps="PASSENGERS";
       this.bookingID = bookingID;
-      this.xplora.getBooking(bookingID).subscribe(booking=>{
+      this.fireBooking.getBooking(bookingID).subscribe(booking=>{
         console.log(booking);
-        this.bookingHandler.setBookingInfo(booking);
+        this.bookingHandler.setBookingInfo(booking as FlightFirebaseBooking);
         this.sharedService.setLoading(false);
-        if(queryParams.promo!==undefined){
-          this.getPromo(queryParams.promo);
+        if(q){
+          const queryParams:{promo?:string} = q as {promo?:string};
+          if(queryParams.promo!==undefined){
+            this.getPromo(queryParams.promo);
+          }
         }
-        if(booking.passengersData!==undefined){
-          actualStep="CONTACT";
+        if(booking.flightDetails?.passengers.details!==undefined){
+          //actualStep="CONTACT";
         }
         if(booking.contact!==undefined){
           actualStep="SEATS";
         }
-        if(booking.seatMaps!==undefined){
+        if(booking.flightDetails?.seatMaps!==undefined){
           actualStep="EXTRAS";
         }
-        if(booking.aditionalServices!==undefined){
+        if(booking.flightDetails?.aditionalServices!==undefined){
           actualStep="PAYMENT";
         }
         setTimeout(() => {
           if(this.stepper){
             switch (actualStep) {
-              case "CONTACT":
-                this.stepper.selectedIndex=1;
-                break;
               case "SEATS":
                 this.stepper.selectedIndex=2;
                 break;
@@ -138,7 +141,7 @@ export class BookingProcessComponent implements OnInit {
                 this.stepper.selectedIndex=4;
                 break;
               default:
-                this.goToPassengers();
+                //this.goToPassengers();
                 break;
             }
           }
@@ -154,6 +157,7 @@ export class BookingProcessComponent implements OnInit {
   getPromo(promoCode:string){
     this.promos.getPromoByCode(promoCode).subscribe({
       next: promo =>{
+        console.log(promo)
         if(promo){
           this._sb.open('Promoción '+promo.code+' aplicada.', 'Aceptar', {duration: 1500});
           this.bookingHandler.setPromo(promo);
@@ -163,28 +167,149 @@ export class BookingProcessComponent implements OnInit {
         }
       },
       error: err =>{
+        console.log(err);
         this.bookingHandler.setPromo(undefined);
         this._sb.open('Código de promoción invalido', 'Aceptar', {duration: 1500});
       }
     })
   }
+  changePaymentMethod(method:string){
+    console.log(method);    
+  }
+  completeLoader(){
+
+  }
   processPassengers(){
     console.log(this.passengers);
     if(this.passengers!==undefined){
       this.loadingProcess=true;
-      let passengersData = this.passengers;
-      this.xplora.updateBooking(this.bookingID!, {passengersData:passengersData}).subscribe({
-        next:(result=>{
-          this.bookingHandler.setBookingInfo(result.booking);
-          this.stepper.selectedIndex=1;
-          console.log(result);
-          this.loadingProcess=false;
-        }),
-        error:(err=>{
-          this.loadingProcess=false;
-          this._sb.open('Error al guardar los pasajeros. Intente nuevamente.', 'OK', {duration: 1500});
-        })
+      const passengersData = this.passengers.map((passenger, i) => {
+        return {
+          name: passenger.name,
+          lastname: passenger.lastname,
+          birth: passenger.birth,
+          gender: passenger.gender,
+          type: passenger.type,
+          id: i+1
+        }
       });
+      let data:Partial<FlightFirebaseBooking> = {
+        flightDetails: {
+          ...this.booking!.flightDetails!,
+          passengers: {
+            counts: this.booking!.flightDetails!.passengers.counts,
+            details: passengersData
+          }
+        }
+      }
+      this.fireBooking.updateBooking(this.bookingID!, data).then((result)=>{
+        this.loadingProcess=false;
+        this.stepper.next();
+        console.log(result);
+        this.bookingHandler.setBookingInfo(result as FlightFirebaseBooking);
+      }).catch((err)=>{
+        console.log(err);
+        this.loadingProcess=false;
+        this._sb.open('Error al guardar los pasajeros. Intente nuevamente.', 'OK', {duration: 1500});
+      });
+      if(!this.booking?.flightDetails){
+        this.fireBooking.nestedUpdateBooking(this.bookingID!, {
+          "flightDetails.aditionalServices": {
+            insurance: {
+              outbound: passengersData.map((p,i) => {
+                return {
+                  scope: "OUTBOUND",
+                  targetID: i,
+                  context: 'FLIGHT',
+                  type: 'INSURANCE',
+                  unitPrice: ExtrasPrices.insurance,
+                  active: false
+                }
+              }),
+              inbound: this.booking!.flightDetails.round?passengersData.map((p,i) => {
+                return {
+                  scope: "INBOUND",
+                  targetID: i,
+                  context: 'FLIGHT',
+                  type: 'INSURANCE',
+                  unitPrice: ExtrasPrices.insurance,
+                  active: false
+                }
+              }) : []
+            },
+            baggage: {
+              outbound: passengersData.map((p,i) => {
+                return {
+                  scope: "OUTBOUND",
+                  targetID: i,
+                  context: 'FLIGHT',
+                  type: 'BAGGAGE',
+                  unitPrice: ExtrasPrices.baggage,
+                  active: false,
+                  value: 0
+                }
+              }),
+              inbound: this.booking!.flightDetails.round?passengersData.map((p,i) => {
+                return {
+                  scope: "INBOUND",
+                  targetID: i,
+                  context: 'FLIGHT',
+                  type: 'BAGGAGE',
+                  unitPrice: ExtrasPrices.baggage,
+                  active: false,
+                  value: 0
+                }
+              }) : []
+            },
+            carryOn: {
+              outbound: passengersData.map((p,i) => {
+                return {
+                  scope: "OUTBOUND",
+                  targetID: i,
+                  context: 'FLIGHT',
+                  type: 'CARRYON',
+                  unitPrice: ExtrasPrices.carryon,
+                  active: false,
+                  value: 0
+                }
+              }),
+              inbound: this.booking!.flightDetails.round?passengersData.map((p,i) => {
+                return {
+                  scope: "INBOUND",
+                  targetID: i,
+                  context: 'FLIGHT',
+                  type: 'CARRYON',
+                  unitPrice: ExtrasPrices.carryon,
+                  active: false,
+                  value: 0
+                }
+              }) : []
+            },
+            flexpass: {
+              outbound: passengersData.map((p,i) => {
+                return {
+                  scope: "OUTBOUND",
+                  targetID: i,
+                  context: 'FLIGHT',
+                  type: 'FLEXPASS',
+                  unitPrice: ExtrasPrices.flexpass,
+                  active: false
+                }
+              }),
+              inbound: this.booking!.flightDetails.round?passengersData.map((p,i) => {
+                return {
+                  scope: "INBOUND",
+                  targetID: i,
+                  context: 'FLIGHT',
+                  type: 'FLEXPASS',
+                  unitPrice: ExtrasPrices.flexpass,
+                  active: false
+                }
+              }) : []
+            }
+          }
+        })
+      }
     }
   }
   openInsuranceFromSidebar(){
@@ -200,16 +325,17 @@ export class BookingProcessComponent implements OnInit {
   processContact(){
     if(this.contactInfo){
       this.loadingProcess=true;
-      this.xplora.updateBooking(this.bookingID!, {contact:this.contactInfo}).subscribe({
-        next: (result=>{
-          this.bookingHandler.setBookingInfo(result.booking);
-          console.log(result);
-          this.loadingProcess=false;
-          this.stepper.next();
-        }),
-        error: (err=>{
-          this.loadingProcess=false;
-        })
+      this.fireBooking.updateBooking(this.bookingID!, {
+        contact: this.contactInfo
+      }).then((result)=>{
+        console.log(result);
+        this.loadingProcess=false;
+        this.stepper.next();
+        this.bookingHandler.setBookingInfo(result as FlightFirebaseBooking);
+      }).catch((err)=>{
+        console.log(err);
+        this.loadingProcess=false;
+        this._sb.open('Error al guardar los datos de contacto. Intente nuevamente.', 'OK', {duration: 1500});
       });
     }
   }
@@ -231,9 +357,23 @@ export class BookingProcessComponent implements OnInit {
     if(step==="EXTRAS"||step==="SEATS"){
       switch (step) {
         case "SEATS":
+          this.fireBooking.updateBooking(this.bookingID!, {
+            flightDetails: {
+              ...this.booking!.flightDetails!,
+              seatMaps: []
+            }
+          });
           this.xplora.updateBooking(this.bookingID!, {seatMaps:[]});
           break;
         case "EXTRAS":
+          this.fireBooking.updateBooking(this.bookingID!, {
+            flightDetails: {
+              ...this.booking!.flightDetails!,
+              aditionalServices: {
+
+              }
+            }
+          });
           this.xplora.updateBooking(this.bookingID!, {aditionalServices:[]});
           break;
       }
@@ -241,20 +381,38 @@ export class BookingProcessComponent implements OnInit {
     this.stepper.next();
   }
   processSeats(data:SeatMapSavingData[]){
-    const oldSeatMaps = this.booking?.seatMaps;
+    const oldSeatMaps = this.booking?.flightDetails!.seatMaps;
     if(oldSeatMaps!==undefined){
       const hasChanges:boolean = this.seatsHaveChanges(oldSeatMaps, data);
       console.log(hasChanges);
       if(hasChanges){
-        this.xplora.updateBooking(this.bookingID!, {seatMaps:data}).subscribe(updated=>{
+        this.fireBooking.updateBooking(this.bookingID!, {
+          flightDetails: {
+            ...this.booking!.flightDetails!,
+            seatMaps: data
+          }
+        }).then(updated=>{
+          this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
           this.stepper.next();
+        }).catch(err=>{ 
+          console.log(err);
+          this._sb.open('Error al guardar los asientos seleccionados. Intente nuevamente.', 'OK', {duration: 1500});
         });
       }else{
         this.stepper.next();
       }
     }else{
-      this.xplora.updateBooking(this.bookingID!, {seatMaps:data}).subscribe(updated=>{
+      this.fireBooking.updateBooking(this.bookingID!, {
+        flightDetails: {
+          ...this.booking!.flightDetails!,
+          seatMaps: data
+        }
+      }).then(updated=>{
+        this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
         this.stepper.next();
+      }).catch(err=>{ 
+        console.log(err);
+        this._sb.open('Error al guardar los asientos seleccionados. Intente nuevamente.', 'OK', {duration: 1500});
       });
     }
   }

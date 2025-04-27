@@ -6,6 +6,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
 import { MatChipsModule } from '@angular/material/chips';
 import { XploraFlightBooking } from '../../../types/xplora-api.types';
+import { FlightFirebaseBooking } from '../../../types/booking.types';
 export interface ContactInfoValue{
   name: string,
   lastname: string,
@@ -69,7 +70,7 @@ export class ContactInfoComponent {
     name: new FormControl('', [Validators.required, Validators.minLength(2)]),
     lastname: new FormControl('', [Validators.required, Validators.minLength(2)])
   });
-  bookingData?:XploraFlightBooking;
+  bookingData?:FlightFirebaseBooking;
   constructor(private booking: BookingHandlerService){
     this.form.valueChanges.subscribe(change=>{
       this.change();

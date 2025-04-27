@@ -9,11 +9,11 @@ import { MatSliderModule } from '@angular/material/slider';
 import { FeatherIconsModule } from '../../modules/feather-icons/feather-icons.module';
 import { FlightOffer } from '../../types/flight-offer-amadeus.types';
 import _ from 'lodash';
-import { combineLatest, debounceTime, first } from 'rxjs';
+import { combineLatest, debounceTime, first, map } from 'rxjs';
 
 @Component({
     selector: 'app-flight-filters',
-    imports: [SidebarComponent, MatCheckboxModule, ReactiveFormsModule, TitleCasePipe, MatSliderModule, FeatherIconsModule],
+    imports: [MatCheckboxModule, ReactiveFormsModule, TitleCasePipe, MatSliderModule, FeatherIconsModule],
     templateUrl: './flight-filters.component.html',
     styleUrl: './flight-filters.component.scss'
 })
