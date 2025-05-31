@@ -71,6 +71,7 @@ export class ContactInfoComponent {
     lastname: new FormControl('', [Validators.required, Validators.minLength(2)])
   });
   bookingData?:FlightFirebaseBooking;
+  passengersChips: {name: string, lastname: string}[] = [];
   constructor(private booking: BookingHandlerService){
     this.form.valueChanges.subscribe(change=>{
       this.change();
@@ -78,6 +79,14 @@ export class ContactInfoComponent {
     this.booking.booking.subscribe(booking=>{
       if(booking!==undefined){
         this.bookingData = booking;
+        if(booking.flightDetails!.passengers.details){
+          this.passengersChips = booking.flightDetails!.passengers.details.filter(passenger => passenger.type==='ADULT').map((passenger)=>{
+            return {
+              name: passenger.name,
+              lastname: passenger.lastname
+            }
+          });
+        }
         if(booking.contact!==undefined){
           this.form.setValue(booking.contact);
           this.valid.emit(booking.contact!)

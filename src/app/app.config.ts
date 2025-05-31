@@ -39,6 +39,7 @@ export const appConfig: ApplicationConfig = {
     provideAnalytics(() => getAnalytics()), 
     ScreenTrackingService, 
     UserTrackingService,
-    provideFirestore(() => getFirestore()), provideFunctions(() => getFunctions()), provideMessaging(() => getMessaging()), provideStorage(() => getStorage())
+    provideFirestore(() => getFirestore()), provideFunctions(() => getFunctions()), provideMessaging(() => getMessaging()), provideStorage(() => getStorage()),
+    provideAnimationsAsync()
   ]
 };

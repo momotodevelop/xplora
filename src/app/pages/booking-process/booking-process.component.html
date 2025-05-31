@@ -1,61 +1,89 @@
 @if(confirmationLoader){
-    <app-booking-creation-loader (completed)="completeLoader()" [steps]="confirmationLoaderSteps" [paymentMethod]="'CASH'" [paymentType]="'NOW'"></app-booking-creation-loader>
-}
-@if(booking!==undefined){
-    <!-- <section class="layout-pt-md">
-        <div class="section-bg__item col-12">
-            <app-header-map [lat]="booking.destination.geoCode.latitude" [lng]="booking.destination.geoCode.longitude" ></app-header-map>
-        </div>
-        <div class="container">
-            <div class="row justify-center text-center">
-                <div class="col-xl-6 col-lg-8 col-md-10">
-                <h1 class="text-40 md:text-25 fw-600 text-white">Tu viaje a {{booking.destination.address.cityName|titlecase}}</h1>
-                <div class="text-white mt-15">Completa tu reservación</div>
+    <app-booking-creation-loader (completed)="completeLoader()" [cashPaymentTime]="10" [speiPaymentTime]="10" [steps]="confirmationLoaderSteps" [paymentMethod]="paymentMethod" [paymentType]="'NOW'"></app-booking-creation-loader>
+}@else{
+    @if(booking!==undefined){
+        <!-- <section class="layout-pt-md">
+            <div class="section-bg__item col-12">
+                <app-header-map [lat]="booking.destination.geoCode.latitude" [lng]="booking.destination.geoCode.longitude" ></app-header-map>
+            </div>
+            <div class="container">
+                <div class="row justify-center text-center">
+                    <div class="col-xl-6 col-lg-8 col-md-10">
+                    <h1 class="text-40 md:text-25 fw-600 text-white">Tu viaje a {{booking.destination.address.cityName|titlecase}}</h1>
+                    <div class="text-white mt-15">Completa tu reservación</div>
+                    </div>
+                </div>
+            </div>
+        </section> -->
+        <div class="container mt-40" #stepperContainer>
+            <div class="row">
+                <div class="col-xl-7 col-lg-8">
+                    <!-- Header -->
+                    <div style="height: 50px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                        <ng-container *ngIf="steps[activeStep] as step">
+                            <div [@slideHeader]>
+                                <h3>{{ step.title }}</h3>
+                            </div>
+                        </ng-container>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div style="min-height: 150px; display: flex; justify-content: center; align-items: center; overflow: visible; margin-top: 16px;">
+                        <ng-container *ngIf="steps[activeStep] as step">
+                            <div [@slideContent]>
+                                @switch(step.content){
+                                    @case ("passengers") {
+                                        <app-passengers [adults]="booking.flightDetails.passengers.counts.adults" [childrens]="booking.flightDetails.passengers.counts.childrens" [infants]="booking.flightDetails.passengers.counts.infants" [passengersData]="booking.flightDetails.passengers.details ?? []" (valid)="passengers = $event"></app-passengers>
+                                    }
+                                    @case ("contact") {
+                                        <app-contact-info (valid)="contactInfo = $event"></app-contact-info>
+                                    }
+                                    @case ("seats") {
+                                        <app-seats (completed)="seatSelection=$event" (loading)="loadingSeats=$event" (pendingSeats)="pendingSelectionSeats=$event" (skip)="skipStep('SEATS')" (goToPassengers)="goToPassengers()"></app-seats>
+                                    }
+                                    @case ("extras") {
+                                        <app-extras (next)="next()" (skip)="skipStep('EXTRAS')" #extras></app-extras>
+                                    }
+                                    @case ("payment") {
+                                        <app-payment (selectedPaymentMethod)="changePaymentMethod($event)" (paymentProcessStart)="startPayment($event)"></app-payment>
+                                    }
+                                }
+                            </div>
+                        </ng-container>
+                    </div>
+                    <!-- Controls -->
+                    @if(activeStep!==4){
+                        <div class="row x-gap-10 mt-20">
+                            <div class="col-6">
+                                <button mat-raised-button class="w-100" (click)="prev()" [disabled]="activeStep === 0">Anterior</button>
+                            </div>
+                            <div class="col-6">
+                                @switch(activeStep){
+                                    @case (0) {
+                                        <button mat-raised-button class="w-100" [disabled]="!passengers" color="primary" (click)="processPassengers()">Contacto</button>
+                                    }
+                                    @case (1) {
+                                        <button mat-raised-button class="w-100" color="primary" [disabled]="!contactInfo" (click)="processContact()">Asientos</button>
+                                    }
+                                    @case (2) {
+                                        <button mat-raised-button class="w-100" [disabled]="loadingSeats" color="primary" (click)="processSeats()">Extras</button>
+                                    }
+                                    @case (3) {
+                                        <button mat-raised-button class="w-100" color="primary" (click)="next()">Pago</button>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }@else{
+
+                    }
+                </div>
+                <div class="col-xl-5 col-lg-4 pt-20">
+                    @if(booking!==undefined){
+                        <app-booking-sidebar (openInsuranceExtra)="openInsuranceFromSidebar()"></app-booking-sidebar>
+                    }
                 </div>
             </div>
         </div>
-    </section> -->
-    <div class="container mt-40">
-        <div class="row">
-            <div class="col-xl-7 col-lg-8">
-                <mat-vertical-stepper class="booking-stepper" #stepper [linear]="true">
-                    <mat-step [completed]="passengers!==undefined">
-                        <ng-template matStepLabel><h2 class="text-16 fw-500">Pasajeros</h2></ng-template>
-                        @if(booking){
-                            <app-passengers [adults]="booking.flightDetails.passengers.counts.adults" [childrens]="booking.flightDetails.passengers.counts.childrens" [infants]="booking.flightDetails.passengers.counts.infants" [passengersData]="booking.flightDetails.passengers.details ?? []" (valid)="passengers = $event"></app-passengers>
-                        }
-                        <div>
-                            <button [disabled]="!passengers" (click)="processPassengers()" color="primary" mat-raised-button class="w-100">
-                                Siguiente <fa-icon [icon]="loadingProcess?spinnerIcon:nextIcon" [animation]="loadingProcess?'spin':undefined"></fa-icon>
-                            </button>
-                        </div>
-                    </mat-step>
-                    <mat-step [completed]="contactInfo!==undefined">
-                        <ng-template matStepLabel><h2 class="text-16 fw-500">Información de Contacto</h2></ng-template>
-                        <app-contact-info (valid)="contactInfo = $event"></app-contact-info>
-                        <button mat-flat-button [disabled]="!contactInfo" (click)="processContact()" color="primary" class="w-100 mt-4">
-                            Siguiente <fa-icon [icon]="loadingProcess?spinnerIcon:nextIcon" [animation]="loadingProcess?'spin':undefined"></fa-icon>
-                        </button>
-                    </mat-step>
-                    <mat-step>
-                        <ng-template matStepLabel><h2 class="text-16 fw-500">Asientos</h2></ng-template>
-                        <app-seats (completed)="processSeats($event)" (skip)="skipStep('SEATS')" (goToPassengers)="goToPassengers()"></app-seats>
-                    </mat-step>
-                    <mat-step>
-                        <ng-template matStepLabel><h2 class="text-16 fw-500">Servicios Adicionales</h2></ng-template>
-                        <app-extras (next)="stepper.next()" (skip)="skipStep('EXTRAS')" #extras></app-extras>
-                    </mat-step>
-                    <mat-step [ngClass]="{'payment-step': true}">
-                        <ng-template matStepLabel>Pagar Reservación</ng-template>
-                        <app-payment (selectedPaymentMethod)="changePaymentMethod($event)"></app-payment>
-                    </mat-step>
-                </mat-vertical-stepper>
-            </div>
-            <div class="col-xl-5 col-lg-4 pt-20">
-                @if(booking!==undefined){
-                    <app-booking-sidebar (openInsuranceExtra)="openInsuranceFromSidebar()"></app-booking-sidebar>
-                }
-            </div>
-        </div>
-    </div>
+    }
 }

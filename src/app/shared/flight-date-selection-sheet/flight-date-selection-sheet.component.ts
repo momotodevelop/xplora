@@ -20,6 +20,7 @@ export class FlightDateSelectionSheetComponent implements OnInit {
   singleDate: Date | null = null;
   isActiveStart: boolean = false;
   isActiveEnd: boolean = false;
+  minDate = new Date();
   round:boolean=true;
   @ViewChild('start') startElement!: ElementRef;
   @ViewChild('end') endElement!: ElementRef;
@@ -29,7 +30,6 @@ export class FlightDateSelectionSheetComponent implements OnInit {
   ){}
 
   ngOnInit(): void {
-    console.log(this.data);
     this.round=this.data.round;
     if(this.data.dates!==undefined){
       if(this.round){

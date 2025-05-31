@@ -12,6 +12,7 @@ export interface CustomerData{
 }
 export interface PaymentDetails {
   number: string;         // Número de la tarjeta en formato string
+  type: 'maestro' | 'forbrugsforeningen' | 'dankort' | 'visa' | 'mastercard' | 'amex' | 'dinersclub' | 'discover' | 'unionpay' | 'jcb'; // Tipo de tarjeta
   expiration: string;     // Fecha de expiración en formato MM/YY
   cvv: string;            // Código CVV de la tarjeta
   holder: string;     // Nombre del titular de la tarjeta

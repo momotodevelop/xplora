@@ -36,7 +36,7 @@ export class SelectSeatMapComponent implements OnInit {
       const row: Row = {
         number: rowNum,
         wingStatus: this.getWingStatus(rowNum, startWingsRow, endWingsRow),
-        exitRow: exitRowsX.includes(rowNum),
+        exitRow: exitRowsX ? exitRowsX.includes(rowNum) : false,
         items: Array.from({ length: width }, () => ({ type: 'AISLE' }))
       };
       this.rows.push(row);

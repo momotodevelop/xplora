@@ -16,7 +16,7 @@ import { FlightOffersDataHandlerService } from '../../services/flight-offers-dat
 import { XploraApiService } from '../../services/xplora-api.service';
 import { FireBookingService } from '../../services/fire-booking.service';
 import { Timestamp } from 'firebase/firestore';
-import { BookingStatus } from '../../types/booking.types';
+import { BookingStatus, FlightFirebaseBooking } from '../../types/booking.types';
 export interface SearchParams{
   adults: string
   childrens: string
@@ -111,12 +111,11 @@ export class FlightSearchComponent implements OnInit {
       if(status==="FULL"){
         const round = this.return!==undefined;
         this.sharedService.setLoading(true);
-        this.fireBooking.addBooking({
+        let bookingInfo:FlightFirebaseBooking = {
           type: "FLIGHT",
           status: "PENDING",
           flightDetails: {
-            departure: this.departure,
-            return: this.return,
+            departure: new Timestamp(this.departure.getTime()/1000, 0),
             origin: this.origin,
             destination: this.destination,
             passengers: {
@@ -126,7 +125,11 @@ export class FlightSearchComponent implements OnInit {
             round,
             flights: this.flightOffersHandler.getFlights()
           }
-        }).then(ok=>{
+        }
+        if(round&&this.return){
+          bookingInfo.flightDetails.return = new Timestamp(this.return.getTime()/1000, 0);
+        }
+        this.fireBooking.addBooking(bookingInfo).then(ok=>{
           console.log(ok);
           const url = `/reservar/vuelos/${ok}`;
           window.location.href = url;

@@ -18,6 +18,7 @@ export interface FlightFirebaseBooking extends FirebaseBooking{
     type: "FLIGHT";
     flightDetails: FlightBookingDetails;
 }
+
 export interface FirebaseBooking{
     type: BookingTypes; // Tipo de reservación
     status: BookingStatus;
@@ -53,9 +54,9 @@ export interface FlightBookingDetails{
     flights: SelectedFlights,
     origin: AmadeusLocation,
     destination: AmadeusLocation,
-    departure: Date,
+    departure: Timestamp,
     round: boolean,
-    return?: Date,
+    return?: Timestamp,
     seatMaps?: SeatMapSavingData[],
     aditionalServices?: FlightAdditionalServices
 }

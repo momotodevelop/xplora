@@ -15,7 +15,7 @@ import { AnimationOptions, LottieComponent } from 'ngx-lottie';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { AnimationItem } from 'lottie-web';
 import { PaymentMethod, PaymentType } from '../../types/booking.types';
-import { MatGridTileHeaderCssMatStyler } from '@angular/material/grid-list';
+import { CountdownConfig, CountdownEvent, CountdownModule } from 'ngx-countdown'
 
 export const fadeInOutAnimation = trigger('fadeInOut', [
   transition(':enter', [
@@ -53,12 +53,15 @@ export const fadeInUpAnimation = trigger('fadeInUp', [
 ]);
 
 export interface StepTextElement {
-  type: 'text' | 'icon' | 'currency';
+  type: 'text' | 'icon' | 'currency' | 'image';
   content?: any;
   text?: string;
   amount?: number;
   icon?: IconDefinition;
   bold?: boolean;
+  url?: string;
+  width?: number
+  height?: number;
 }
 
 export interface Step {
@@ -81,7 +84,8 @@ export interface Line {
     MatButtonModule, 
     MatIconModule,
     SweetAlert2Module,
-    LottieComponent
+    LottieComponent,
+    CountdownModule
   ],
   templateUrl: './booking-creation-loader.component.html',
   styleUrl: './booking-creation-loader.component.scss',
@@ -93,6 +97,8 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
   @Input() bookingId!: string;
   @Input() paymentType!:PaymentType;
   @Input() paymentMethod!:PaymentMethod;
+  @Input() speiPaymentTime:number = 300;
+  @Input() cashPaymentTime:number = (12*60*60); // 12 horas en segundos
   @Output() completed: EventEmitter<boolean> = new EventEmitter(false);
   progress: number = 0;
   pendingIcon = faCircle;
@@ -103,8 +109,11 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
   currentStepIndex: number = 0;
   totalDuration: number = 0;
   delayCompleted:boolean=false;
-  animationItem?:AnimationItem;
+  animationItem?:AnimationItem; // Tiempo restante para el pago en segundos
   animationOptions!: AnimationOptions;
+  countdownDanger: boolean = false;
+  countdownCompleted: boolean = false;
+  countdownConfig:CountdownConfig = { leftTime: 300, format: 'mm:ss', notify: [60] }; // Configuración del temporizador
   constructor(
     private shared: SharedDataService, 
     private ngZone: NgZone,
@@ -137,7 +146,14 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
         this.status = 'pending'
       }
     }else{
-      this.status = 'confirmed';
+      if(this.paymentMethod==='SPEI'){
+        this.countdownConfig.leftTime = this.speiPaymentTime; // Tiempo en segundos para SPEI
+        this.status = 'pending';
+      }else{
+        this.countdownConfig.leftTime = this.cashPaymentTime; // Tiempo en segundos para pago en efectivo
+        this.status = 'confirmed';
+      }
+      
     }
     let animationUrl;
     switch (this.status) {
@@ -160,6 +176,7 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
     this.totalDuration = this.calculateTotalDuration();
     console.log(this.totalDuration);
     this.startProgress();
+
   }
 
   private calculateTotalDuration(): number {
@@ -169,6 +186,20 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
   onLoopComplete(){
     console.log("Completed Loop");
     this.completed.emit(true);
+  }
+
+  countdownNotify(event: CountdownEvent){
+    console.log(event);
+    if(event.action==='notify'){
+      const leftTime = event.left / 1000; // Convertir a segundos
+      if(leftTime <= 60){
+        console.log("Tiempo restante:", event.left);
+        this.countdownDanger = true; // Cambia el estado a peligroso si el tiempo restante es menor o igual a 60 segundos
+      }
+    }else if(event.action==='done'){
+      console.log("Temporizador completado");
+      this.countdownCompleted = true; // Marca el temporizador como completado
+    }
   }
 
   animationCreated(animationItem: AnimationItem): void {

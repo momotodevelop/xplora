@@ -4,8 +4,8 @@
       @if(dashboard){
         <div class="-left-side">
           <a href="/" class="header-logo" data-x="header-logo" data-x-toggle="is-logo-dark">
-            <img src="assets/img/general/logo-light.svg" alt="logo icon">
-            <img src="assets/img/general/logo-dark.svg" alt="logo icon">
+            <img src="assets/img/general/logo-light.svg" alt="Xplora Travel">
+            <img src="assets/img/general/logo-dark.svg" alt="Xplora Travel">
           </a>
         </div>
       }
@@ -23,8 +23,8 @@
           <div class="d-flex items-center">
             @if(!dashboard){
               <a href="/" class="header-logo mr-20" data-x="header-logo" data-x-toggle="is-logo-dark">
-                <img src="assets/img/general/logo-light.svg" alt="logo icon">
-                <img src="assets/img/general/logo-dark.svg" alt="logo icon">
+                <img src="assets/img/general/logo-light.svg" alt="Xplora Travel">
+                <img src="assets/img/general/logo-dark.svg" alt="Xplora Travel">
               </a>
             }
             @if(!booking){
@@ -44,7 +44,7 @@
                                   <i class="icon icon-chevron-sm-down"></i>
                                 </a>
                               }
-                              @case("externo"){
+                              @case("externo"){ 
                                 <a [href]="menuItem.url">
                                   <span class="mr-10">{{menuItem.name|titlecase}}</span>
                                   <i class="icon icon-chevron-sm-down"></i>

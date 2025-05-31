@@ -78,7 +78,9 @@ export interface confirmationEmailData {
 export interface PaymentProceesData{
   paymentMethod: PaymentMethod,
   amount: number,
-  office?: string
+  office?: string,
+  card?: PaymentDetails,
+  promo?: Promo
 }
 
 export const PAYMENT_OFFICES:PaymentOffice[] = [
@@ -278,8 +280,8 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   @ViewChild('paymentOfficeList') list!: MatSelectionList;
   @ViewChild('installments') installmentsList?: MatSelectionList;
   @ViewChild('ccNumber') ccNumber!: CreditCardFormatDirective;
-  @Output() paymentStarted:EventEmitter<any> = new EventEmitter<any>(false);
   @Output() selectedPaymentMethod:EventEmitter<PaymentMethod> = new EventEmitter<PaymentMethod>(false);
+  @Output() paymentProcessStart:EventEmitter<PaymentProceesData> = new EventEmitter<PaymentProceesData>()
   total:number=0;
   secureIcon=faLock;
   spinnerIcon=faSpinner;
@@ -299,6 +301,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   booking!:FlightFirebaseBooking;
   cardForm:FormGroup = new FormGroup({
     number: new FormControl('', [CreditCardValidators.validateCCNumber]),
+    type: new FormControl(''),
     expiration: new FormControl('', [CreditCardValidators.validateExpDate]),
     cvv: new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(4)]),
     holder: new FormControl('', [Validators.required])
@@ -335,6 +338,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     });
     this.cardForm.controls['number'].valueChanges.pipe(debounceTime(750)).subscribe((CCnumber:string)=>{
       if(this.cardForm.controls['number'].valid){
+        this.cardForm.controls['type'].setValue(this.ccNumber.resolvedScheme$.value);
         const bin = CCnumber.replace(/\s/g, "").slice(0,6);
         const type = ['visa', 'mastercard', 'amex'].includes(this.ccNumber.resolvedScheme$.value.toLowerCase()) 
           ? this.ccNumber.resolvedScheme$.value.toLowerCase() === 'mastercard' 
@@ -494,6 +498,14 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   }
   makePaymentFirebase(){
     console.log(this.selectedPayment);
+    console.log(this.cardForm.value);
+    //START PAYMENT
+    this.paymentProcessStart.emit({
+      amount: this.total,
+      paymentMethod: this.selectedPayment!,
+      card: this.cardForm.value as PaymentDetails,
+      promo: this.activePromo,
+    });
     if(this.selectedPayment){
       let BookingUpdateData:Partial<FlightFirebaseBooking>={
         payment: {
@@ -530,10 +542,13 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       console.log(request);
       Promise.all(request).then(results=>{
         console.log(results);
-        this.confirmBooking(results[0] as FlightFirebaseBooking).then(confirmed=>{
+        //END PAYMENT
+        /*this.confirmBooking(results[0] as FlightFirebaseBooking).then(confirmed=>{
           console.log(confirmed);
-        });
-      }).catch(err=>{});
+        });*/
+      }).catch(err=>{
+        this.snackbar.open("Error al procesar tu reservación. Inténtalo nuevamente.", "OK", {duration: 2000});
+      });
     }
   }
   makePayment(){
@@ -884,6 +899,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   }
   openedPanel(activePayment:AvailablePaymentMethods){
     console.log(activePayment)
+    this.selectedPaymentMethod.emit(activePayment);
     this.selectedPayment = activePayment;
   }
   closedPanel(event:any){

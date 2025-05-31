@@ -1,54 +1,62 @@
 @if(seatMapStatus==="READY"){
-    <div class="d-flex items-center justify-between bg-success-1 pl-30 pr-20 py-30 rounded-8 my-5">
+    <div class="d-flex items-center justify-between bg-success-1 pl-30 pr-20 py-30 rounded-8 mt-20 mb-20">
         <div class="text-success-2 lh-1 fw-500">En Xplora Travel, te ofrecemos la selección de asientos gratis al momento de reservar. <br/>Elige el asiento que más te guste, ¡sin pagar más!</div>
     </div>
-    @for(seatMap of seatMaps; track seatMap; let last = $last; let seatMapI = $index){
-        <div class="d-flex align-items-center">
-            <img style="height: 20px;" [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/'+(seatMap.operating?seatMap.operating!.carrierCode:seatMap.carrierCode)+'.svg'" alt="image">
-            <span class="mx-2 badge rounded-pill text-bg-secondary d-flex align-items-center"><mat-icon style="font-size: 12px; width: 12px; height: 12px;">flight</mat-icon> {{(seatMap.operating?seatMap.operating!.carrierCode:seatMap.carrierCode)}}{{seatMap.number}}</span>
-            <span class="text-14 fw-400">{{seatMap.departure.iataCode}} - {{seatMap.arrival.iataCode}}</span>
-        </div>
-        <table class="table-4 w-1/1 mt-2">
-            <thead class="bg-light-2">
-                <tr>
-                    <th>Pasajero</th>
-                    <th>Asiento</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for(passenger of passengersData; track passenger; let i = $index){
-                    <tr>
-                        <td>{{passenger.name|titlecase}} {{passenger.lastname|titlecase}}</td>
-                        @if(selection[seatMapI][i]&&selection[seatMapI][i].seat){
-                            <td style="padding: 8px 30px;">
-                                <mat-chip-set>
-                                    <mat-chip>
-                                        {{selection[seatMapI][i]!.seat!.number}}
-                                        <button matChipRemove (click)="removedSeat(seatMapI, i)">
-                                            <mat-icon>cancel</mat-icon>
-                                        </button>
-                                    </mat-chip>
-                                </mat-chip-set>
-                            </td>
-                        }@else{
-                            <td style="padding: 8px 30px;"><button (click)="openSeatSelector(seatMap.decks[0], i, seatMapI)" mat-flat-button color="primary">Asignar</button></td>
-                        }
-                    </tr>
-                }
-            </tbody>
-        </table>
-        @if(!last){
-            <mat-divider style="margin-bottom: 2rem;"></mat-divider>
+    <div class="row y-gap-10 x-gap-10 mb-15">
+        @for(seatMap of seatMaps; track seatMap; let last = $last; let seatMapI = $index){
+            <div class="col-12 col-md-6">
+                <mat-card appearance="outlined">
+                    <mat-card-header>
+                        <img mat-card-avatar [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/'+(seatMap.operating?seatMap.operating!.carrierCode:seatMap.carrierCode)+'.svg'" alt="image">
+                        <mat-card-title style="line-height: 20px;">{{seatMap.departure.iataCode}} - {{seatMap.arrival.iataCode}}</mat-card-title>
+                        <mat-card-subtitle>
+                            <span class="badge rounded-pill text-bg-secondary d-flex align-items-center"><mat-icon style="font-size: 12px; width: 12px; height: 12px;">flight</mat-icon> {{(seatMap.operating?seatMap.operating!.carrierCode:seatMap.carrierCode)}}{{seatMap.number}}</span>
+                        </mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content style="padding: 0;">
+                        <mat-action-list>
+                            @for(passenger of passengersData; track passenger; let i = $index){
+                                <mat-list-item>
+                                    <img matListItemAvatar src="https://ui-avatars.com/api/?background={{selection[seatMapI][i]&&selection[seatMapI][i].seat ? '008000' : '004aad'}}&color=fff&name={{passenger.name}}+{{passenger.lastname}}"/>
+                                    <div matLine style="justify-content: space-between; display: flex;">
+                                        <div style="max-width: 55%; overflow: hidden; text-overflow: ellipsis;">
+                                            {{passenger.name}} {{passenger.lastname}}
+                                        </div>
+                                        @if(selection[seatMapI][i]&&selection[seatMapI][i].seat){
+                                            <mat-chip-set>
+                                                @if(selection[seatMapI][i].seat!.number!=="ND"){
+                                                    <mat-chip>
+                                                        <mat-icon matChipTrailingIcon>airline_seat_recline_normal</mat-icon>
+                                                        {{selection[seatMapI][i]!.seat!.number}}
+                                                        <button matChipRemove (click)="removedSeat(seatMapI, i)">
+                                                            <mat-icon>cancel</mat-icon>
+                                                        </button>
+                                                    </mat-chip>
+                                                }@else{
+                                                    <mat-chip color="warn">
+                                                        No Disponible
+                                                    </mat-chip>
+                                                }
+                                            </mat-chip-set>
+                                        }@else{
+                                            <button (click)="openSeatSelector(seatMap.decks[0], i, seatMapI, seatMap.availableSeatsCounters[0].value)" mat-raised-button color="primary">
+                                                Asignar <mat-icon>airline_seat_recline_normal</mat-icon>
+                                            </button>
+                                        }
+                                    </div>
+                                </mat-list-item>
+                            }
+                        </mat-action-list>
+                    </mat-card-content>
+                </mat-card>
+            </div>
         }
-    }
-    <button mat-stroked-button (click)="skip.emit()" class="w-100 mt-4">Continuar sin asientos <fa-icon [icon]="nextIcon"></fa-icon></button>
-    <button mat-flat-button (click)="saveSeatSelection()" color="primary" class="w-100 mt-4">Guardar asientos <fa-icon [icon]="loading?spinnerIcon:nextIcon" [animation]="loading?'spin':undefined"></fa-icon></button>
+    </div>
 }@else if (seatMapStatus==="ERROR"){
     <div class="w-100" style="height: 400px; align-items: center; justify-content: center; display: flex; flex-direction: column;">
         <mat-icon style="font-size: 100px; width: 100px; height: 100px; opacity: .30;">flight_class</mat-icon>
         <p class="text-14" style="text-align: center;">Ahora mismo no puedes elegir asientos.<br/>Te ayudaremos a seleccionarlos más adelante.</p>
     </div>
-    <button mat-flat-button color="primary" (click)="skip.emit()" class="w-100 mt-4">Siguiente <fa-icon [icon]="nextIcon"></fa-icon></button>
 }@else if(seatMapStatus==="LOADING"){
     <div class="w-100" style="height: 400px; align-items: center; justify-content: center; display: flex; flex-direction: column;">
         <mat-spinner class="mb-20" [diameter]="100"></mat-spinner>

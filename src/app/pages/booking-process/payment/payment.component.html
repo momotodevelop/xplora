@@ -1,14 +1,14 @@
 <mat-accordion class="payment-accordion">
     <mat-expansion-panel hideToggle #panelTarjeta (opened)="openedPanel('CARD')" (closed)="closedPanel('CARD')" expanded>
             <mat-expansion-panel-header>
-                <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='CARD'}" class="mr-5 text-14" [icon]="cardIcon"></fa-icon> CARD de Crédito o Débito</mat-panel-title>
+                <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='CARD'}" class="mr-5 text-14" [icon]="cardIcon"></fa-icon> Tarjeta de Crédito o Débito</mat-panel-title>
             </mat-expansion-panel-header>
             <!-- <div id="clip_checkout" style="margin-bottom: -25px;margin-top: 10px;"></div> -->
             <form [formGroup]="cardForm">
                 <div class="row">
                     <div class="col-12 col-md-6">
                         <mat-form-field appearance="outline" class="w-100">
-                            <mat-label>Número de CARD</mat-label>
+                            <mat-label>Número de Tarjeta</mat-label>
                             <input matInput placeholder="0000 0000 0000 0000" type="tel" ccNumber #ccNumber="ccNumber" formControlName="number">
                             <mat-icon matSuffix>credit_card</mat-icon>
                             <mat-hint class="text-12">Visa, MasterCard, American Express</mat-hint>
@@ -34,7 +34,7 @@
                             <mat-label>Nombre del Titular</mat-label>
                             <input matInput placeholder="Titular" type="text" formControlName="holder">
                             <mat-icon matSuffix>account_circle</mat-icon>
-                            <mat-hint class="text-12">Como aparece en la CARD</mat-hint>
+                            <mat-hint class="text-12">Como aparece en la tarjeta</mat-hint>
                         </mat-form-field>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
         </mat-selection-list>
         @if(selectedPaymentOffice){
             <button (click)="resetPaymentOffice()" mat-button color="primary">Cambiar sucursal de pago</button>
-            <p class="text-dark-1 text-14 mt-10" style="text-align: justify;">Una vez que confirmes tu reservación, recibirás un número de referencia que deberás proporcionar al momento de hacer el pago. Los detalles para completar la transacción serán enviados a tu correo electrónico.</p>
+            <p class="text-dark-1 text-14 mt-10" style="text-align: justify;">Una vez que confirmes tu reservación, recibirás un <b>número de referencia que deberás proporcionar</b> al momento de hacer el pago. Los detalles para completar la transacción serán <b>enviados a tu correo electrónico</b>.</p>
         }
     </mat-expansion-panel>
     <mat-expansion-panel hideToggle #panelSpei (opened)="openedPanel('SPEI')" (closed)="closedPanel('SPEI')">
@@ -102,7 +102,7 @@
                 <img src="assets/img/payments/spei.svg" class="my-2" style="max-width: 100px;">
             </div>
             <div class="col-md-8">
-                <p class="text-14 text-dark-1" style="text-align: justify;">Después de confirmar tu reservación, recibirás un correo electrónico con la información de nuestra cuenta bancaria y el número de referencia que deberás incluir en la transferencia.</p>
+                <p class="text-14 text-dark-1" style="text-align: justify;">Al hacer clic en "Pagar", se mostrarán los <b>datos para realizar la transferencia</b>. Contarás con 5 minutos para completar el pago y <b>confirmar tu reservación</b>.<br>Pasado este tiempo, la disponibilidad y tarifa podrían ser liberadas sin previo aviso. Te recomendamos tener <b>lista tu app bancaria</b> antes de continuar.</p>
             </div>
         </div>
     </mat-expansion-panel>

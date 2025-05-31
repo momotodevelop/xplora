@@ -19,7 +19,7 @@
                             <button (click)="activeTab=2" class="tabs__button text-15 fw-500 text-white pb-4 " [ngClass]="{'is-tab-el-active':activeTab===2}">Hoteles</button>
                         </div>
             
-                        <div class="">
+                        <!-- <div class="">
                             <button (click)="activeTab=3" class="tabs__button text-15 fw-500 text-white pb-4 " [ngClass]="{'is-tab-el-active':activeTab===3}">Tours</button>
                         </div>
             
@@ -29,7 +29,7 @@
             
                         <div class="">
                             <button (click)="activeTab=5" class="tabs__button text-15 fw-500 text-white pb-4 " [ngClass]="{'is-tab-el-active':activeTab===5}">Renta de Autos</button>
-                        </div>
+                        </div> -->
                     </div>
                     <div class="tabs__content mt-30 md:mt-20">
                     <div class="tabs__pane -tab-item-1 " [ngClass]="{'is-tab-el-active':activeTab===1}">
@@ -57,7 +57,7 @@
                                         <div class="text-15 text-light-1 ls-2 lh-16">
                                             @if(dates!==undefined){
                                                 @if(round){
-                                                    <span>{{dates[0]|date:'mediumDate'|titlecase}} - {{dates[1]|date:'mediumDate'|titlecase}}</span>
+                                                    <span>{{dates[0]|date:'shortDate'|titlecase}} - {{dates[1]|date:'shortDate'|titlecase}}</span>
                                                 }
                                                 @else{
                                                     <span>{{dates[0]|date:'fullDate'|titlecase}}</span>

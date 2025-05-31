@@ -23,12 +23,14 @@
 @if(round){
     <mat-calendar   [selected]="selectedDateRange"
                     [dateClass]="dateClass"
+                    [minDate]="minDate"
                     (selectedChange)="onRangeDateSelected($event)"
                     style="margin-top: -15px;">
     </mat-calendar>
 }
 @else{
     <mat-calendar   [selected]="singleDate"
+                    [minDate]="minDate"
                     (selectedChange)="onSingleDateSelected($event)"
                     style="margin-top: -15px;">
     </mat-calendar>

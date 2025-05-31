@@ -7,31 +7,35 @@ import { ActivatedRoute } from '@angular/router';
 import { XploraApiService } from '../../services/xplora-api.service';
 import { XploraFlightBooking } from '../../types/xplora-api.types';
 import { SharedDataService } from '../../services/shared-data.service';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { AmadeusSeatmapService } from '../../services/amadeus-seatmap.service';
 import { FlightOffer } from '../../types/flight-offer-amadeus.types';
-import { SeatsComponent } from './seats/seats.component';
+import { SeatPendingDialog, SeatsComponent } from './seats/seats.component';
 import { SeatMap, SeatMapSavingData, SelectedSeat } from '../../types/amadeus-seat-map.types';
 import { BookingHandlerService } from '../../services/booking-handler.service';
 import { AmadeusLocation } from '../../types/amadeus-airport-response.types';
 import * as _ from 'lodash'
 import { ExtrasComponent, ExtrasPrices } from './extras/extras.component';
 import { ContactInfoComponent, ContactInfoValue } from './contact-info/contact-info.component';
-import { PaymentComponent } from './payment/payment.component';
+import { PaymentComponent, PaymentProceesData } from './payment/payment.component';
 import { XploraPromosService } from '../../services/xplora-promos.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { combineLatest, map } from 'rxjs';
+import { combineLatest, map, retry } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSpinner, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faChevronRight, faMoneyBill, faBank } from '@fortawesome/free-solid-svg-icons';
 import { GoogleMapsService } from '../../services/google-maps.service'
 import { GoogleMapsModule, GoogleMap } from '@angular/google-maps';
 import { HeaderMapComponent } from '../../shared/header-map/header-map.component';
 import { FireBookingService } from '../../services/fire-booking.service';
 import { FirebaseBooking, FlightFirebaseBooking } from '../../types/booking.types';
-import { BookingCreationLoaderComponent, Step } from '../../shared/booking-creation-loader/booking-creation-loader.component';
+import { BookingCreationLoaderComponent, Line, Step, StepTextElement } from '../../shared/booking-creation-loader/booking-creation-loader.component';
+import { trigger, style, animate, transition, group, query } from '@angular/animations';
+import { MatDialog } from '@angular/material/dialog';
+import { duration } from 'moment';
+import { faCcVisa, faCcAmex, faCcDiscover, faCcJcb, faCcMastercard, faCcDinersClub } from '@fortawesome/free-brands-svg-icons';
 
 declare const MercadoPago: any;
 declare const ClipSDK: any;
@@ -66,7 +70,27 @@ export type Steps = "PASSENGERS"|"SEATS"|"CONTACT"|"EXTRAS"|"PAYMENT";
         BookingCreationLoaderComponent
     ],
     templateUrl: './booking-process.component.html',
-    styleUrl: './booking-process.component.scss'
+    styleUrl: './booking-process.component.scss',
+    animations: [
+      trigger('slideHeader', [
+        transition(':enter', [
+          style({ transform: 'translateX(100%)', opacity: 0 }),
+          animate('300ms ease-out', style({ transform: 'translateX(0)', opacity: 1 }))
+        ]),
+        transition(':leave', [
+          animate('300ms ease-in', style({ transform: 'translateX(-100%)', opacity: 0 }))
+        ])
+      ]),
+      trigger('slideContent', [
+        transition(':enter', [
+          style({ transform: 'translateY(100%)', opacity: 0 }),
+          animate('300ms ease-out', style({ transform: 'translateY(0)', opacity: 1 }))
+        ]),
+        transition(':leave', [
+          animate('300ms ease-in', style({ transform: 'translateY(-100%)', opacity: 0 }))
+        ])
+      ])
+    ]
 })
 export class BookingProcessComponent implements OnInit {
   constructor(
@@ -78,6 +102,8 @@ export class BookingProcessComponent implements OnInit {
     private promos: XploraPromosService,
     private _sb: MatSnackBar,
     private fireBooking: FireBookingService,
+    private dialog: MatDialog,
+    private datePipe: DatePipe,
   ){}
   confirmationLoader:boolean=false;
   confirmationLoaderSteps:Step[]=[];
@@ -85,15 +111,27 @@ export class BookingProcessComponent implements OnInit {
   bookingID?:string;
   passengers?:PassengerValue[];
   seatMaps!:SeatMap[];
+  seatSelection?:SeatMapSavingData[];
+  pendingSelectionSeats:number = 0;
+  loadingSeats:boolean = false;
   contactInfo?: ContactInfoValue;
   activePromoCode?:string;
   spinnerIcon=faSpinner;
   nextIcon=faChevronRight;
   loadingProcess:boolean = false;
+  paymentMethod:"CARD"|"CASH"|"SPEI"="CARD";
   passengersStepIcon = 'passengersStepIcon';
-  @ViewChild('stepper') stepper!:MatStepper;
+  steps = [
+    { title: 'Pasajeros', content: 'passengers' },
+    { title: 'Datos de Contacto', content: 'contact' },
+    { title: 'Asientos', content: 'seats' },
+    { title: 'Adicionales', content: 'extras' },
+    { title: 'Pago', content: 'payment' }
+  ];
+  activeStep = 0;
   @ViewChild(GoogleMap, { static: false }) map!: GoogleMap;
   @ViewChild('extras') extras!: ExtrasComponent;
+  @ViewChild('stepperContainer') container!: ElementRef;
   ngOnInit():void {
     console.log("Inicia componente");
     //this.sharedService.changeHeaderType("dark");
@@ -107,7 +145,8 @@ export class BookingProcessComponent implements OnInit {
       var actualStep:Steps="PASSENGERS";
       this.bookingID = bookingID;
       this.fireBooking.getBooking(bookingID).subscribe(booking=>{
-        console.log(booking);
+        const passengersTotal = (booking.flightDetails?.passengers.counts.adults??0)+(booking.flightDetails?.passengers.counts.childrens??0)+(booking.flightDetails?.passengers.counts.infants??0);
+        console.log(passengersTotal);
         this.bookingHandler.setBookingInfo(booking as FlightFirebaseBooking);
         this.sharedService.setLoading(false);
         if(q){
@@ -117,7 +156,17 @@ export class BookingProcessComponent implements OnInit {
           }
         }
         if(booking.flightDetails?.passengers.details!==undefined){
-          //actualStep="CONTACT";
+          if(booking.flightDetails?.passengers.details.length===passengersTotal){
+            this.activeStep=1;
+            if(booking.contact){
+              if(booking.contact.email!==undefined&&booking.contact.phone!==undefined&&booking.contact.name!==undefined&&booking.contact.lastname!==undefined){
+                this.activeStep=2;
+                if(booking.flightDetails?.seatMaps!==undefined){
+                  this.activeStep=4;
+                }
+              }
+            }
+          }
         }
         if(booking.contact!==undefined){
           actualStep="SEATS";
@@ -128,24 +177,6 @@ export class BookingProcessComponent implements OnInit {
         if(booking.flightDetails?.aditionalServices!==undefined){
           actualStep="PAYMENT";
         }
-        setTimeout(() => {
-          if(this.stepper){
-            switch (actualStep) {
-              case "SEATS":
-                this.stepper.selectedIndex=2;
-                break;
-              case "EXTRAS":
-                this.stepper.selectedIndex=3;
-                break;
-              case "PAYMENT":
-                this.stepper.selectedIndex=4;
-                break;
-              default:
-                //this.goToPassengers();
-                break;
-            }
-          }
-        }, 1000);
       });
       this.bookingHandler.booking.subscribe(booking=>{
         if(booking!==undefined){
@@ -154,6 +185,25 @@ export class BookingProcessComponent implements OnInit {
       });
     });
   }
+  next() {
+    if (this.activeStep < this.steps.length - 1) {
+      this.scrollToTop();
+      this.activeStep++;
+    }
+  }
+  prev() {
+    if (this.activeStep > 0) {
+      this.scrollToTop();
+      this.activeStep--;
+    }
+  }
+  private scrollToTop() {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    //this.container.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   getPromo(promoCode:string){
     this.promos.getPromoByCode(promoCode).subscribe({
       next: promo =>{
@@ -173,16 +223,198 @@ export class BookingProcessComponent implements OnInit {
       }
     })
   }
-  changePaymentMethod(method:string){
-    console.log(method);    
+  changePaymentMethod(method:"CARD"|"CASH"|"SPEI"){
+    this.booking!.created?.toDate().getTime();
+    this.paymentMethod = method;
+    console.log("CAMBIA: "+method);    
+  }
+  startPayment(paymentInfo:PaymentProceesData){
+    console.log(paymentInfo);
+    this.confirmationLoaderSteps = this.createBookingLoaderSteps(paymentInfo);
+    this.confirmationLoader = true;
+  }
+  createBookingLoaderSteps(paymentInfo:PaymentProceesData):Step[]{
+    const datesLine:StepTextElement[] = [
+      {type: 'text', text: this.datePipe.transform(this.booking!.flightDetails!.departure.toDate(), 'mediumDate')!},
+    ]
+    if(this.booking!.flightDetails!.round&&this.booking!.flightDetails!.return!==undefined){
+      datesLine.push({type: 'text', text: ' - '});
+      datesLine.push({type: 'text', text: this.datePipe.transform(this.booking!.flightDetails!.return!.toDate(), 'mediumDate')!});
+    }
+    const passengersLine:StepTextElement[] = [
+      {type: 'text', text: this.booking!.flightDetails!.passengers.counts.adults.toString()},
+      {type: 'text', text: this.booking!.flightDetails!.passengers.counts.adults>1?' Adultos':' Adulto'}
+    ]
+    if(this.booking!.flightDetails!.passengers.counts.childrens>0){
+      passengersLine.push({type: 'text', text: ' - '});
+      passengersLine.push({type: 'text', text: this.booking!.flightDetails!.passengers.counts.childrens.toString()});
+      passengersLine.push({type: 'text', text: this.booking!.flightDetails!.passengers.counts.childrens>1?' Menores':' Menor'});
+    }
+    if(this.booking!.flightDetails!.passengers.counts.infants>0){
+      passengersLine.push({type: 'text', text: ' - '});
+      passengersLine.push({type: 'text', text: this.booking!.flightDetails!.passengers.counts.infants.toString()});
+      passengersLine.push({type: 'text', text: this.booking!.flightDetails!.passengers.counts.infants>1?' Infantes':' Infante'});
+    }
+    const flightLines: Line[] = this.booking!.flightDetails!.flights.outbound!.offer.itineraries[0].segments.map((segment, i) => {
+      return {
+        content: [
+          {type: 'image', url: 'https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/'+ (segment.operating ? segment.operating.carrierCode : segment.carrierCode) +'.svg', width: 30, height: 30},
+          {type: 'text', text: (segment.operating ? segment.operating.carrierCode : segment.carrierCode)+segment.number, bold: true},
+          {type: 'text', text: '('+segment.departure.iataCode+' - '+segment.arrival.iataCode+')', bold: false},
+        ]
+      }
+    });
+    if(this.booking!.flightDetails?.round&&this.booking!.flightDetails?.flights.inbound){
+      this.booking!.flightDetails?.flights.inbound.offer.itineraries[0].segments.forEach((segment, i) => {
+        flightLines.push({
+          content: [
+            {type: 'image', url: 'https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/'+ (segment.operating ? segment.operating.carrierCode : segment.carrierCode) +'.svg', width: 30, height: 30},
+            {type: 'text', text: (segment.operating ? segment.operating.carrierCode : segment.carrierCode)+segment.number, bold: true},
+            {type: 'text', text: '('+segment.departure.iataCode+' - '+segment.arrival.iataCode+')', bold: false}
+          ]
+        });
+      });
+    }
+    const steps:Step[] = [
+      {
+        duration: 1000,
+        title: 'Confirmando disponibilidad...',
+        lines: [
+          {
+            content: [
+              {type: 'text', text: this.booking!.flightDetails!.origin.address.cityName+' ('+this.booking!.flightDetails!.origin.address.countryName+')'},
+              {type: 'text', text: ' - '},
+              {type: 'text', text: this.booking!.flightDetails!.destination.address.cityName+' ('+this.booking!.flightDetails!.destination.address.countryName+')'}
+            ]
+          },
+          {
+            content: datesLine
+          },
+          {
+            content: passengersLine
+          }
+        ]
+      },
+      {
+        duration: 1000,
+        title: 'Creando reservación...',
+        lines: flightLines,
+      }
+    ];
+    if(paymentInfo.paymentMethod==="CARD"&&paymentInfo.card){
+      let cardTypeIcon;
+      switch (paymentInfo.card.type) {
+        case "visa":
+          cardTypeIcon = faCcVisa;
+          break;
+        case "mastercard":
+          cardTypeIcon = faCcMastercard;
+          break;
+        case "amex":
+          cardTypeIcon = faCcAmex;
+          break;
+        case "dinersclub":
+          cardTypeIcon = faCcDinersClub;
+          break;
+        case "discover":
+          cardTypeIcon = faCcDiscover;
+          break;
+        case "jcb":
+          cardTypeIcon = faCcJcb;
+          break;
+        default:
+          break;
+      }
+      const paymentInfoLines:Line[] = [
+        {
+          content: [
+            {type: 'icon', icon: cardTypeIcon},
+            {type: 'text', text: paymentInfo.card!.number.slice(-4)}
+          ]
+        },
+        {
+          content: [
+            {type: 'currency', amount: paymentInfo.amount}
+          ]
+        }
+      ]
+      if(paymentInfo.promo){
+        paymentInfoLines.push({
+          content: [
+            {type: 'text', text: 'Promoción aplicada: '},
+            {type: 'text', text: paymentInfo.promo.code, bold: true}
+          ]
+        })
+      }
+      steps.push({
+        duration: 1000,
+        title: 'Procesando pago...',
+        lines: paymentInfoLines
+      });
+    }else if(paymentInfo.paymentMethod==="CASH"){
+      const paymentInfoLines:Line[] = [
+        {
+          content: [
+            {type: 'icon', icon: faMoneyBill},
+            {type: 'text', text: 'Pago En Efectivo'}
+          ]
+        },
+        {
+          content: [
+            {type: 'currency', amount: paymentInfo.amount}
+          ]
+        }
+      ]
+      if(paymentInfo.promo){
+        paymentInfoLines.push({
+          content: [
+            {type: 'text', text: 'Promoción aplicada: '},
+            {type: 'text', text: paymentInfo.promo.code, bold: true}
+          ]
+        })
+      }
+      steps.push({
+        duration: 1000,
+        title: 'Generando referencia de pago...',
+        lines: paymentInfoLines
+      });
+    }else if(paymentInfo.paymentMethod==="SPEI"){
+      const paymentInfoLines:Line[] = [
+        {
+          content: [
+            {type: 'icon', icon: faBank},
+            {type: 'text', text: 'Transferencia SPEI'}
+          ]
+        },
+        {
+          content: [
+            {type: 'currency', amount: paymentInfo.amount}
+          ]
+        }
+      ]
+      if(paymentInfo.promo){
+        paymentInfoLines.push({
+          content: [
+            {type: 'text', text: 'Promoción aplicada: '},
+            {type: 'text', text: paymentInfo.promo.code, bold: true}
+          ]
+        })
+      }
+      steps.push({
+        duration: 1000,
+        title: 'Generando referencia de pago...',
+        lines: paymentInfoLines
+      });
+    }
+    return steps;
   }
   completeLoader(){
-
+    this.confirmationLoader = false;
   }
   processPassengers(){
     console.log(this.passengers);
     if(this.passengers!==undefined){
-      this.loadingProcess=true;
+      this.sharedService.setLoading(true);
       const passengersData = this.passengers.map((passenger, i) => {
         return {
           name: passenger.name,
@@ -203,13 +435,13 @@ export class BookingProcessComponent implements OnInit {
         }
       }
       this.fireBooking.updateBooking(this.bookingID!, data).then((result)=>{
-        this.loadingProcess=false;
-        this.stepper.next();
+        this.sharedService.setLoading(false);
+        this.next();
         console.log(result);
         this.bookingHandler.setBookingInfo(result as FlightFirebaseBooking);
       }).catch((err)=>{
         console.log(err);
-        this.loadingProcess=false;
+        this.sharedService.setLoading(false);
         this._sb.open('Error al guardar los pasajeros. Intente nuevamente.', 'OK', {duration: 1500});
       });
       if(!this.booking?.flightDetails){
@@ -313,24 +545,25 @@ export class BookingProcessComponent implements OnInit {
     }
   }
   openInsuranceFromSidebar(){
-    this.stepper.selectedIndex = 3;
+    this.activeStep=3;
     this.extras.openInsurance();
   }
   validContact(event:any){
     console.log(event);
   }
   goToPassengers(){
-    this.stepper.selectedIndex=0
+    this.activeStep=0;
   }
   processContact(){
     if(this.contactInfo){
-      this.loadingProcess=true;
+      this.sharedService.setLoading(true);
       this.fireBooking.updateBooking(this.bookingID!, {
         contact: this.contactInfo
       }).then((result)=>{
         console.log(result);
-        this.loadingProcess=false;
-        this.stepper.next();
+        this.next();
+        this.sharedService.setLoading(false);
+        //this.next();
         this.bookingHandler.setBookingInfo(result as FlightFirebaseBooking);
       }).catch((err)=>{
         console.log(err);
@@ -362,59 +595,53 @@ export class BookingProcessComponent implements OnInit {
               ...this.booking!.flightDetails!,
               seatMaps: []
             }
+          }).then(updated=>{
+            this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
+            this.activeStep=4;
+          }).catch(err=>{
+            retry(3);
+            console.log(err);
+            //this._sb.open('Error al guardar los asientos seleccionados. Intente nuevamente.', 'OK', {duration: 1500});
           });
-          this.xplora.updateBooking(this.bookingID!, {seatMaps:[]});
           break;
         case "EXTRAS":
-          this.fireBooking.updateBooking(this.bookingID!, {
-            flightDetails: {
-              ...this.booking!.flightDetails!,
-              aditionalServices: {
-
-              }
-            }
-          });
-          this.xplora.updateBooking(this.bookingID!, {aditionalServices:[]});
+          this.activeStep=4;
           break;
       }
-    }
-    this.stepper.next();
-  }
-  processSeats(data:SeatMapSavingData[]){
-    const oldSeatMaps = this.booking?.flightDetails!.seatMaps;
-    if(oldSeatMaps!==undefined){
-      const hasChanges:boolean = this.seatsHaveChanges(oldSeatMaps, data);
-      console.log(hasChanges);
-      if(hasChanges){
-        this.fireBooking.updateBooking(this.bookingID!, {
-          flightDetails: {
-            ...this.booking!.flightDetails!,
-            seatMaps: data
-          }
-        }).then(updated=>{
-          this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
-          this.stepper.next();
-        }).catch(err=>{ 
-          console.log(err);
-          this._sb.open('Error al guardar los asientos seleccionados. Intente nuevamente.', 'OK', {duration: 1500});
-        });
-      }else{
-        this.stepper.next();
-      }
     }else{
-      this.fireBooking.updateBooking(this.bookingID!, {
-        flightDetails: {
-          ...this.booking!.flightDetails!,
-          seatMaps: data
-        }
-      }).then(updated=>{
-        this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
-        this.stepper.next();
-      }).catch(err=>{ 
-        console.log(err);
-        this._sb.open('Error al guardar los asientos seleccionados. Intente nuevamente.', 'OK', {duration: 1500});
-      });
+      this.next();
     }
   }
-
+  saveSeats(){
+    this.sharedService.setLoading(true);
+    this.fireBooking.updateBooking(this.bookingID!, {
+      flightDetails: {
+        ...this.booking!.flightDetails!,
+        seatMaps: this.seatSelection ?? []
+      }
+    }).then(updated=>{
+      this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
+      this.activeStep=4;
+      this.sharedService.setLoading(false);
+    }).catch(err=>{ 
+      console.log(err);
+      this._sb.open('Error al guardar los asientos seleccionados. Intente nuevamente.', 'OK', {duration: 1500});
+    });
+  }
+  processSeats(){
+    if(this.pendingSelectionSeats){
+      this.dialog.open(SeatPendingDialog, {width: '300px', data: this.pendingSelectionSeats}).afterClosed().subscribe(result=>{
+        if(result){
+          //console.log(this.seatSelection);
+          this.saveSeats();
+        }else{
+          this._sb.open('Seleccione los asientos faltantes antes de continuar', 'Aceptar', {duration: 2000});
+        }
+      });
+    }else{
+      //console.log(this.seatSelection);
+      this.saveSeats();
+    }
+  }
+    
 }

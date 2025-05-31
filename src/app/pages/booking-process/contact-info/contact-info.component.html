@@ -2,7 +2,7 @@
     <p class="text-16 fw-400">Titular de la Reservación</p>
     @if(bookingData&&bookingData.flightDetails.passengers.details!==undefined){
         <mat-chip-listbox class="mb-10" aria-label="Dog selection">
-            @for(passenger of bookingData.flightDetails!.passengers.details; track passenger;){
+            @for(passenger of passengersChips; track passenger;){
                 <mat-chip (click)="autoFill(passenger.name, passenger.lastname)">
                     <img matChipAvatar src="https://ui-avatars.com/api/?background=004aad&color=fff&name={{passenger.name}}+{{passenger.lastname}}"/>
                     {{passenger.name}} {{passenger.lastname}}

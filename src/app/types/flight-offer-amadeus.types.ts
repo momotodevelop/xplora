@@ -92,7 +92,7 @@ export interface IncludedCheckedBags {
     weightUnit?: string;
     quantity: number;
 }
-export interface Dictionaries {
+export interface  Dictionaries {
     locations: { [key: string]: Location };
     aircraft: { [key: string]: string };
     currencies: { [key: string]: string };
