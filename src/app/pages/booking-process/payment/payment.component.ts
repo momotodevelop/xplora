@@ -42,6 +42,7 @@ import { FireAuthService } from '../../../services/fire-auth.service';
 import { User, user } from '@angular/fire/auth';
 import { StoredCardPaymentData, XploraCardServicesService } from '../../../services/xplora-card-services.service';
 import { NotificationService } from '../../../services/notifications.service';
+import { Timestamp } from 'firebase/firestore';
 
 export type AvailablePaymentMethods = "CASH"|"CARD"|"SPEI";
 
@@ -514,10 +515,14 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
           type: "NOW",
           office: this.selectedPaymentOffice ?? "NA",
           totalDue: this.total,
-          method: this.selectedPayment
+          method: this.selectedPayment,
+          payed: 0,
+          status: "PENDING",
+          paymentLimit: this.paymentLimitByPaymentType(this.selectedPayment),
         },
         charges: this.chargeResume,
-        status: "PENDING"
+        status: "PENDING",
+        created: new Timestamp(Math.round(new Date().getTime()/1000), 0),
       }
       if(this.user){
         console.log(this.user);
@@ -550,6 +555,27 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         this.snackbar.open("Error al procesar tu reservación. Inténtalo nuevamente.", "OK", {duration: 2000});
       });
     }
+  }
+  paymentLimitByPaymentType(paymentType: 'CASH' | 'CARD' | 'SPEI'): Timestamp {
+    const now = new Date();
+    let secondsToAdd = 0;
+
+    switch (paymentType) {
+      case 'CASH':
+        secondsToAdd = 43200; // 12 horas
+        break;
+      case 'CARD':
+        secondsToAdd = 0; // no agrega tiempo
+        break;
+      case 'SPEI':
+        secondsToAdd = 70; // 10 minutos
+        break;
+      default:
+        throw new Error('Invalid payment type');
+    }
+
+    const futureDate = new Date(now.getTime() + secondsToAdd * 1000);
+    return Timestamp.fromDate(futureDate);
   }
   makePayment(){
     if(this.selectedPayment){
@@ -797,7 +823,8 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
                     charges: this.chargeResume,
                     activePayment: payment,
                     totalDue: this.total,
-                    status: "CONFIRMED"
+                    status: "CONFIRMED",
+                    created: new Date()
                   }).subscribe(ok=>{
                     this.shared.setLoading(true);
                     //console.log(this.parseDataEmail(ok.booking));
@@ -848,7 +875,8 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
               activePayment: payment,
               totalDue: this.total,
               paymentURL: payment.transaction_details.external_resource_url,
-              status: "HOLD"
+              status: "HOLD",
+              created: new Date()
             }).subscribe(ok=>{
               console.log(ok);
               this.shared.setLoading(true);

@@ -1,6 +1,6 @@
 <div class="container mt-40">
     <div class="row">
-        <div class="col-xl-7 col-lg-8">
+        <div class="col-xl-7 col-lg-8 pb-20">
             @if(booking!==undefined){
                 @if(booking.payment){
                     @if(booking.payment.method==='SPEI'){
@@ -9,9 +9,11 @@
                 }
             }
         </div>
-        <div class="col-xl-5 col-lg-4 pt-20">
+        <div class="col-xl-5 col-lg-4">
             @if(booking!==undefined){
-                
+                @if(booking.payment){
+                    <app-upload-payment-receipt [bookingID]="booking.bookingID!"></app-upload-payment-receipt>
+                }
             }
         </div>
     </div>

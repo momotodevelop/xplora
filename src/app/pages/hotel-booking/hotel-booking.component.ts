@@ -172,6 +172,8 @@ export class HotelBookingComponent implements OnInit {
         amount: this.total,
         totalDue: this.total,
         originalAmount: 0,
+        payed: 0,
+        status: "PENDING",
         office: "XPLORA",
         promo: this.promo
       },

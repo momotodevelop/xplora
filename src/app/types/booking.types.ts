@@ -35,12 +35,17 @@ export interface FirebaseBooking{
         originalAmount: number,
         amount: number,
         totalDue: number
+        payed: number;
+        status: PaymentStatus,
         office?: string,
-        promo?: Promo
+        promo?: Promo,
+        paymentLimit?: Timestamp,
     };
     flightDetails?:FlightBookingDetails;
     hotelDetails?:HotelBookingDetails
 }
+
+export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELED" | "VALIDATING";
 
 export interface FlightBookingDetails{
     passengers: {
@@ -181,4 +186,15 @@ export interface AccomodationData{
         name: string,
         lastname: string
     }
+}
+
+export interface OfflinePaymentData {
+    id?: string;
+    amount: number;
+    method: 'SPEI' | 'CASH';
+    status: 'PENDING' | 'VALIDATING' | 'COMPLETED' | 'CANCELED' | 'REJECTED';
+    timestamp: Timestamp | Date;
+    receptURL: string; // URL del comprobante de pago
+    senderBank?: string;
+    paymentOffice?: string;
 }

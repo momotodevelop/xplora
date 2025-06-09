@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Firestore, collection, doc, addDoc, updateDoc, getDocs, query, where, getDoc, CollectionReference, deleteDoc, writeBatch } from '@angular/fire/firestore';
+import { Firestore, collection, doc, addDoc, updateDoc, getDocs, query, where, getDoc, CollectionReference, deleteDoc, writeBatch, DocumentReference } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AdditionalServiceItem, AdditionalServiceType, FirebaseBooking, FlightAdditionalServiceItem, FlightFirebaseBooking } from '../types/booking.types';
+import { AdditionalServiceItem, AdditionalServiceType, FirebaseBooking, FlightAdditionalServiceItem, FlightFirebaseBooking, OfflinePaymentData } from '../types/booking.types';
+
+const OFFLINE_PAYMENTS_COLLECTION = 'offline_payments';
 
 @Injectable({
   providedIn: 'root',
@@ -71,4 +73,16 @@ export class FireBookingService {
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => doc.data() as FirebaseBooking);
   }
+
+  async addPaymentToBooking(bookingID: string, paymentData: OfflinePaymentData): Promise<OfflinePaymentData[]> {
+    const pagosCollection = collection(doc(this.firestore, 'bookings', bookingID), OFFLINE_PAYMENTS_COLLECTION) as CollectionReference<OfflinePaymentData>;
+    await addDoc(pagosCollection, paymentData);
+    const querySnapshot = await getDocs(pagosCollection);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OfflinePaymentData));
+  }
+  async getOfflinePaymentsByBooking(bookingID: string): Promise<OfflinePaymentData[]> {
+    const pagosCollection = collection(doc(this.firestore, 'bookings', bookingID), OFFLINE_PAYMENTS_COLLECTION) as CollectionReference<OfflinePaymentData>;
+    const querySnapshot = await getDocs(pagosCollection);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OfflinePaymentData));
+  } 
 }

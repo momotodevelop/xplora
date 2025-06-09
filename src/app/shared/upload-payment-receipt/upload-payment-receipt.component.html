@@ -1,0 +1,123 @@
+<mat-card>
+    <mat-card-header class="d-flex justify-content-between">
+        <mat-card-title style="font-weight: bolder; font-size: 16px;">
+            <h5>Subir Comprobante de Pago</h5>
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <div>
+            <p>Para agilizar la confirmación de tu reservación, sube aquí el comprobante de la transferencia SPEI que realizaste.</p>
+            <div class="mt-15 select-file-box px-15" (click)="fileInput.click()" (dragover)="onDragOver($event)" (drop)="onFileDropped($event)">
+                @if(!selectedFile){
+                    <div class="text-center">
+                        <mat-icon>file_upload</mat-icon>
+                        <p class="text-14">Arrastra y suelta tu archivo aquí o haz clic para seleccionar</p>
+                    </div>
+                }@else{
+                    <div class="text-center" style="text-overflow: ellipsis; overflow: hidden;">
+                        <mat-icon>check_circle</mat-icon>
+                        @if(uploading){
+                            <p class="text-14">Subiendo archivo...</p>
+                        }@else{
+                            <p class="text-14">Archivo seleccionado:</p>
+                        }
+                        <div class="text-14" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden;"><b>{{selectedFile.name}}</b></div>
+                    </div>
+                }
+            </div>
+            <div class="row mt-20 x-gap-15 y-gap-15">
+                <div class="col-12 col-md-6">
+                    <mat-form-field floatLabel="always" class="w-100" appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Monto Pagado</mat-label>
+                        <input matInput currencyInput [formControl]="amount" type="text" class="example-right-align"  placeholder="0" />
+                        <span matTextPrefix>$&nbsp;</span>
+                        <span matTextSuffix>MXN</span>
+                    </mat-form-field>
+                </div>
+                <div class="col-12 col-md-6">
+                    <mat-form-field floatLabel="always" class="w-100" appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Banco Emisor</mat-label>
+                        <select [formControl]="senderBank" matNativeControl>
+                            @for(bank of banks; track bank[0]) {
+                                <option [value]="bank[1]">{{bank[1]}}</option>
+                            }
+                        </select>
+                    </mat-form-field>
+                </div>
+            </div>
+            <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept=".jpg,.jpeg,.png,.pdf"/>
+            <div class="d-flex mt-20 justify-between">
+                <div>
+                    @if(uploading){
+                        @if(uploadProgress|async){
+                            <mat-progress-spinner class="example-margin" [diameter]="30" mode="determinate" [value]="uploadProgress|async"></mat-progress-spinner>
+                        }@else{
+                            <mat-progress-spinner class="example-margin" [diameter]="30" mode="indeterminate"></mat-progress-spinner>
+                        }
+                    }
+                </div>
+                <button [disabled]="(!amount.valid || (!senderBank.valid) || !selectedFile) || uploading" (click)="uploadFile()" style="float: right;" mat-raised-button color="primary" >Subir comprobante</button>
+            </div>
+        </div>
+    </mat-card-content>
+</mat-card>
+<mat-card class="mt-20">
+    <mat-card-header class="d-flex justify-content-between">
+        <mat-card-title style="font-weight: bolder; font-size: 16px;">
+            <h5>Historial de Pagos</h5>
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <div class="list-group">
+            @if(savedPayments.length > 0){
+                @for(payment of savedPayments; track payment) {
+                    <a href="#" class="list-group-item list-group-item-action mt-15">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Pago {{payment.method === 'SPEI' ? 'SPEI' : 'En Efectivo'}}</h5>
+                            <small><fa-icon [icon]="timeIcon"></fa-icon> {{payment.timestamp | timeAgo}}</small>
+                        </div>
+                        <p class="mb-1">{{payment.amount | currency: 'MXN'}}</p>
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                                @switch(payment.status) {
+                                    @case('PENDING') {
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    }
+                                    @case('COMPLETED') {
+                                        <span class="badge bg-success">Confirmado</span>
+                                    }
+                                    @case('REJECTED') {
+                                        <span class="badge bg-danger">Rechazado</span>
+                                    }
+                                    @case('CANCELED') {
+                                        <span class="badge bg-warning">Cancelado</span>
+                                    }
+                                    @case('VALIDATING') {
+                                        <span class="badge bg-info">Validando</span>
+                                    }
+                                }
+                            </div>
+                            <div class="text-dark text-end">
+                                {{payment.senderBank}}
+                            </div>
+                        </div>
+                    </a>
+                }
+            }@else{
+                <div class="text-center mt-20 d-flex flex-column align-items-center h-100">
+                    <p class="text-muted">No hay pagos registrados.</p>
+                </div>
+            }
+        </div>
+    </mat-card-content>
+    <mat-card-footer style="padding: 0 16px;">
+        <div class="d-flex justify-content-between">
+            <h6 class="text-muted">Total pagado:</h6>
+            <span class="text-dark">{{0 | currency: 'MXN'}}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+            <h6 class="text-muted">Pendientes de aplicar:</h6>
+            <span class="text-dark">{{0 | currency: 'MXN'}}</span>
+        </div>
+    </mat-card-footer>
+</mat-card>

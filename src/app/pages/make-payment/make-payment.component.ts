@@ -11,10 +11,11 @@ import { PaymentComponent } from '../booking-process/payment/payment.component';
 import { FireBookingService } from '../../services/fire-booking.service';
 import { FirebaseBooking, FlightFirebaseBooking } from '../../types/booking.types';
 import { SpeiPaymentComponent } from './spei-payment/spei-payment.component';
+import { UploadPaymentReceiptComponent } from '../../shared/upload-payment-receipt/upload-payment-receipt.component';
 
 @Component({
     selector: 'app-make-payment',
-    imports: [ConfirmationSidebarComponent, PaymentComponent, SpeiPaymentComponent],
+    imports: [ConfirmationSidebarComponent, PaymentComponent, SpeiPaymentComponent, UploadPaymentReceiptComponent],
     templateUrl: './make-payment.component.html',
     styleUrl: './make-payment.component.scss'
 })
@@ -43,7 +44,7 @@ export class MakePaymentComponent implements OnInit {
       const queryParams:{promo?:string} = q as {promo?:string};
       this.bookingID = params.bookingID;
       this.fireBooking.getBooking(this.bookingID).subscribe(booking=>{
-        console.log(booking);
+        console.log(booking.bookingID);
         this.bookingHandler.setBookingInfo(booking as FlightFirebaseBooking);
         this.booking = booking as FlightFirebaseBooking;
       });

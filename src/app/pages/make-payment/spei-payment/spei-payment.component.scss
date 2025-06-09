@@ -1,0 +1,23 @@
+.payment-status{
+    &.success {
+        background-color: green;
+    }
+    
+    &.error {
+        background-color: red;
+    }
+    
+    &.pending {
+        background-color: orange;
+    }
+    &.validation {
+        background-color: blue;
+    }
+    .label {
+        color: white;
+        font-weight: bold;
+    }
+}
+.countdown-danger{
+    color: red;
+}
