@@ -24,6 +24,7 @@ export class HotelDetailsGeneralInfoComponent implements OnInit {
   facilitiesDictionarie?:FacilityDescription[];
   visits:number=0;
   viewers:number=0;
+  showAllFacilities:boolean = false;
   constructor(private translate: GoogleTranslationService, private lite: LiteApiService, private googleTranslate:GoogleTranslationService, private visitCounter:VisitCounterService){}
   ngOnInit(): void {
     this.description = this.details.hotelDescription;
@@ -32,14 +33,14 @@ export class HotelDetailsGeneralInfoComponent implements OnInit {
         this.description = ok.data.translations[0].translatedText;
       },
       error: (err) => {
-        console.log(err);
+        //console.log(err);
         this.description = this.details.hotelDescription;
       }
     });
-    console.log(this.details.facilities[0].facilityId);
+    //console.log(this.details.facilities[0].facilityId);
     this.lite.facilitiesData.subscribe(facilities=>{
       this.facilitiesDictionarie = facilities.data;
-      console.log(this.facilitiesDictionarie);
+      //console.log(this.facilitiesDictionarie);
     });
     this.visits = this.visitCounter.getVisitCount(this.details.id);
     this.viewers = this.getRandomNumber();
@@ -50,12 +51,12 @@ export class HotelDetailsGeneralInfoComponent implements OnInit {
   }
   getFacilityDescription(facility:Facility){
     if(!this.facilitiesDictionarie) {
-      console.log("No dictionarie");
+      //console.log("No dictionarie");
       return undefined;
     };
     const description = this.facilitiesDictionarie.find(fac=>fac.facility_id===facility.facilityId);
     if(!description) {
-      console.log("No Description ID: "+facility.facilityId);
+      //console.log("No Description ID: "+facility.facilityId);
       return undefined;
     };
     return description;
@@ -70,7 +71,7 @@ export class HotelDetailsGeneralInfoComponent implements OnInit {
     this.facilityCache.set(facility.facilityId, facilityText$); // Guardamos en el cache
 
     if (!this.facilitiesDictionarie) {
-      console.log("No dictionary available");
+      //console.log("No dictionary available");
     } else {
       const description = this.facilitiesDictionarie.find(fac => fac.facility_id === facility.facilityId);
 
@@ -80,9 +81,9 @@ export class HotelDetailsGeneralInfoComponent implements OnInit {
           facilityText$.next(translation.facility); // Si hay traducción en el diccionario, la usamos
           return facilityText$.asObservable();
         }
-        console.log(`No Translation found for ID: ${facility.facilityId}`);
+        //console.log(`No Translation found for ID: ${facility.facilityId}`);
       } else {
-        console.log(`No Description found for ID: ${facility.facilityId}`);
+        //console.log(`No Description found for ID: ${facility.facilityId}`);
       }
     }
 

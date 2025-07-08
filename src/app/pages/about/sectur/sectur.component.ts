@@ -21,7 +21,6 @@ export class SecturComponent {
     this._ref.dismiss();
   }
   setZoom(zoom:number){
-    console.log(zoom);
     this.zoom=zoom;
   }
 }

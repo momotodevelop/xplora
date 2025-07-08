@@ -41,13 +41,13 @@ export class HotelBookingSidebarComponent implements OnInit, OnChanges {
     //console.log(this.hotel.ratingCount);
   }
   ngOnInit(): void {
-    console.log(this.hotel);  
+    //console.log(this.hotel);  
   }
   ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
+    //console.log(changes);
   }
   verify(){
-    console.log(this.promoInput.value);
+    //console.log(this.promoInput.value);
     this.verifyPromo.emit(this.promoInput.value);
   }
 }

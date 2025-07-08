@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
+import { MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -10,5 +11,5 @@ import { MatTabsModule } from '@angular/material/tabs';
   styleUrl: './bottomsheet-destination-search.component.scss'
 })
 export class BottomsheetDestinationSearchComponent {
-  
+  constructor(@Inject(MAT_BOTTOM_SHEET_DATA) public data: { origin: string }) {}
 }

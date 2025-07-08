@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { AmadeusAuthService } from './amadeus-auth.service';
-import { catchError, forkJoin, map, mergeMap, Observable, of, throwError } from 'rxjs';
+import { catchError, forkJoin, map, mergeMap, Observable, of, retry, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HotelSearchResponse } from '../types/amadeus-hotels-response.types';
 import { HotelDetails, HotelOffer, HotelOffersResponse, Offer } from '../types/amadeus-hotel-offers-response.types';
@@ -38,7 +38,7 @@ export class AmadeusHotelsService {
           radius: radius.toString(),
           hotelSource: "ALL",
           amenities: amenities
-        }});
+        }}).pipe(retry(10));
       })
     );
   }
@@ -60,7 +60,7 @@ export class AmadeusHotelsService {
           roomQuantity,
           includeClosed: true,
           currency: "USD"
-        }});
+        }}).pipe(retry(10));
       })
     );
   }
@@ -76,7 +76,7 @@ export class AmadeusHotelsService {
         });
         return this.http.get<HotelOfferDetailsResponse>(`${environment.amadeusApiUrl}/v3/shopping/hotel-offers/${offerId}`,{headers: headers, params:{
           lang: "es"
-        }});
+        }}).pipe(retry(10));
       })
     );
   }
@@ -139,7 +139,7 @@ export class AmadeusHotelsService {
           bestRateOnly: true,
           sort,
           lang: 'es'
-        }});
+        }}).pipe(retry(10));
       })
     );
   }

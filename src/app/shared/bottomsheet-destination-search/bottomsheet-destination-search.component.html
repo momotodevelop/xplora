@@ -1,14 +1,14 @@
-<mat-tab-group>
+<mat-tab-group style="min-height: 80vh;">
     <mat-tab label="Vuelos">
-        <div class="row">
-            <div class="col-6">
-                <mat-form-field>
-                    <input matInput placeholder="Origen" [formControl]="origin">
+        <div class="row x-gap-0">
+            <div class="col-12">
+                <mat-form-field class="w-100">
+                    <input matInput placeholder="Origen">
                 </mat-form-field>
             </div>
-            <div class="col-6">
-                <mat-form-field>
-                    <input matInput placeholder="Destino" [(ngModel)]="destination">
+            <div class="col-12">
+                <mat-form-field class="w-100">
+                    <input matInput placeholder="Destino">
                 </mat-form-field>
             </div>
         </div>

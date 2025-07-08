@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import{Eb as t,Gc as m,dc as o,ec as i}from"./chunk-IB7CNCDV.mjs";import"./chunk-S6KH3LOX.mjs";var r=(()=>{class e{static{this.\u0275fac=function(n){return new(n||e)}}static{this.\u0275cmp=t({type:e,selectors:[["app-admin-bookings"]],decls:2,vars:0,template:function(n,p){n&1&&(o(0,"p"),m(1,"admin-bookings works!"),i())},encapsulation:2})}}return e})();export{r as AdminBookingsComponent};

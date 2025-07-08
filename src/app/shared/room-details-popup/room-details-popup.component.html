@@ -1,0 +1,29 @@
+<bottom-sheet-header [title]="roomDetails.roomName" (close)="close()"></bottom-sheet-header>
+<div style="height: calc(80vh - 81px); overflow: scroll;">
+    <swiper-container appSwiper [config]="config" [autoplay]="{delay:500, disableOnInteraction: false}" [loop]="true" [speed]="500">
+        @for(photo of roomDetails.photos; track $index) {
+            <swiper-slide class="w-100">
+                <img style="max-height: 20vh;" [src]="photo.url" [alt]="photo.failoverPhoto" class="w-100 object-fit-cover">
+            </swiper-slide>
+        }
+    </swiper-container>
+    <div class="content">
+        <h5>Acerca de esta habitación:</h5>
+        <div [innerHTML]="description"></div>
+        <div class="row y-gap-10" style="margin-top: 8px;">
+            @for(amenity of roomDetails.roomAmenities.slice(0,(showMore?roomDetails.roomAmenities.length:6)); track amenity) {
+                <div class="col-6 d-flex items-center text-15">
+                    <mat-icon class="mr-10">check</mat-icon>
+                    <span style="white-space: nowrap; text-overflow: ellipsis; width: 100%; overflow: hidden;">{{facilityTranslate.getFacilityText({facilityId: amenity.amenitiesId, name: amenity.name})|async|titlecase}}</span>
+                </div>
+            }
+            <div class="col-12 text-center">
+                @if(showMore){
+                    <a (click)="showMore=false" class="text-blue-1 underline text-15">Ver menos</a>
+                }@else{
+                    <a (click)="showMore=true" class="text-blue-1 underline text-15">Ver más</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -12,6 +12,11 @@ import { Hotel } from '../../types/amadeus-hotels-response.types';
 import { CommonModule } from '@angular/common';
 import { LiteApiService } from '../../services/lite-api.service';
 import { HotelListResult, HotelMinRate, HotelsListResponse } from '../../types/lite-api.types';
+import { MatDialog } from '@angular/material/dialog';
+import { HotelBottomSheetInputData, HotelSearchBottomsheetComponent } from '../../shared/hotel-search-bottomsheet/hotel-search-bottomsheet.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Title } from '@angular/platform-browser';
+import { MetaHandlerService } from '../../services/meta-handler.service';
 export interface HotelSearchParams{
   placeId: string,
   rooms: string,
@@ -51,25 +56,32 @@ export class HotelSearchComponent implements OnInit {
     private sharedService: SharedDataService,
     private places: GooglePlacesService,
     private hotels: AmadeusHotelsService,
-    private lite: LiteApiService
+    private lite: LiteApiService,
+    private dialog: MatDialog,
+    private sb: MatSnackBar,
+    private meta: MetaHandlerService
   ){}
   ngOnInit(): void {
+    this.meta.setMeta({
+      title: "Xplora Travel || Buscar Hoteles",
+      description: "Explora y compara hoteles disponibles en tu destino seleccionado. Encuentra las mejores opciones de alojamiento, tarifas y servicios para tus fechas de viaje con Xplora Travel.",
+      image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fhotels.jpg?alt=media&token=7360a482-31e9-405f-abe5-59ab0e2bdf7c"
+    });
     this.loading=true;
-    this.sharedService.settBookingMode(true);
     this.sharedService.setLoading(true);
+    this.sharedService.setBookingMode(true);
     this.route.data.pipe(
       map(data => data["headerType"])
     ).subscribe((type: "light"|"dark") => {
-      console.log(type);
+      //console.log(type);
       //this.headerType = type;
       this.sharedService.changeHeaderType(type);
-      this.sharedService.setLoading(false);
     });
     combineLatest([this.route.params, this.route.queryParams, this.lite.facilitiesData]).subscribe(([p, q, facilities]) => {
       this.loading = true;
       this.hotelsResults = [];
       const params: HotelSearchParams = p as HotelSearchParams;
-      console.log(facilities.data);
+      //console.log(facilities.data);
       this.lite.updateFacilities(facilities);
       const queryParams:{amenities?:string, hotel?:string} = q;
       if(queryParams.amenities){
@@ -83,9 +95,13 @@ export class HotelSearchComponent implements OnInit {
       this.checkOut = new Date(params.checkout + "T00:00:00");
       this.rooms = params.rooms.split('_').map(pair => pair.split(',').map(Number));
       this.places.getPlace(params.placeId, ["displayName", "location"]).then(place => {
-        console.log(place.place.location);
-        console.log(place.place.location?.lat());
+        //console.log(place.place.location);
+        //console.log(place.place.location?.lat());
         this.destination = place.place;
+        this.meta.setMeta({
+          title: `Xplora Travel || Hoteles en ${this.destination.displayName}`,
+          description: `Explora y compara hoteles disponibles en ${this.destination.displayName}. Encuentra las mejores opciones de alojamiento, tarifas y servicios para tus fechas de viaje con Xplora Travel.`,
+        });
         this.loadHotels();
 
         /* this.hotels.getHotelList(place.place.location!.lat(), place.place.location!.lng(), 10, queryParams.amenities?.split(",") ?? []).subscribe(hotels => {
@@ -124,7 +140,7 @@ export class HotelSearchComponent implements OnInit {
       this.limit     // limit
     ).subscribe({
       next: (resp) => {
-        console.log(resp);
+        //console.log(resp);
         // `resp.data` es la lista de hoteles
         // `resp.total` indica cuántos hoteles hay en total
         this.totalResults = resp.total;
@@ -142,33 +158,52 @@ export class HotelSearchComponent implements OnInit {
           )
           .subscribe({
             next: (ratesResp) => {
-              const ratesData = ratesResp.data; 
-              // ratesData es un array de objetos { hotelId, price, suggestedSellPrice }
+              this.sharedService.setLoading(false);
+              //console.log('Tarifas mínimas obtenidas:', ratesResp);
+              if(ratesResp.data && ratesResp.data.length > 0) {
+                const ratesData = ratesResp.data; 
+                // ratesData es un array de objetos { hotelId, price, suggestedSellPrice }
 
-              // Agregar las tarifas mínimas al arreglo de hoteles
-              const hotelsWithRates:HotelListResultDisplay[] = resp.data.map(hotel => {
-                const foundRate = ratesData.find(r => r.hotelId === hotel.id);
-                let resultDisplay:HotelListResultDisplay = {
-                  ...hotel,
-                  rate: foundRate ? foundRate.price : undefined
-                };
-                return resultDisplay;
-              });
+                // Agregar las tarifas mínimas al arreglo de hoteles
+                const hotelsWithRates:HotelListResultDisplay[] = resp.data.map(hotel => {
+                  const foundRate = ratesData.find(r => r.hotelId === hotel.id);
+                  let resultDisplay:HotelListResultDisplay = {
+                    ...hotel,
+                    rate: foundRate ? foundRate.price : undefined
+                  };
+                  return resultDisplay;
+                });
 
-              // Agregar al array total
-              this.hotelsResults.push(...hotelsWithRates);
+                // Agregar al array total
+                this.hotelsResults.push(...hotelsWithRates);
 
-              // Si esta fue la primera carga, para la siguiente
-              // pediremos 10 en lugar de 20
+                // Si esta fue la primera carga, para la siguiente
+                // pediremos 10 en lugar de 20
 
-              if (this.offset === 0) {
-                this.limit = 10;
+                if (this.offset === 0) {
+                  this.limit = 10;
+                }
+
+                // Actualizamos offset para la siguiente carga
+                this.offset += resp.data.length;
+                this.loading = false;
+                this.loadingMore = false;
+              }else{
+                if(this.offset === 0) {
+                  const data: HotelBottomSheetInputData = {
+                    checkIn: this.checkIn,
+                    checkOut: this.checkOut,
+                    destination: this.destination,
+                    rooms: this.rooms
+                  }
+                  this.dialog.open(HotelSearchBottomsheetComponent, {data, panelClass: ['rounded-4','bottomsheet-no-padding']});
+                  this.sb.open("No se encontraron hoteles disponibles para esta búsqueda", "Cerrar");
+                }else{
+                  this.sb.open("No se encontraron más hoteles disponibles", "Cerrar", {
+                    duration: 3000
+                  });
+                }
               }
-
-              // Actualizamos offset para la siguiente carga
-              this.offset += resp.data.length;
-              this.loading = false;
-              this.loadingMore = false;
             },
             error: (err) => {
               console.error('Error obteniendo tarifas mínimas', err);

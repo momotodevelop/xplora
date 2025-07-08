@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { retry } from 'rxjs';
 export interface Brand {
   brandId: string;
   claimed: boolean;
@@ -19,6 +20,6 @@ export class BrandfetchService {
   constructor(private http: HttpClient) { }
   getBrands(brandname:string){
     const url = `https://api.brandfetch.io/v2/search/${brandname}?c=1idTGxvQMyVEDQOO1Up`;
-    return this.http.get<Brand[]>(url);
+    return this.http.get<Brand[]>(url).pipe(retry(10));
   }
 }

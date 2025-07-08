@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, retry } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +22,7 @@ export class AmadeusAuthService {
       'Content-Type': 'application/x-www-form-urlencoded'
     });
 
-    return this.http.post<any>(this.authUrl, body.toString(), { headers }).pipe(
+    return this.http.post<any>(this.authUrl, body.toString(), { headers }).pipe(retry(10)).pipe(
       map(response => response.access_token),
       catchError(error => {
         console.error('Error obteniendo el token de acceso', error);

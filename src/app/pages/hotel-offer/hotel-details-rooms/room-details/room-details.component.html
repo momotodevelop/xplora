@@ -16,23 +16,17 @@
                         </div>
                         <div class="y-gap-5 mt-20">
                             <div class="d-flex items-center">
-                                <i class="icon-no-smoke text-20 mr-10"></i>
-                                <div class="text-15">Non-smoking rooms</div>
+                                <mat-icon class="mr-10">square_foot</mat-icon>
+                                <div class="text-15">{{room.roomSizeSquare}} {{room.roomSizeUnit}}</div>
                             </div>
-                            <div class="d-flex items-center">
-                                <i class="icon-wifi text-20 mr-10"></i>
-                                <div class="text-15">Free WiFi</div>
-                            </div>
-                            <div class="d-flex items-center">
-                                <i class="icon-parking text-20 mr-10"></i>
-                                <div class="text-15">Parking</div>
-                            </div>
-                            <div class="d-flex items-center">
-                                <i class="icon-kitchen text-20 mr-10"></i>
-                                <div class="text-15">Kitchen</div>
-                            </div>
+                            @for(amenity of room.roomAmenities.slice(0,3); track amenity){
+                                <div class="d-flex items-center">
+                                    <mat-icon class="mr-10">check</mat-icon>
+                                    <div class="text-15">{{facilityTranslate.getFacilityText({facilityId: amenity.amenitiesId, name: amenity.name})|async|titlecase}}</div>
+                                </div>
+                            }
                         </div>
-                        <a href="#" class="d-block text-15 fw-500 underline text-blue-1 mt-15">Show Room Information</a>
+                        <a (click)="openRoomDetails()" class="d-block text-15 fw-500 underline text-blue-1 mt-15">Más información</a>
                     </div>
                     <form [formGroup]="rateForm">
                         <div class="y-gap-30">
@@ -80,7 +74,7 @@
                                         Por habitación
                                     </div>
                                     <div>
-                                        <div class="text-18 lh-15 fw-500">{{offer.offerRetailRate.amount|hotelPrice:20|currency:'MXN'}}</div>
+                                        <div class="text-18 lh-15 fw-500">{{offer.offerRetailRate.amount|currency:'MXN'}}</div>
                                         <div class="text-14 lh-18 text-light-1">Precio final.<br>Todos los impuestos incluidos.</div> 
                                     </div>
                                 </div>
@@ -90,7 +84,7 @@
                     @if(activeOffer){
                         <div>
                             <div class="text-14 lh-1">Precio total por {{activeOffer.rates.length}} {{activeOffer.rates.length>1?'Habitaciones':'Habitación'}}</div>
-                            <div class="text-22 fw-500 lh-17 mt-5">{{activeOffer.offerRetailRate.amount|hotelPrice:20|currency:'MXN'}}</div>
+                            <div class="text-22 fw-500 lh-17 mt-5">{{activeOffer.offerRetailRate.amount|currency:'MXN'}}</div>
                             <a (click)="selectRoomType()" class="button h-50 px-24 -dark-1 bg-blue-1 text-white mt-10">
                                 Reservar <div class="icon-arrow-top-right ml-15"></div>
                             </a>

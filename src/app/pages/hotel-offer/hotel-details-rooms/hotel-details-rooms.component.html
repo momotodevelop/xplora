@@ -1,12 +1,35 @@
 <section id="rooms" class="pt-30">
     <div class="container">
         <div class="row pb-20">
-            <div class="col-auto">
-                <h3 class="text-22 fw-500">Habitaciones Disponibles</h3>
+            <div class="col-12">
+                @if(rooms.length > 0){
+                    <h3 class="text-22 fw-500">Habitaciones disponibles:</h3>
+                }@else{
+                    <div class="w-100 text-center mt-30">
+                        <mat-icon style="width: 60px; height: 60px;" class="text-60 text-blue-1">event_busy</mat-icon>
+                        <h3 class="text-20 fw-500">Sin disponibilidad para las fechas solicitadas.</h3>
+                    </div>
+                }
             </div>
         </div>
         @for(room of rooms; track room){
             <app-room-details (selectedRoom)="createBooking($event)" [checkIn]="dates[0]" [checkOut]="dates[1]" [room]="room"></app-room-details>
+        }
+        @if(naRooms.length > 0){
+            <div class="row pb-20">
+                <div class="col-auto">
+                    <h3 class="text-22 fw-500">Habitaciones no disponibles ahora:</h3>
+                </div>
+            </div>
+            <div>
+                <swiper-container appSwiper [config]="config" init="false" class="mi-swiper row">
+                    @for(room of naRooms; track $index){
+                        <swiper-slide class="col-md-4 col-lg-3 col-sm-6 col-12">
+                            <app-not-available-room [room]="room"></app-not-available-room>
+                        </swiper-slide>
+                    }
+                </swiper-container>
+            </div>
         }
     </div>
 </section>

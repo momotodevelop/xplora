@@ -16,6 +16,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { AnimationItem } from 'lottie-web';
 import { PaymentMethod, PaymentType } from '../../types/booking.types';
 import { CountdownConfig, CountdownEvent, CountdownModule } from 'ngx-countdown'
+import { Router, RouterModule } from '@angular/router';
 
 export const fadeInOutAnimation = trigger('fadeInOut', [
   transition(':enter', [
@@ -85,7 +86,8 @@ export interface Line {
     MatIconModule,
     SweetAlert2Module,
     LottieComponent,
-    CountdownModule
+    CountdownModule,
+    RouterModule
   ],
   templateUrl: './booking-creation-loader.component.html',
   styleUrl: './booking-creation-loader.component.scss',
@@ -118,17 +120,18 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
     private shared: SharedDataService, 
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
-    private appRef: ApplicationRef
+    private appRef: ApplicationRef,
+    private router: Router,
   ) {
     this.appRef.isStable.subscribe(stable => {
       if (stable) {
-        console.log("✅ Angular ahora está estable.");
+        //console.log("✅ Angular ahora está estable.");
       }
     });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
+    //console.log(changes);
   }
   
 
@@ -137,21 +140,25 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
     this.shared.headerHeight.subscribe(h => {
       this.offset = 0;
     });
-    console.log(this.paymentMethod);
-    console.log(this.paymentType);
+    //console.log(this.paymentMethod);
+    //console.log(this.paymentType);
     if(this.paymentMethod==="CARD"){
       if(this.paymentType==='DELAYED'){
         this.status = 'confirmed'
       }else{
         this.status = 'pending'
       }
+      this.countdownConfig.leftTime = 5; // Tiempo de redirección en segundos
+      this.countdownConfig.format = 'ss'; // Formato de minutos y segundos
     }else{
       if(this.paymentMethod==='SPEI'){
         this.countdownConfig.leftTime = this.speiPaymentTime; // Tiempo en segundos para SPEI
         this.status = 'pending';
       }else{
         this.countdownConfig.leftTime = this.cashPaymentTime; // Tiempo en segundos para pago en efectivo
-        this.status = 'confirmed';
+        this.status = 'pending';
+        this.countdownConfig.format = 'hh:mm:ss'; // Formato de horas, minutos y segundos
+        this.countdownConfig.notify = [3600]; // Notificar a 1 hora
       }
       
     }
@@ -174,7 +181,7 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
     }
     //this.initializeSteps();
     this.totalDuration = this.calculateTotalDuration();
-    console.log(this.totalDuration);
+    //console.log(this.totalDuration);
     this.startProgress();
 
   }
@@ -189,21 +196,30 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
   }
 
   countdownNotify(event: CountdownEvent){
-    console.log(event);
+    //console.log(event);
     if(event.action==='notify'){
       const leftTime = event.left / 1000; // Convertir a segundos
-      if(leftTime <= 60){
-        console.log("Tiempo restante:", event.left);
+      if(leftTime <= (this.paymentMethod==='SPEI' ? 60 : 3600)){ // 60 segundos para SPEI, 3600 segundos (1 hora) para efectivo 
+        //console.log("Tiempo restante:", event.left);
         this.countdownDanger = true; // Cambia el estado a peligroso si el tiempo restante es menor o igual a 60 segundos
       }
     }else if(event.action==='done'){
-      console.log("Temporizador completado");
+      //console.log("Temporizador completado");
       this.countdownCompleted = true; // Marca el temporizador como completado
     }
   }
 
   animationCreated(animationItem: AnimationItem): void {
     this.animationItem = animationItem;
+    if(this.paymentMethod==='CARD' && this.paymentType!=='DELAYED'){
+      //console.log("Redirigiendo a la página de pago...");
+      this.countdownConfig.leftTime = 5; // Tiempo de redirección en segundos
+      this.countdownConfig.format = 'ss'; // Formato de minutos y segundos
+      setTimeout(() => {
+        this.shared.setLoading(true);
+        this.router.navigate(['/reservar', 'realizar-pago', this.bookingId]);
+      }, 5000); // Espera 5 segundos antes de redirigir
+    }
   }
 
   private startProgress() {

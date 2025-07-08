@@ -34,7 +34,7 @@ export class HotelSearchSidebarComponent {
     this.hotel=hotel;
   }
   filter(){
-    console.log(this.hotel);
+    //console.log(this.hotel);
     const checkIn:string = this.datePipe.transform(this.checkIn, "YYYY-MM-dd")!;
     const checkOut:string = this.datePipe.transform(this.checkOut, "YYYY-MM-dd")!;
     const roomString:string = this.rooms.map(pair => pair.join(',')).join('_');

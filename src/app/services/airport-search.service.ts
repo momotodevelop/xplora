@@ -1,7 +1,7 @@
 import {environment} from '../../environments/environment'
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { mergeMap, Observable, throwError } from 'rxjs';
+import { map, mergeMap, Observable, retry, throwError } from 'rxjs';
 import { AmadeusGetLocationResponse, AmadeusLocation, AmadeusSearchLocationResponse } from '../types/amadeus-airport-response.types';
 import { DirectDestination, DirectDestinationsResponse } from '../types/amadeus-direct-airport-response.types';
 import { AmadeusAuthService } from './amadeus-auth.service';
@@ -19,14 +19,14 @@ export class AirportSearchService {
     const headers = new HttpHeaders({
       'Authorization': 'Bearer '+token
     });
-    return this.http.get<AmadeusSearchLocationResponse>(url, { headers });
+    return this.http.get<AmadeusSearchLocationResponse>(url, { headers }).pipe(retry(10)); // Reintenta la solicitud hasta 10 veces en caso de error
   }
   getLocation(id: string, token:string): Observable<AmadeusGetLocationResponse> {
     const url = environment.amadeusApiUrl+'/v1/reference-data/locations/'+id;
     const headers = new HttpHeaders({
       'Authorization': 'Bearer '+token
     });
-    return this.http.get<AmadeusGetLocationResponse>(url, { headers });
+    return this.http.get<AmadeusGetLocationResponse>(url, { headers }).pipe(retry(10));
   }
 
   searchDirectDestinations(iataCode: string, token: string): Observable<DirectDestinationsResponse> {
@@ -35,7 +35,7 @@ export class AirportSearchService {
       'Authorization': 'Bearer ' + token
     });
 
-    return this.http.get<DirectDestinationsResponse>(url, { headers });
+    return this.http.get<DirectDestinationsResponse>(url, { headers }).pipe(retry(10));
   }
   getNearbyAirports(lat: number, lng: number, token?:string) {
     const url = environment.amadeusApiUrl+"/v1/reference-data/locations/airports";
@@ -48,7 +48,7 @@ export class AirportSearchService {
         const headers = new HttpHeaders({
           'Authorization': `Bearer ${token}`
         });
-        return this.http.get<AmadeusSearchLocationResponse>(url, { headers: headers, params: {latitude: lat, longitude: lng}});
+        return this.http.get<AmadeusSearchLocationResponse>(url, { headers: headers, params: {latitude: lat, longitude: lng}}).pipe(retry(10));
       })
     );
   }

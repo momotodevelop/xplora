@@ -11,6 +11,7 @@ import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-s
 import { PhoneLoginBottomSheetComponent } from '../../shared/phone-login-bottom-sheet/phone-login-bottom-sheet.component';
 import { LoginComponent } from '../../shared/login/login.component';
 import { CommonModule } from '@angular/common';
+import { Title } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-login',
@@ -22,39 +23,46 @@ export class LoginPageComponent implements OnInit {
   mobileIcon=faMobile;
   anonIcon=faUserSecret;
   googleIcon=faGoogle;
-  recaptcha:any;
   createNewAccount:boolean = false;
   loading:boolean = false;
-  constructor(public auth: FireAuthService, private route: ActivatedRoute, private sharedService: SharedDataService, private sb: MatSnackBar, private bs: MatBottomSheet){
+  constructor(
+    public auth: FireAuthService,
+    private route: ActivatedRoute,
+    private sharedService: SharedDataService,
+    private sb: MatSnackBar,
+    private bs: MatBottomSheet,
+    private title: Title
+  ){
     this.auth.loading.subscribe(loading=>{
       this.loading = loading;
-      console.log(loading);
+      //console.log(loading);
     });
   }
 
   ngOnInit(): void {
+    this.title.setTitle("Xplora Travel || Iniciar Sesión");
     this.route.data.pipe(
       map(data => data["headerType"])
     ).subscribe((type: "light"|"dark") => {
-      console.log(type);
+      //console.log(type);
       //this.headerType = type;
       this.sharedService.changeHeaderType(type);
     });
     this.auth.user.subscribe(user=>{
-      console.log(user);
+      //console.log(user);
     });
-    console.log("Init Login Page");
+    //console.log("Init Login Page");
     this.auth.loading.subscribe(loading=>{
       this.loading = loading;
-      console.log(loading);
+      //console.log(loading);
     });
   }
   googleLogin(){
     this.auth.googleLogin().then(ok=>{
       this.sb.open("Bienvenido "+ok.user.displayName, "OK", {duration: 2500});
-      console.log(ok);
+      //console.log(ok);
     }).catch(err=>{
-      console.log(err);
+      //console.log(err);
       this.sb.open("Error Iniciando Sesión", "OK", {duration: 1500});
     });
   }
@@ -62,7 +70,7 @@ export class LoginPageComponent implements OnInit {
     this.auth.anonLogin().then(ok=>{
       this.sb.open("Bienvenido usuario anónimo", "OK", {duration: 1500});
     }).catch(err=>{
-      console.log(err);
+      //console.log(err);
       this.sb.open("Error Iniciando Sesión", "OK", {duration: 1500});
     });
   }

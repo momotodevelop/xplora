@@ -1,0 +1,215 @@
+@if(booking!==undefined){
+<section class="pt-40 pb-40 bg-light-2" style="min-height: 280px; display: flex; align-items: center;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center" style="display: flex;flex-direction: column;align-items: center;">
+                    <div class="size-80 flex-center rounded-full bg-dark-3">
+                        @if(booking.status==="CONFIRMED"){
+                            <fa-icon class="text-30 text-white" [icon]="iconConfirmed"></fa-icon>
+                        }@else if(booking.status==="PENDING"){
+                            <fa-icon class="text-30 text-white" [icon]="iconPending"></fa-icon>
+                        }@else if(booking.status==="CANCELED"){
+                            <fa-icon class="text-30 text-white" [icon]="iconCanceled"></fa-icon>
+                        }
+                    </div>
+                    <h1 class="fw-600">
+                        @switch(booking.status){
+                            @case("CONFIRMED"){
+                                ¡Tu reservación fue confirmada exitosamente!
+                            }
+                            @case("PENDING"){
+                                Tu reservación está pendiente de confirmación.
+                            }
+                            @case("CANCELED"){
+                                Tu reservación ha sido cancelada.
+                            }
+                        }
+                        
+                    </h1>
+                    <p class="text-dark-1">{{booking.contact!.name|titlecase}}, te hemos enviado los detalles de tu reservación al correo: <b>{{booking.contact!.email}}</b></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+    <div class="container mt-40">
+        <div class="row">
+            <div class="col-xl-7 col-lg-8 pb-30">
+                <div class="border-type-1 rounded-8 px-50 py-35">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="text-15 lh-12">Localizador</div>
+                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">{{booking.created!.seconds}}</div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="text-15 lh-12">Estatus</div>
+                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">
+                                @switch(booking.status){
+                                    @case("CONFIRMED"){
+                                        Confirmada
+                                    }
+                                    @case("PENDING"){
+                                        Pendiente
+                                    }
+                                    @case("CANCELED"){
+                                        Cancelada
+                                    }
+                                }
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="text-15 lh-12">Total</div>
+                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">{{total|currency:'MXN'}}</div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="text-15 lh-12">Confirmación</div>
+                            <div style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">
+                                {{pnr|uppercase}}
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="border-light rounded-8 px-50 py-40 mt-30">
+                    <h4 class="text-20 fw-500 mb-30">Tu reservación</h4>
+                    <div class="row y-gap-10">
+                        <div class="col-12">
+                            <div class="d-flex justify-between">
+                            <div class="text-15 lh-16">Fecha de Reservación:</div>
+                            <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{booking.created!.toDate()|date:'mediumDate'|titlecase}}</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-between border-top-light pt-10">
+                            <div class="text-15 lh-16">Titular:</div>
+                            <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{booking.contact!.name|titlecase}} {{booking.contact!.lastname|titlecase}}</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-between border-top-light pt-10">
+                            <div class="text-15 lh-16">Servicio:</div>
+                            <div class="text-15 lh-16 fw-500 text-blue-1 text-right">Transportación Aérea</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-light rounded-8 px-50 py-40 mt-30">
+                    <h4 class="text-20 fw-500 mb-30">Pasajeros</h4>
+                    <div class="row y-gap-10">
+                        @for(passenger of booking.flightDetails!.passengers.details; track passenger; let first =  $first){
+                        <div class="col-12">
+                            <div class="d-flex justify-between" [ngClass]="{'border-top-light pt-10': !first}">
+                                    <div class="text-15 lh-16">{{passenger.name|titlecase}} {{passenger.lastname|titlecase}}</div>
+                                    <div class="text-15 lh-16 fw-500 text-blue-1 text-right">
+                                        @switch(passenger.type){
+                                            @case("ADULT"){
+                                                Adulto
+                                            }
+                                            @case("CHILDREN"){
+                                                Menor
+                                            }
+                                            @case("INFANT"){
+                                                Infante
+                                            }
+                                        }
+                                    </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+                <div class="d-flex items-center justify-between bg-warning-1 mt-30 pl-30 py-30 pr-30 rounded-8">
+                    <div class="row y-gap-20">
+                        <div class="col-12 col-md-9">
+                            <h5 class="alert-heading text-warning-2"><fa-icon [icon]="iconPending"></fa-icon> Reservación Pendiente</h5>
+                            <div class="text-warning-2 lh-1 fw-500" style="text-align: justify;">
+                                @if(pendingAmount>0&&booking.status==='PENDING'){
+                                @switch(booking.payment!.method){
+                                    @case('CASH') {
+                                        El pago en efectivo se encuentra pendiente. Completa tu pago ahora y asegura tu tarifa antes de que caduque la reservación.
+                                    }
+                                    @case('SPEI') {
+                                        Tu pago por transferencia SPEI está pendiente. Realízalo cuanto antes para garantizar la disponibilidad y el precio de tu reservación.
+                                    }
+                                    @case('CARD') {
+                                        El cargo a tu tarjeta aún no se ha completado. Intenta nuevamente o utiliza otro método de pago para confirmar tu reservación.
+                                    }
+                                }
+                            }
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3 d-flex align-items">
+                            <button class="button w-100 -md -dark-1 bg-yellow-1 text-dark-1">Pagar Ahora</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-light rounded-8 px-50 py-40 mt-30">
+                    <h4 class="text-20 fw-500 mb-30">Información de pago</h4>
+                    <div class="row y-gap-10">
+                        <div class="col-12">
+                            <div class="d-flex justify-between">
+                                <div class="text-15 lh-16">Metodo de pago:</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">
+                                    @switch(booking.payment!.method) {
+                                        @case ("CASH") {
+                                            Efectivo
+                                        }
+                                        @case ("SPEI") {
+                                            Transferencia SPEI
+                                        }
+                                        @case ("CARD") {
+                                            Tarjeta de crédito/débito
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-between border-top-light pt-10">
+                                <div class="text-15 lh-16">Estatus del pago:</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">
+                                    @if(pendingAmount>0){
+                                        Pendiente
+                                    }@else{
+                                        Completado
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-between border-top-light pt-10">
+                                <div class="text-15 lh-16">Total a pagar:</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{booking.payment!.totalDue|currency:'MXN'}}</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-between border-top-light pt-10">
+                                <div class="text-15 lh-16">Total pagado:</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{booking.payment!.payed|currency:'MXN'}}</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-between border-top-light pt-10">
+                                <div class="text-15 lh-16">Saldo pendiente:</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{pendingAmount|currency:'MXN'}}</div>
+                            </div>
+                        </div>
+                        @if(booking.status==="PENDING"&&pendingAmount>0){
+                            <div class="col-12" style="display: flex; justify-content: flex-end;">
+                                <button class="button -md -blue-1 bg-dark-3 text-white">Completar Pago</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5 col-lg-4">
+                @if(booking!==undefined){
+                    @if(booking.type==='FLIGHT'){
+                        <app-flight-confirmation-sidebar [booking]="toFlightBooking(booking)"></app-flight-confirmation-sidebar>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}

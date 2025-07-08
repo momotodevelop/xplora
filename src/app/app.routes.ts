@@ -6,7 +6,6 @@ import { BookingProcessComponent } from './pages/booking-process/booking-process
 import { TravelerComponent } from './pages/panel/traveler/traveler.component';
 import { TravelerHomeComponent } from './pages/panel/traveler/home/traveler-home.component';
 import { fireGuard } from './fire-guard.guard';
-import { ConfirmationComponent } from './pages/booking-process/confirmation/confirmation.component';
 import { MakePaymentComponent } from './pages/make-payment/make-payment.component';
 import { AboutComponent } from './pages/about/about.component';
 import { HotelSearchComponent } from './pages/hotel-search/hotel-search.component';
@@ -17,12 +16,22 @@ import { loginGuard } from './guards/login.guard';
 import { HotelBookingComponent } from './pages/hotel-booking/hotel-booking.component';
 import { BlogListComponent } from './pages/blog-list/blog-list.component';
 import { BlogSingleComponent } from './pages/blog-single/blog-single.component';
+import { TermsComponent } from './pages/terms/terms.component';
+import { PrivacyComponent } from './pages/privacy/privacy.component';
+import { XplorersLandingComponent } from './pages/xplorers-landing/xplorers-landing.component';
+import { ContactComponent } from './pages/contact/contact.component';
+import { HomeComponent } from './pages/home/home.component';
+import { BookingPublicConfirmationComponent } from './pages/booking-public-confirmation/booking-public-confirmation.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'inicio', pathMatch: 'full' },
-    { path: 'inicio', loadChildren: () => import('./pages/home/home.module').then(m => m.HomeModule) },
+    { path: 'inicio', component: HomeComponent },
     { path: 'entrar', component: LoginPageComponent, data: { headerType:"dark" }, canActivate: [loginGuard] },
     { path: 'nosotros', component: AboutComponent, data: { headerType:"dark" } },
+    { path: 'terminos-condiciones', component: TermsComponent, data: { headerType:"dark" } },
+    { path: 'xplorers', component: XplorersLandingComponent, data: { headerType:"dark" } },
+    { path: 'contacto', component: ContactComponent, data: { headerType:"dark" } },
+    { path: 'privacidad', component: PrivacyComponent },
     { path: 'blog', data: { headerType:"dark"}, children: [
       {path: '', component: BlogListComponent},
       {path: ':id', component: BlogSingleComponent}
@@ -45,7 +54,7 @@ export const routes: Routes = [
     },
     { path: 'reservar', children: [
       {path: 'vuelos/:bookingID', component: BookingProcessComponent, data: {headerType:"dark"}},
-      {path: 'realizar-pago/:bookingID/:amount', component: MakePaymentComponent, data: {headerType:"dark"}},
+      {path: 'realizar-pago/:bookingID', component: MakePaymentComponent, data: {headerType:"dark"}},
       { 
         path: "hoteles",
         data: {headerType:"dark"},
@@ -57,7 +66,7 @@ export const routes: Routes = [
       },
     ] },
     { path: 'confirmacion', children: [
-      {path: 'vuelos/:bookingID', component: ConfirmationComponent, data: {headerType:"dark"}}
+      {path: ':bookingID', component: BookingPublicConfirmationComponent, data: {headerType:"dark"}}
     ]},
     { path: '', redirectTo: '/inicio', pathMatch: 'full' },
     { 

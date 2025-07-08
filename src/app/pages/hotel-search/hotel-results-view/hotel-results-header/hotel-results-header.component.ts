@@ -1,4 +1,4 @@
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { HotelBottomSheetInputData, HotelSearchBottomsheetComponent } from '../../../../shared/hotel-search-bottomsheet/hotel-search-bottomsheet.component';
@@ -9,7 +9,7 @@ import { HotelListResult } from '../../../../types/lite-api.types';
 
 @Component({
   selector: 'app-hotel-results-header',
-  imports: [CommonModule, MatBottomSheetModule, DatePipe, MatDialogModule],
+  imports: [CommonModule, MatBottomSheetModule, MatDialogModule],
   templateUrl: './hotel-results-header.component.html',
   styleUrl: './hotel-results-header.component.scss'
 })

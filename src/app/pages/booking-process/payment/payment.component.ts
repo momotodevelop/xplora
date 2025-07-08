@@ -1,48 +1,47 @@
 import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter } from '@angular/core';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
 import { XploraPaymentsService } from '../../../services/xplora-payments.service';
-import { debounceTime, first, forkJoin, from, lastValueFrom, map } from 'rxjs';
-import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
+import { debounceTime, first } from 'rxjs';
+import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe, UpperCasePipe } from '@angular/common';
 import { Promo } from '../../../services/xplora-promos.service';
 import { DiscountsMP, PaymentData } from '../../../types/mp.types';
 import { environment } from '../../../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faLock, faSpinner, faMoneyBillTransfer, faMoneyBills, faCreditCard } from '@fortawesome/free-solid-svg-icons';
-import { faCircle, faCircleCheck, faCircleDot } from '@fortawesome/free-regular-svg-icons';
+import { faCircle, faCircleDot } from '@fortawesome/free-regular-svg-icons';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { v4 as uuid } from 'uuid';
 import { SharedDataService } from '../../../services/shared-data.service';
 import { Charge } from '../booking-sidebar/booking-sidebar.component';
 import { XploraApiService } from '../../../services/xplora-api.service';
 import {MatTabsModule} from '@angular/material/tabs';
-import {MatAccordion, MatExpansionModule, MatExpansionPanel} from '@angular/material/expansion';
+import { MatExpansionModule, MatExpansionPanel} from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { Payment as PaymentResponse } from '../../../types/mp-response.types'
-import { XploraFlightBooking } from '../../../types/xplora-api.types';
 import  * as _  from 'lodash';
-import { XploraNotificationsService } from '../../../services/xplora-notifications.service';
 import { PdfGeneratorService } from '../../../services/pdf-generator.service';
 import { FileUploadService } from '../../../services/file-upload.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatListModule, MatSelectionList, MatSelectionListChange } from '@angular/material/list';
-import { FingerprintjsProAngularService } from '@fingerprintjs/fingerprintjs-pro-angular';
 import { ClipSDKService, PaymentDetails } from '../../../services/clip-sdk.service';
 import { CreditCardDirectivesModule, CreditCardFormatDirective, CreditCardValidators } from 'angular-cc-library';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Installment, Issuer } from '../../../types/installments.clip.type';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { trigger, transition, style, stagger, animate, query } from '@angular/animations';
 import { BookingStatus, FirebaseBooking, FlightFirebaseBooking, PaymentMethod } from '../../../types/booking.types';
 import { FireBookingService } from '../../../services/fire-booking.service';
 import { FireAuthService } from '../../../services/fire-auth.service';
-import { User, user } from '@angular/fire/auth';
+import { User } from '@angular/fire/auth';
 import { StoredCardPaymentData, XploraCardServicesService } from '../../../services/xplora-card-services.service';
 import { NotificationService } from '../../../services/notifications.service';
 import { Timestamp } from 'firebase/firestore';
+import { Item, logEvent } from 'firebase/analytics';
+import { Analytics } from '@angular/fire/analytics';
+import { PendingPaymentEmailData } from '../../../types/email-data.types';
 
 export type AvailablePaymentMethods = "CASH"|"CARD"|"SPEI";
 
@@ -58,6 +57,7 @@ export interface PaymentOffice{
   showBarcode: boolean,
   showQR: boolean,
   delayHours: number,
+  img: string,
   type: "bank"|"convenience"|"supermarket"|"pharmacy"
 }
 
@@ -84,7 +84,7 @@ export interface PaymentProceesData{
   promo?: Promo
 }
 
-export const PAYMENT_OFFICES:PaymentOffice[] = [
+export const PAYMENT_OFFICES: PaymentOffice[] = [
   {
     name: "Oxxo",
     id: "oxxo",
@@ -95,8 +95,9 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     transactionLimit: 9999,
     showBarcode: true,
     showQR: false,
-    processor: "broxel",
-    type: "convenience"
+    processor: "broxel-oxxo",
+    type: "convenience",
+    img: "assets/img/comercios/oxxo.svg"
   },
   {
     name: "Circle K",
@@ -110,6 +111,7 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     showQR: false,
     processor: "broxel-paynet",
     type: "convenience",
+    img: "assets/img/comercios/paynet.svg"
   },
   {
     name: "Farm. del Ahorro",
@@ -123,6 +125,7 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     showQR: false,
     processor: "broxel-paynet",
     type: "pharmacy",
+    img: "assets/img/comercios/paynet.svg"
   },
   {
     name: "Extra",
@@ -136,6 +139,7 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     showQR: false,
     processor: "broxel-paynet",
     type: "convenience",
+    img: "assets/img/comercios/paynet.svg"
   },
   {
     name: "Farm. Guadalajara",
@@ -149,6 +153,7 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     showQR: false,
     processor: "broxel-paynet",
     type: "pharmacy",
+    img: "assets/img/comercios/paynet.svg"
   },
   {
     name: "Waldo's",
@@ -162,6 +167,7 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     showQR: false,
     processor: "broxel-paynet",
     type: "supermarket",
+    img: "assets/img/comercios/paynet.svg"
   },
   {
     name: "Kiosko",
@@ -175,6 +181,7 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     showQR: false,
     processor: "broxel-paynet",
     type: "supermarket",
+    img: "assets/img/comercios/paynet.svg"
   },
   {
     name: "Walmart",
@@ -186,8 +193,9 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     transactionLimit: 99999,
     showBarcode: true,
     showQR: false,
-    processor: "broxel",
-    type: "supermarket"
+    processor: "broxel-walmart",
+    type: "supermarket",
+    img: "assets/img/comercios/walmart.svg"
   },
   {
     name: "Bodega Aurrera",
@@ -199,8 +207,9 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     transactionLimit: 99999,
     showBarcode: true,
     showQR: false,
-    processor: "broxel",
-    type: "supermarket"
+    processor: "broxel-walmart",
+    type: "supermarket",
+    img: "assets/img/comercios/baurrera.svg"
   },
   {
     name: "Sam's Club",
@@ -212,8 +221,9 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     transactionLimit: 99999,
     showBarcode: true,
     showQR: false,
-    processor: "broxel",
-    type: "supermarket"
+    processor: "broxel-walmart",
+    type: "supermarket",
+    img: "assets/img/comercios/sams.svg"
   },
   {
     name: "Walmart Express",
@@ -225,10 +235,13 @@ export const PAYMENT_OFFICES:PaymentOffice[] = [
     transactionLimit: 99999,
     showBarcode: true,
     showQR: false,
-    processor: "broxel",
-    type: "supermarket"
+    processor: "broxel-walmart",
+    type: "supermarket",
+    img: "assets/img/comercios/wexpress.webp"
   }
-]
+];
+
+
 declare const MercadoPago: any;
 declare const ClipSDK: any;
 declare global {
@@ -248,8 +261,6 @@ declare global {
         MatExpansionModule,
         MatIconModule,
         MatInputModule,
-        DatePipe,
-        TitleCasePipe,
         MatExpansionModule,
         MatCheckboxModule,
         FormsModule,
@@ -260,7 +271,7 @@ declare global {
     ],
     templateUrl: './payment.component.html',
     styleUrl: './payment.component.scss',
-    providers: [CurrencyPipe, DatePipe, TitleCasePipe],
+    providers: [CurrencyPipe, UpperCasePipe],
     animations: [
         trigger('listAnimation', [
             transition('* => *', [
@@ -320,6 +331,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     private xplora: XploraApiService,
     private datePipe: DatePipe,
     private title: TitleCasePipe,
+    private uppercase: UpperCasePipe,
     private notifications: NotificationService,
     private pdf:PdfGeneratorService,
     private fileUpload: FileUploadService,
@@ -327,6 +339,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     private fireBooking: FireBookingService,
     private auth: FireAuthService,
     private card: XploraCardServicesService,
+    private gtag: Analytics
   ){
     
   }
@@ -347,7 +360,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
             : this.ccNumber.resolvedScheme$.value.toLowerCase()
           : undefined;
         if(bin&&type){
-          console.log(bin, type);
           this.clip.getInstallments(this.total, bin, (type as 'visa'|'master'|'amex')).subscribe(installments=>{
             if(installments.length>0){
               if(installments[0].issuer!==undefined){
@@ -369,8 +381,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       }
     });
     this.bookingHandler.prices.pipe(debounceTime(1500)).subscribe(prices=>{
-      console.log(prices);
-      console.log(this.total);
       this.total = prices[0];
       this.discounted = prices[1];
       if(prices[0]>0){
@@ -384,26 +394,20 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
                 this.initializeMercadoPago(preference.id, [prices[0], prices[1]], preferenceData.contact_info, pnr, prices[2]);
               }); */
               // this.initializeClipPayment(prices[0], true, true);
-              if(booking){
-                //console.log(this.parseDataEmail(booking));
-                //console.log(this.parseDataDocument(booking));
-              }
+              if(booking){}
           }
         }});
       }
     });
     this.bookingHandler.charges.subscribe(charges=>{
-      console.log(charges);
       this.chargeResume=charges;
     });
   }
   ngAfterViewChecked(): void {
     this.panelTarjeta.expandedChange.subscribe(expanded=>{
-      console.log(expanded);
     });
   }
   installmentsChange(event:MatSelectionListChange){
-    console.log(event.options[0].value);
     this.cardForm.controls['installments'].setValue(event.options[0].value);
   }
   getBookingStatusText(status:BookingStatus){
@@ -425,7 +429,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   changePayment(event:'CASH'|'CARD'|'SPEI'){
     this.selectedPayment=event;
     this.selectedPaymentMethod.emit(event);
-    console.log(event); 
     switch(event){
       case 'CARD':
         this.panelTarjeta.open();
@@ -452,55 +455,36 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     });
     this.clipCard.mount('clip_checkout'); 
   }
-  async getTokenClip(test:boolean=false){
-    try{
-      const token = await this.clipCard.cardToken();
-      const {session_id, user_agent} = await this.clipCard.preventionData();
-      const installments = await this.clipCard.installments();
-      console.log(token);
-      this.clip.createPayment(
-        token.id,
-        this.total,
-        {
-          first_name: this.booking.contact!.name,
-          last_name: this.booking.contact!.lastname,
-          phone: this.booking.contact!.phone,
-          email: this.booking.contact!.email
-        },
-        installments,
-        session_id,
-        session_id,
-        this.bookingID!,
-        user_agent,
-        "ip",
-        true
-      ).subscribe({
-        next: (ok) =>{
-          console.log(ok);
-        },
-        error: (error) =>{
-          console.log(error);
-        }
-      })
-    }catch(error:any){
-      console.log(error);
-      switch (error.code) {
-        case "CL2200":
-        case "CL2290":
-          this.snackbar.open(error.message, "OK", {duration: 2000});
-          break;
-        case "AI1300":
-          console.log("Error: ", error.message);
-          break;
-        default:
-          break;
-      }
-    }
-  }
   makePaymentFirebase(){
-    console.log(this.selectedPayment);
-    console.log(this.cardForm.value);
     //START PAYMENT
+    const outboundFlight = this.booking!.flightDetails!.flights.outbound!;
+    const inboundFlight = this.booking!.flightDetails!.flights.outbound!;
+    let items:Item[]  = [
+      {
+        index: 0,
+        price: outboundFlight.offer.price.total as number,
+        item_name: outboundFlight.offer.itineraries[0].segments[0].departure.iataCode+'-'+_.last(outboundFlight.offer.itineraries[0].segments)!.arrival.iataCode,
+        item_category: 'Vuelo de Ida',
+        item_brand: outboundFlight.offer.validatingAirlineCodes[0],
+        coupon: this.activePromo?.code ?? undefined
+      }
+    ]
+    if(inboundFlight){
+      items.push({
+        index: 1,
+        price: inboundFlight.offer.price.total as number,
+        item_name: inboundFlight.offer.itineraries[0].segments[0].departure.iataCode+'-'+_.last(inboundFlight.offer.itineraries[0].segments)!.arrival.iataCode,
+        item_category: 'Vuelo de Regreso',
+        item_brand: inboundFlight.offer.validatingAirlineCodes[0],
+        coupon: this.activePromo?.code ?? undefined
+      })
+    }
+    logEvent(this.gtag, 'purchase', {
+      transaction_id: this.bookingID!,
+      currency: 'MXN',
+      value: this.total as number,
+      items
+    });
     this.paymentProcessStart.emit({
       amount: this.total,
       paymentMethod: this.selectedPayment!,
@@ -525,13 +509,11 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         created: new Timestamp(Math.round(new Date().getTime()/1000), 0),
       }
       if(this.user){
-        console.log(this.user);
         BookingUpdateData.uid = this.user.uid;
       }
       if(this.activePromo){
         BookingUpdateData.payment!.promo = this.activePromo;
       }
-      console.log(BookingUpdateData);
       const request:[Promise<FirebaseBooking>, Promise<string>?] = [this.fireBooking.updateBooking(this.bookingID!, BookingUpdateData)];
       if(this.selectedPayment==="CARD"){
         const card = this.cardForm.value as PaymentDetails;
@@ -544,13 +526,10 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         }
         request.push(this.card.addPayment(cardPaymentData as StoredCardPaymentData))
       }
-      console.log(request);
       Promise.all(request).then(results=>{
-        console.log(results);
         //END PAYMENT
-        /*this.confirmBooking(results[0] as FlightFirebaseBooking).then(confirmed=>{
-          console.log(confirmed);
-        });*/
+        this.confirmBooking(results[0] as FlightFirebaseBooking, this.selectedPayment==='CARD').then(confirmed=>{
+        });
       }).catch(err=>{
         this.snackbar.open("Error al procesar tu reservación. Inténtalo nuevamente.", "OK", {duration: 2000});
       });
@@ -568,7 +547,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         secondsToAdd = 0; // no agrega tiempo
         break;
       case 'SPEI':
-        secondsToAdd = 70; // 10 minutos
+        secondsToAdd = 600; // 10 minutos
         break;
       default:
         throw new Error('Invalid payment type');
@@ -584,16 +563,13 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
           this.loading = true;
           const card = this.cardForm.value as PaymentDetails;
           this.cardForm.disable();
-          console.log(this.ccNumber.resolvedScheme$.value.toLowerCase());
           this.payments.propietaryProcessor(card.number.replace(/\s/g, ""), card.expiration, "visa", card.holder, card.cvv, this.total, card.installments?card.installments.toString():"1", this.bookingID!, this.cardIssuer?.name, this.cardIssuer?.country).subscribe(result=>{
-            console.log(result);
             this.cardForm.enable();
             this.cardForm.reset();
             this.loading = false;
             this.snackbar.open("Transacción Declinada. Inténtalo nuevamente.", "OK", {duration: 3000});
             this.availableInstallments = undefined;
             this.payments.getPaymentRecords(this.bookingID!).subscribe(records=>{
-              console.log(records);
               if(records.records.length>2){
                 this.shared.setLoading(true);
                 this.xplora.updateBooking(this.bookingID!, {
@@ -610,7 +586,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
                   status: "HOLD"
                 }).subscribe({
                   next: (ok) =>{
-                    console.log(ok)
+                    //console.log(ok)
                     /* this.confirmBooking(ok.booking).then(confirmed=>{
                       const url = `/confirmacion/vuelos/${this.bookingID!}`;
                       window.location.href = url;
@@ -621,8 +597,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
               }
             })
           });
-          console.log(this.cardForm.value);
-          console.log(this.cardForm.controls['installments']);
         break;
         case "CASH":
           this.shared.setLoading(true);
@@ -641,7 +615,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
             status: "HOLD"
           }).subscribe({
             next: (ok) =>{
-              console.log(ok)
+              //console.log(ok)
               /* this.confirmBooking(ok.status).then(confirmed=>{
                 const url = `/confirmacion/vuelos/${this.bookingID!}`;
                 window.location.href = url;
@@ -666,7 +640,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
             status: "HOLD"
           }).subscribe({
             next: (ok) =>{
-              console.log(ok)
+              //console.log(ok)
               /* this.confirmBooking(ok.booking).then(confirmed=>{
                 const url = `/confirmacion/vuelos/${this.bookingID!}`;
                 window.location.href = url;
@@ -754,7 +728,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       },
       callbacks: {
         onReady: () => {
-          console.log("Payment Brick is ready");
+          //console.log("Payment Brick is ready");
         },
         onSubmit: ({}: any) => {},
         onError: (error: any) => {
@@ -762,27 +736,26 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         },
       },
     };
-    console.log(settings);
     window.paymentBrickController = await bricksBuilder.create(
       "payment",
       "paymentBrick_container",
       settings
     );
   }
-  async confirmBooking(booking:FlightFirebaseBooking):Promise<Object>{
-    const personalizationData:confirmationEmailData = {
+  async confirmBooking(booking:FlightFirebaseBooking, isCard:boolean){
+    const personalizationData:PendingPaymentEmailData = {
       account_name: "Xplora Travel",
-      service: "Vuelo "+booking.flightDetails!.round?"redondo":"sencillo",
-      pnr: booking.bookingID!.slice(-6),
-      locator: booking.created?.toString().slice(-8) ?? "XPLORA",
+      service: "Transportación Aerea",
+      pnr: this.uppercase.transform(booking.bookingID!.slice(-6)),
+      locator: booking.created!.seconds.toString(),
       name: booking.contact!.name,
       year: this.datePipe.transform(new Date(), "yyyy")!,
       total: this.currency.transform(booking.payment!.totalDue, "MXN")!,
       status: this.getBookingStatusText(booking.status),
-      whatsappURL: "",
-      bookingURL: "",
-      paymentURL: "",
-      receiptLink: "",
+      whatsappURL: "https://wa.me/message/VV33TBRFV4Q3A1",
+      bookingURL: "https://xploratravel.com.mx/confirmacion/"+booking.bookingID!,
+      paymentURL: "https://xploratravel.com.mx/reservar/realizar-pago/"+booking.bookingID!,
+      receiptLink: "https://forms.gle/QwoGVQsU3sHwbhTz6",
     }
     const emailRequest = this.notifications.sendEmail({
       to: [
@@ -796,7 +769,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         email: "no-reply@xploratravel.com.mx",
         name: "Xplora Travel"
       },
-      template_id: "0r83ql3mxjmgzw1j",
+      template_id: isCard?"pq3enl66v1ml2vwr":"0r83ql3mxjmgzw1j",
       personalization: [
         {
           email: booking.contact!.email,
@@ -804,14 +777,22 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         }
       ]
     });
-    //const BookingResumePDF = await this.pdf.getPDFDocumentData("1245928", this.parseDataDocument(booking));
-    //const upload = this.fileUpload.uploadConfirmation('confirmations', BookingResumePDF.name, BookingResumePDF.data)
-    return emailRequest;
+    const confirmationTextSms = `¡Hola ${this.title.transform(booking.contact!.name)}! Tu reservación con Xplora Travel ha sido confirmada. PNR: ${this.uppercase.transform(booking.bookingID!.slice(-6))}. Puedes consultar los detalles en: https://xploratravel.com.mx/confirmacion/${booking.bookingID!} ¡Gracias por viajar con nosotros!`;
+    const pendingTextSms = `¡Hola ${this.title.transform(booking.contact!.name)}! Tu reservación con Xplora Travel está pendiente de pago. PNR: ${this.uppercase.transform(booking.bookingID!.slice(-6))}. Realiza tu pago en: https://xploratravel.com.mx/reservar/realizar-pago/${booking.bookingID!} para confirmar tu lugar.`;
+    const smsRequest = this.notifications.sendSms(
+      "+" + booking.contact!.country_code + booking.contact!.phone,
+      pendingTextSms
+    );
+    const adminNotificationSms = `Nueva reservación registrada. PNR: ${this.uppercase.transform(booking.bookingID!.slice(-6))}, Nombre: ${this.title.transform(booking.contact!.name)} ${this.title.transform(booking.contact!.lastname)}, Total: ${this.currency.transform(booking.payment!.totalDue, "MXN")}.`;
+    const smsAdminRequest = this.notifications.sendSms(
+      "+529983984239",
+      adminNotificationSms
+    )
+    return [emailRequest, smsRequest, smsAdminRequest];
   }
   createPayment(){
     this.loading=true;
     window.paymentBrickController.getFormData().then((data:PaymentData)=>{
-      console.log(data);
       if(data.paymentType==='credit_card'||data.paymentType==='debit_card'){
         if(data.formData!==null){
           if(data.formData.token!==undefined){
@@ -827,13 +808,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
                     created: new Date()
                   }).subscribe(ok=>{
                     this.shared.setLoading(true);
-                    //console.log(this.parseDataEmail(ok.booking));
-                    // SENDEMAIL
-                    /* this.confirmBooking(ok.booking).then(ok=>{
-                      console.log(ok);
-                    }).catch(err=>{
-                      console.log(err);
-                    }); */
                   });
                 }else{
                   switch(payment.status_detail){
@@ -856,7 +830,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
                     break;
                   }
                 }
-                console.log(payment);
               }),
               error: (err=>{
                 this.snackbar.open("Ocurrió un error al procesar tu pago. Inténtalo nuevamente.", "OK", {duration: 2500});
@@ -869,7 +842,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         this.payments.createPaymentMP(data, this.bookingID!.slice(-6), uuid(), this.bookingID!, true).subscribe({
           next: ((payment:PaymentResponse)=>{
             this.loading=false;
-            console.log(payment);
             this.xplora.updateBooking(this.bookingID!, {
               charges: this.chargeResume,
               activePayment: payment,
@@ -878,14 +850,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
               status: "HOLD",
               created: new Date()
             }).subscribe(ok=>{
-              console.log(ok);
               this.shared.setLoading(true);
-              // SEND EMAIL
-              /* this.confirmBooking(ok.booking).then(ok=>{
-                console.log(ok);
-              }).catch(err=>{
-                console.log(err);
-              }); */
             });
           }),
           error: (err=>{
@@ -899,7 +864,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         });
       }else if(data.paymentType==="wallet_purchase"||data.paymentType==="onboarding_credits"){
         const dataObject = {...data, formData: {transaction_amount: this.total, payment_method_id: "wallet_purchase"}};
-        console.log(dataObject);
         this.xplora.updateBooking(this.bookingID!, {
           charges: this.chargeResume,
           activePayment: {
@@ -908,7 +872,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
           totalDue: this.total,
           status: "HOLD"
         }).subscribe(ok=>{
-          console.log(ok);
           this.shared.setLoading(true);
         });
       }
@@ -926,13 +889,10 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     this.selectedPaymentOffice = undefined;
   }
   openedPanel(activePayment:AvailablePaymentMethods){
-    console.log(activePayment)
     this.selectedPaymentMethod.emit(activePayment);
     this.selectedPayment = activePayment;
   }
   closedPanel(event:any){
-    console.log(event);
     if(this.selectedPayment===event)this.selectedPayment = undefined;
-    console.log(this.selectedPayment);
   }
 }

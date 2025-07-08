@@ -11,6 +11,9 @@ import { AmadeusAuthService } from '../../services/amadeus-auth.service';
 import { TranslateService } from '../../services/translate.service';
 import { DurationPipe } from '../../duration.pipe';
 import { FlightClassNamePipe } from '../../flight-class-name.pipe';
+import { GoogleTranslationService, V2Response } from '../../services/google-translation.service';
+import { Analytics, logEvent } from '@angular/fire/analytics';
+import { FacebookPixelService } from '../../services/facebook-pixel.service';
 
 @Component({
     selector: 'app-flight-offer-details',
@@ -28,7 +31,9 @@ export class FlightOfferDetailsComponent implements OnInit {
     private offers:FlightOffersAmadeusService,
     private airports: AirportSearchService,
     private auth: AmadeusAuthService,
-    private translate: TranslateService,
+    private translate: GoogleTranslationService,
+    private gtag: Analytics,
+    private fbp: FacebookPixelService
   ){
   }
 
@@ -39,6 +44,24 @@ export class FlightOfferDetailsComponent implements OnInit {
         this.getAllLocations(this.extractIATACodes(this.data.offer.itineraries[0].segments), token as string).subscribe(locations=>{
           this.locations=locations;
           this.loading=false;
+          logEvent(this.gtag, 'view_item',
+            {
+              currency: 'MXN',
+              value: this.data.offer.price.total as number,
+              items: this.data.offer.itineraries[0].segments.map(segment=>{
+                return {
+                  item_id: segment.id,
+                  item_name: (segment.operating.carrierCode??segment.carrierCode)+segment.number.toString(),
+                  item_category: 'Vuelo',
+                  departure_date: segment.departure.at,
+                  arrival_date: segment.arrival.at,
+                  origin: segment.departure.iataCode,
+                  destination: segment.arrival.iataCode
+                }
+              })
+            }
+          );
+          this.fbp.track('ViewContent');
         })
       }
     });
@@ -49,14 +72,28 @@ export class FlightOfferDetailsComponent implements OnInit {
     return forkJoin(locationRequest).pipe(
       concatMap(locations => from(locations)),
       concatMap((response: AmadeusGetLocationResponse) => 
-        this.translate.translateLocation(response.data) // Asume que esto devuelve un Observable
+        this.translateLocation(response.data) // Asume que esto devuelve un Observable
       ),
       toArray()
     );
   }
+  translateLocation(location: AmadeusLocation):Observable<AmadeusLocation> {
+    const translation = this.translate.translateV2([location.address.cityName, location.address.countryName], 'es');
+    return translation.pipe(map((response: V2Response) => {
+      return {
+        ...location,
+        address: {
+          ...location.address,
+          cityName: response.data.translations[0].translatedText,
+          countryName: response.data.translations[1].translatedText
+        }
+      };
+    }))
+
+  }
   createCheckedBagsText(segmentID:string):string{
     const segment=this.getFareInfoBySegment(segmentID);
-    console.log(segment.includedCheckedBags.quantity);
+    //console.log(segment.includedCheckedBags.quantity);
     let cabinBags = segment?.includedCheckedBags?.quantity ?? 0;
     let returnText;
     if(cabinBags>0){

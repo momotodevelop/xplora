@@ -1,0 +1,20 @@
+<section class="layout-pt-lg layout-pb-lg">
+    <div class="container">
+        <div class="row y-gap-30">
+            <div class="col-lg-3">
+                <div class="px-30 py-30 rounded-4 border-light">
+                    <div class="tabs__controls row y-gap-10">
+                        @for(section of sections; track $index){
+                            <div class="col-12">
+                                <button (click)="active=section.id" class="tabs__button active">{{section.title}}</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-9">
+                <app-terms-text [activeSection]="active ?? ''"></app-terms-text>
+            </div>
+        </div>
+    </div>
+</section>

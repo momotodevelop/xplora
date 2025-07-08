@@ -51,16 +51,16 @@ export class SearchTopbarComponent implements OnInit {
   suggestedDestinations:DirectDestination[]=[];
   constructor(private dialog: MatDialog, private bottomSheet: MatBottomSheet, private token: AmadeusAuthService, private titlecase: TitleCasePipe, private locations: AirportSearchService){}
   ngOnInit(): void {
-    console.log(this.origin);
-    console.log(this.destination);
-    console.log(this.departure);
-    console.log(this.return);
-    console.log(this.passengers);
+    //console.log(this.origin);
+    //console.log(this.destination);
+    //console.log(this.departure);
+    //console.log(this.return);
+    //console.log(this.passengers);
     this.round=this.return!==undefined;
     this.dates = [this.departure];
-    console.log(this.flightClass);
+    //console.log(this.flightClass);
     const filteredClasses=this.flightClasses.filter(classF=>classF.id===this.flightClass as FlightClassType);
-    console.log(filteredClasses);
+    //console.log(filteredClasses);
     if(filteredClasses.length>0){
       this.selectedFlightClass=filteredClasses[0];      
     }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, forkJoin, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, retry, switchMap } from 'rxjs/operators';
 import { WpPost, WpMedia, PostQueryParams, PostListItem, PostDetail, PostSimpleCard, PostDetailCategory } from '../types/wordpress.types';
 
 @Injectable({
@@ -65,7 +65,7 @@ export class WordpressService {
    * @returns Observable con el objeto WpPost correspondiente.
    */
   getPostById(id: number): Observable<WpPost> {
-    return this.http.get<WpPost>(`${this.API_BASE}/posts/${id}`);
+    return this.http.get<WpPost>(`${this.API_BASE}/posts/${id}`).pipe(retry(10));
   }
 
   /**
@@ -77,7 +77,7 @@ export class WordpressService {
    */
   getPostBySlug(slug: string): Observable<WpPost | null> {
     const params = new HttpParams().set('slug', slug);
-    return this.http.get<WpPost[]>(`${this.API_BASE}/posts`, { params })
+    return this.http.get<WpPost[]>(`${this.API_BASE}/posts`, { params }).pipe(retry(10))
       .pipe(
         map(posts => posts.length > 0 ? posts[0] : null)
       );
@@ -90,7 +90,7 @@ export class WordpressService {
    * @returns Observable con el objeto WpMedia que contiene los detalles del archivo.
    */
   getMediaById(id: number): Observable<WpMedia> {
-    return this.http.get<WpMedia>(`${this.API_BASE}/media/${id}`);
+    return this.http.get<WpMedia>(`${this.API_BASE}/media/${id}`).pipe(retry(10));
   }
 
   /**
@@ -154,7 +154,7 @@ export class WordpressService {
     if (!categoryIds.length) return of([]);
   
     const params = new HttpParams().set('include', categoryIds.join(','));
-    return this.http.get<any[]>(`${this.API_BASE}/categories`, { params }).pipe(
+    return this.http.get<any[]>(`${this.API_BASE}/categories`, { params }).pipe(retry(10)).pipe(
       map(cats => cats.map(cat => ({ id: cat.id, name: cat.name })))
     );
   }

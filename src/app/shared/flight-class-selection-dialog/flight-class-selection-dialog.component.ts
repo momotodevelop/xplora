@@ -38,7 +38,7 @@ export class FlightClassSelectionDialogComponent implements OnInit {
   }
   classListChange(){
     const allChecked:boolean=this.allChecked();
-    console.log(allChecked)
+    //console.log(allChecked)
     if(allChecked){
       this.allSelected=true;
     }else{
@@ -54,12 +54,12 @@ export class FlightClassSelectionDialogComponent implements OnInit {
   }
   allChecked() {
     const classString:string[]=this.flightClasses.map(fclass=>fclass.id);
-    console.log(classString);
-    console.log()
+    //console.log(classString);
+    //console.log()
     return this.selectedOptions.length===classString.length;
   }
   closeWithData(){
-    console.log(this.selectedOptions.length);
+    //console.log(this.selectedOptions.length);
     if(this.selectedOptions.length<1){
       this.snackbar.open("Selecciona al menos una categoria", undefined, {duration: 2000})
     }else{

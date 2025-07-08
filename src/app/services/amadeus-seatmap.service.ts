@@ -2,7 +2,7 @@ import { Injectable, Input } from '@angular/core';
 import { FlightOffer, FlightOfferSearchResponse } from '../types/flight-offer-amadeus.types';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AmadeusAuthService } from './amadeus-auth.service';
-import { mergeMap, throwError } from 'rxjs';
+import { mergeMap, retry, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Deck, APIResponse as GetSeatMapAPIResponse, SeatElement } from '../types/amadeus-seat-map.types';
 
@@ -36,7 +36,7 @@ export class AmadeusSeatmapService {
         const headers = new HttpHeaders({
           'Authorization': `Bearer ${token}`
         });
-        return this.http.post<GetSeatMapAPIResponse>(`${environment.amadeusApiUrl}/v1/shopping/seatmaps`, {data: offers},{ headers: headers});
+        return this.http.post<GetSeatMapAPIResponse>(`${environment.amadeusApiUrl}/v1/shopping/seatmaps`, {data: offers},{ headers: headers}).pipe(retry(2));
       })
     );
   }

@@ -35,6 +35,12 @@ export interface EmailPayload {
   send_at?: number; // Unix timestamp
 }
 
+export interface SmsPayload{
+  to: string,
+  body: string,
+  ShortenUrls: boolean
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -53,5 +59,13 @@ export class NotificationService {
     const emailsCollection = collection(this.firestore, 'emails');
     // Se agrega el documento con los datos del correo
     return addDoc(emailsCollection, emailData);
+  }
+  sendSms(phoneNumber:string, body: string, shorter:boolean=true){
+    const smsCollection = collection(this.firestore, 'messages');
+    return addDoc(smsCollection, {
+      to: phoneNumber,
+      body,
+      ShortenUrls: shorter
+    })
   }
 }

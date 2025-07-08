@@ -1,10 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { XploraFlightBooking } from '../../../types/xplora-api.types';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FareDetailsBySegment, FlightOffer } from '../../../types/flight-offer-amadeus.types';
-import * as _ from 'lodash'
-import { DateStringPipe } from '../../../date-string.pipe';
-import { RemoveCharactersPipe } from '../../../meridian-parser.pipe';
+import * as _ from 'lodash';
 import { DurationPipe } from '../../../duration.pipe';
 import { Promo, XploraPromosService } from '../../../services/xplora-promos.service';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,7 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { UppercaseDirective } from '../../../uppercase.directive';
 import { AmadeusAirlinesService } from '../../../services/amadeus-airlines.service';
 import { BrandfetchService } from '../../../services/brandfetch.service';
-import { FirebaseBooking, FlightAdditionalServiceItem, FlightFirebaseBooking } from '../../../types/booking.types';
+import { FlightAdditionalServiceItem, FlightFirebaseBooking } from '../../../types/booking.types';
 
 export interface Charge{
   amount: number,
@@ -29,7 +26,7 @@ export interface Charge{
 
 @Component({
     selector: 'app-booking-sidebar',
-    imports: [CommonModule, DateStringPipe, RemoveCharactersPipe, DurationPipe, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, UppercaseDirective, CurrencyPipe],
+    imports: [CommonModule, DurationPipe, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, UppercaseDirective, CurrencyPipe],
     templateUrl: './booking-sidebar.component.html',
     providers: [CurrencyPipe],
     styleUrl: './booking-sidebar.component.scss'
@@ -59,7 +56,6 @@ export class BookingSidebarComponent implements OnInit{
     this.bookingHandler.booking.subscribe(booking=>{
       this.aditionalServiceCharges = [];
       this.flightCharges = [];
-      console.log(booking);
       if(booking!==undefined){
         this.booking = booking;
         this.totalPassengers = booking.flightDetails.passengers.counts.adults+booking.flightDetails.passengers.counts.childrens+booking.flightDetails.passengers.counts.infants;
@@ -165,7 +161,6 @@ export class BookingSidebarComponent implements OnInit{
     this.bookingHandler.promo.subscribe(promo=>{
       this.appliedPromo = promo;
       if(this.booking!==undefined){
-        console.log(promo);
         this.updatePrice(this.booking);
       }
     });
@@ -246,7 +241,6 @@ export class BookingSidebarComponent implements OnInit{
       charges.push(promoCharge);
     }
     this.bookingHandler.setCharges(charges);
-    console.log(charges);
     this.bookingHandler.setPricesInfo([this.grandTotal, this.discountedAmmount ?? 0]);
   }
   removePromo(){
@@ -265,7 +259,6 @@ export class BookingSidebarComponent implements OnInit{
           this.bookingHandler.setPromo(promo);
           this.updatePrice(this.booking!);
         }else{
-          console.log("Promo not found");
           this.promoControl.enable();
           this.bookingHandler.setPromo(undefined);
           this._sb.open('Código de promoción invalido', 'Aceptar', {duration: 1500});

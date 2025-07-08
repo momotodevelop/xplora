@@ -10,6 +10,6 @@ import { Component, Input, OnInit } from '@angular/core';
 export class HotelReviewComponent implements OnInit {
   @Input() review!:google.maps.places.Review;
   ngOnInit(): void {
-    console.log(this.review);
+    //console.log(this.review);
   }
 }

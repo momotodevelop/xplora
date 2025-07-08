@@ -16,7 +16,7 @@ export class XploraApiService {
     return this.http.get<XploraFlightBooking>("https://zuddyksquc.execute-api.us-east-2.amazonaws.com/default/xploraFlightsAPI", { params: {bookingID}});
   }
   updateBooking(bookingID:string, updateData:any){
-    console.log("Send to API");
+    //console.log("Send to API");
     return this.http.post<UpdateResponse>("https://zuddyksquc.execute-api.us-east-2.amazonaws.com/default/xploraFlightsAPI", {bookingID, updateData});
   }
 }

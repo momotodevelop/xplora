@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { BottomsheetDestinationSearchComponent } from '../../../shared/bottomsheet-destination-search/bottomsheet-destination-search.component';
+import { ScrollRevealDirective } from '../../../scroll-reveal.directive';
 
 export interface Destination{
   name: string;
@@ -9,9 +12,12 @@ export interface Destination{
 
 @Component({
   selector: 'app-popular-destinations',
-  standalone: false,
+  standalone: true,
   templateUrl: './popular-destinations.component.html',
-  styleUrl: './popular-destinations.component.scss'
+  styleUrl: './popular-destinations.component.scss',
+  imports: [
+    ScrollRevealDirective
+  ]
 })
 export class PopularDestinationsComponent {
   featuredDestinations: Destination[] = [
@@ -76,4 +82,14 @@ export class PopularDestinationsComponent {
       image: "/assets/img/featured-destinations/sydney.jpg"
     }
   ]
+  constructor(private bs: MatBottomSheet){
+
+  }
+  openDestination(destination: string) {
+    //console.log(destination);
+    this.bs.open(BottomsheetDestinationSearchComponent, {
+      data: destination,
+      panelClass: 'custom-bottom-sheet'
+    });
+  }
 }

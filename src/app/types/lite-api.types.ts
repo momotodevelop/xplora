@@ -37,38 +37,39 @@ export interface HotelDetails {
     id: string;
     name: string;
     hotelDescription: string;
-    hotelImportantInformation: string;
-    checkinCheckoutTimes: CheckinCheckoutTimes;
+    hotelImportantInformation?: string;
+    checkinCheckoutTimes?: CheckinCheckoutTimes;
     hotelImages: HotelImage[];
     main_photo: string;
     country: string;
     city: string;
-    starRating: number;
+    starRating?: number;
     location: Location;
     address: string;
     hotelFacilities: string[];
-    chainId: number;
-    chain: string;
-    facilities: Facility[];
+    chainId?: number;
+    chain?: string;
+    facilities?: Facility[];
     rooms: Room[];
     phone?: string;
     fax?: string;
     email?: string;
-    hotelType: string;
-    hotelTypeId: number;
-    airportCode: string;
-    rating: number;
-    reviewCount: number;
-    parking: string;
-    groupRoomMin: number;
-    childAllowed: boolean;
-    petsAllowed: boolean;
-    policies: Policy[];
+    hotelType?: string;
+    hotelTypeId?: number;
+    airportCode?: string;
+    rating?: number;
+    reviewCount?: number;
+    parking?: string;
+    groupRoomMin?: number;
+    childAllowed?: boolean;
+    petsAllowed?: boolean;
+    policies?: Policy[];
 }
 export interface CheckinCheckoutTimes {
     checkout: string;
     checkin: string;
-    checkinStart: string;
+    checkinStart?: string;
+    checkinEnd?: string;
 }
 export interface HotelImage {
     url: string;

@@ -23,9 +23,9 @@ export class SelectSeatMapComponent implements OnInit {
   @Output() selected: EventEmitter<SeatElement> = new EventEmitter();
   ngOnInit(): void {
     this.mapDeckToRows(this.deck);
-    console.log(this.rows);
-    console.log(this.deck);
-    console.log(this.selection);
+    //console.log(this.rows);
+    //console.log(this.deck);
+    //console.log(this.selection);
   }
   constructor(private sb: MatSnackBar){}
   mapDeckToRows(deck: Deck): void {

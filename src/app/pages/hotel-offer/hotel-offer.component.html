@@ -1,9 +1,11 @@
-<app-hotel-details-breadcrumb></app-hotel-details-breadcrumb>
+@if(details){
+    <app-hotel-details-breadcrumb [hotel]="details"></app-hotel-details-breadcrumb>
+}
 <section class="pt-40">
     <div class="container">
         @if(details){
-            <app-hotel-details-header [address]="details.address" [hotelName]="details.name!" [priceFrom]="0"></app-hotel-details-header>
-            <app-hotel-details-photos [photos]="details.hotelImages ?? []"></app-hotel-details-photos>
+            <app-hotel-details-header (goToRooms)="goToRoomsSection()" [address]="details.address" [hotelName]="details.name!" [priceFrom]="minPrice"></app-hotel-details-header>
+            <app-hotel-details-photos [photos]="details.hotelImages"></app-hotel-details-photos>
         }
     </div>
 </section>
@@ -17,8 +19,18 @@
             </div>
             <div class="col-xl-4">
                 <div class="ml-50 lg:ml-0">
-                    <app-hotel-details-check-availability></app-hotel-details-check-availability>
-                    <app-hotel-details-location></app-hotel-details-location>
+                    <app-hotel-details-check-availability (checkAvailability)="checkAvailability($event)" [minPrice]="minPrice" [rooms]="rooms" [checkIn]="checkIn" [checkOut]="checkOut"></app-hotel-details-check-availability>
+                    @if(details){
+                        <app-hotel-details-location 
+                            [address]="details.address" 
+                            [lat]="details.location.latitude" 
+                            [lng]="details.location.longitude"
+                            [times]="details.checkinCheckoutTimes"
+                            [importantInfo]="details.hotelImportantInformation"
+                            [petsAllowed]="details.petsAllowed"
+                            >
+                        </app-hotel-details-location>
+                    }
                 </div>
             </div>
             
@@ -26,7 +38,9 @@
     </div>
 </section>
 @if(details){
-    <app-hotel-details-rooms [dates]="[checkIn, checkOut]" [details]="details" [rates]="rates ?? []"></app-hotel-details-rooms>
+    <div #roomsSection>
+        <app-hotel-details-rooms [dates]="[checkIn, checkOut]" [details]="details" [rates]="rates ?? []"></app-hotel-details-rooms>
+    </div>
 }
 @if(false){
     <!-- <app-hotel-details-reviews [rating]="googlePlace.rating" [reviews]="googlePlace.reviews" [reviewsCount]="googlePlace.userRatingCount" [sentiments]="amadeusSentiments"></app-hotel-details-reviews> -->

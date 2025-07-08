@@ -988,87 +988,17 @@ const Tabs = (function() {
 
 const RevealAnim = (function() {
   function single() {
-    const animationTarget = document.querySelectorAll('[data-anim]');
-    if (!animationTarget.length) return;
-
-    for (let i = 0; i < animationTarget.length; i++) {
-      const el = animationTarget[i];
     
-      new ScrollMagic.Scene({
-        offset: '350px',
-        triggerElement: el,
-        triggerHook: "onEnter",
-        reverse: false,
-      })
-      .on('enter', function (event) {
-        animateElement(el);
-      })
-      .addTo(App.SMcontroller)
-    }
   }
   
   function container() {
-  
-    const animationContainer = document.querySelectorAll('[data-anim-wrap]');
-  
-    if (!animationContainer.length) {
-      return;
-    }
     
-    for (let i = 0; i < animationContainer.length; i++) {
-      const el = animationContainer[i];
-    
-      new ScrollMagic.Scene({
-        offset: '350px',
-        triggerElement: el,
-        triggerHook: "onEnter",
-        reverse: false,
-      })
-      .on('enter', function (event) {
-        
-        const animChilds = el.querySelectorAll('[data-anim-child]');
-        el.classList.add('animated');
-        animChilds.forEach(el => animateElement(el));
-        
-      })
-      .addTo(App.SMcontroller)
-    }
   
   }
   
 
   function animateElement(target) {
     
-    let attrVal;
-    let animDelay;
-    let attrDelayPart;
-  
-    if (target.getAttribute('data-anim')) {
-      attrVal = target.getAttribute('data-anim');
-    } else {
-      attrVal = target.getAttribute('data-anim-child');
-    }
-    
-    if (attrVal.includes('delay-')) {
-      attrDelayPart = attrVal.split(' ').pop();
-      animDelay = attrDelayPart.substr(attrDelayPart.indexOf('-') + 1) / 10;
-    }
-  
-    if (attrVal.includes('counter')) {
-      counter(target, animDelay);
-    }
-    else if (attrVal.includes('line-chart')) {
-      lineChart(target, animDelay);
-    }
-    else if (attrVal.includes('pie-chart')) {
-      pieChart(target, animDelay);
-    }
-    else if (attrVal.includes('split-lines')) {
-      splitLines(target, animDelay);
-    }
-    else {
-      target.classList.add('is-in-view');
-    }
 
   }
 

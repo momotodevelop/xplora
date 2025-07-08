@@ -46,7 +46,7 @@ export class XploraPaymentsService {
     return this.http.post<PreferenceDataMP>("https://b8qb9szlm0.execute-api.us-east-2.amazonaws.com/default/xploraPayments", JSON.stringify(data));
   }
   createPaymentMP(data:CreatePaymentRequestData, pnr:string, uid:string, bookingID:string, test:boolean=false){
-    console.log(uid);
+    //console.log(uid);
     const headers = new HttpHeaders({
       'test': test.toString() 
     });

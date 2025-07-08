@@ -1,1 +1,196 @@
-<p>cash-payment works!</p>
+<mat-card>
+  <mat-card-header class="d-flex justify-content-between">
+    <mat-card-title style="font-weight: bolder; font-size: 16px;">
+      <h5>Confirmación: {{ booking.bookingID!.slice(-6) | uppercase }}</h5>
+    </mat-card-title>
+    @if (countdownCompleted) {
+      <mat-chip class="payment-status error" selected>
+        <span class="label">Vencido</span>
+      </mat-chip>
+    } @else {
+      @switch (booking.payment!.status) {
+        @case ('COMPLETED') {
+          <mat-chip class="payment-status success" selected>
+            <span class="label">Pagado</span>
+          </mat-chip>
+        }
+        @case ('PENDING') {
+          <mat-chip class="payment-status pending" selected>
+            <span class="label">Pendiente</span>
+          </mat-chip>
+        }
+        @case ('VALIDATING') {
+          <mat-chip class="payment-status validation" selected>
+            <span class="label">Validando</span>
+          </mat-chip>
+        }
+        @case ('CANCELED') {
+          <mat-chip class="payment-status error" selected>
+            <span class="label">Cancelado</span>
+          </mat-chip>
+        }
+      }
+    }
+  </mat-card-header>
+    <mat-card-content>
+        @if (countdownCompleted) {
+        <div class="overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+            style="z-index: 200; background-color: rgba(255,255,255,0.7);">
+            <a href="https://wa.me/message/SSEJGDSJLQP5L1" target="_blank" style="opacity: 1;" mat-raised-button color="primary">Solicitar más tiempo</a>
+        </div>
+        }
+
+        <div class="row mt-3">
+        <div class="col-6">
+            <p><strong>Titular:</strong><br />{{ booking.contact!.name | titlecase }} {{ booking.contact!.lastname |
+            titlecase }}</p>
+        </div>
+        <div class="col-6 text-md-end">
+            <div class="row">
+            <div class="col-12 d-flex align-items-center justify-content-end">
+                <span class="ms-2">Tiempo restante</span>
+            </div>
+            <div class="col-12 d-flex align-items-center justify-content-end">
+                <mat-icon>schedule</mat-icon>
+                <b [ngClass]="{ 'countdown-danger': countdownDanger }">
+                <countdown [config]="countdownConfig" (event)="countdownNotify($event)" />
+                </b>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <hr />
+
+        <!-- Selector de oficina/establecimiento -->
+        <div class="row mt-2">
+            <div class="col-12">
+                <mat-form-field appearance="fill" class="w-100" subscriptSizing="dynamic">
+                    <mat-label>Selecciona un establecimiento</mat-label>
+                    <select [formControl]="officeSelector" matNativeControl>
+                        @for(office of paymentOffices; track $index){
+                            <option [value]="office.id">{{office.name}}</option>
+                        }
+                    </select>
+                </mat-form-field>
+            </div>
+        </div>
+
+        @if(selectedOffice){
+            <div id="payment-instructions">
+                <!-- Referencia -->
+                <div class="row mt-15">
+                    <div class="col-8">
+                        <h4 class="mb-10">Instrucciones para realizar tu pago:</h4>
+                    </div>
+                    <div class="col-4" style="display: flex;align-items: center;justify-content: end;">
+                        <button data-html2canvas-ignore class="no-print" (click)="shareFile('payment-instructions', 20, 'pdf')" mat-mini-fab color="primary">
+                            <mat-icon>share</mat-icon>
+                        </button>
+                        <button data-html2canvas-ignore printSectionId="payment-instructions" [useExistingCss]="true" ngxPrint class="ml-10 no-print" mat-mini-fab color="primary">
+                            <mat-icon>print</mat-icon>
+                        </button>
+                        <img style="max-width: 200px;" class="w-100 hidden-for-screen only-for-canvas" [src]="selectedOffice.img">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <ul>
+                            <li class="only-for-canvas hidden-for-screen">
+                                ‼️ Realiza tu pago antes de: <b>{{booking.payment!.paymentLimit!.toDate()|date:'medium'}}</b>
+                            </li>
+                            <li>
+                                1️⃣ Acude a la sucursal de {{selectedOffice.name}} mas cercana.
+                            </li>
+                            @switch(selectedOffice.processor){
+                                @case('broxel-oxxo'){
+                                    <li>2️⃣ Solicita realizar un pago de servicios.</li>
+                                }
+                                @case('broxel-paynet'){
+                                    <li>2️⃣ Solicita realizar un <b>pago de servicios "PayNet"</b>.</li>
+                                }
+                                @case('broxel-walmart'){
+                                    <li>2️⃣ Solicita realizar un <b>pago de servicios "Broxel"</b>.</li>
+                                }
+                            }
+                            <li>
+                                3️⃣ Proporciona el siguiente codigo de barras para escaneo:
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-12 text-center mt-20 mb-20">
+                        @if(selectedOffice.showBarcode){
+                            <img class="w-100" style="max-width: 350px;" src="https://barcodeapi.org/api/128/{{selectedOffice.account}}?&dpi=400&height=20&text=none">
+                        }
+                        @if(selectedOffice.showQR){
+                            <img class="w-100" style="max-width: 350px;" src="https://barcodeapi.org/api/qr/{{selectedOffice.account}}?&dpi=500&height=200&text=none">
+                        }
+                        <h5>{{selectedOffice.account}}</h5>
+                        @if(selectedOffice.processor==='broxel-paynet'){
+                            <p class="mt-2" style="font-size: 0.85em; line-height: 1.5em;">
+                                Si el código de barras no puede ser leído, puedes dictar este código al cajero para completar tu pago.
+                            </p>
+                        }
+                    </div>
+                    <div class="col-12">
+                        <li>
+                            4️⃣ Realiza el pago de tu reservación por <b>{{booking.payment!.totalDue | currency:'MXN'}}</b>.
+                            @if(paymentList.length>1){
+                                <div class="alert alert-warning mt-10" role="alert">
+                                    Debido a que el total de la reservación excede el límite por transacción, el pago debe dividirse en varias partes. Te sugerimos esta distribución:
+                                    <ul class="mb-0 ml-20">
+                                        @for(payment of paymentList; track $index) {
+                                            @if(payment.count>1){
+                                                <li style="list-style: disc;">
+                                                    {{payment.count}} pagos de <b>{{payment.amount | currency:'MXN'}}</b> 
+                                                </li>
+                                            }@else{
+                                                <li style="list-style: disc;">
+                                                    Un pago de <b>{{payment.amount | currency:'MXN'}}</b>
+                                                </li>
+                                            }
+                                        }
+                                    </ul>
+                                    <div class="mt-10" style="font-size: 0.95em;">
+                                        <strong>Importante:</strong> Todos los pagos deben realizarse utilizando {{selectedOffice.processor==='broxel-paynet'?'la misma referencia proporcionada':'el mismo codigo de barras proporcionado'}} anteriormente.
+                                    </div>
+                                </div>
+                            }
+                        </li>
+                        <li>
+                            @if(paymentList.length > 1){
+                                5️⃣ Por favor, espera a recibir los comprobantes de cada pago realizado, ya que será necesario subir todos ellos para validar tu pago.
+                            }@else{
+                                5️⃣ Espera a recibir tu comprobante de pago, ya que será necesario subirlo para validar tu pago.
+                            }
+                        </li>
+                        <li>
+                            ✅ Una vez realizado el pago, por favor sube tu comprobante en la sección "Subir comprobante de pago" para continuar con tu reservación.
+                        </li>
+                    </div> 
+                </div>
+                <div class="alert d-flex align-items-center mt-4" role="alert" [ngClass]="selectedOffice.fee === 0 ? 'alert-success' : 'alert-info'">
+                    @if(selectedOffice.fee === 0){
+                        <mat-icon style="min-width: 32px;" class="me-2">check_circle</mat-icon>
+                    }@else{
+                        <mat-icon style="min-width: 32px;" class="me-2">info</mat-icon>
+                    }
+                    <div>
+                        @if(selectedOffice.fee > 0){
+                            <span>El establecimiento cobrará una comisión de {{selectedOffice.fee | currency:'MXN'}} {{paymentList.length > 1 ? 'por cada pago realizado':'al realizar el pago'}}.</span>
+                        }@else{
+                            <span>Este comercio no cobra comisión al realizar el pago.</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }@else{
+            <div class="alert alert-info d-flex align-items-center mt-4" role="alert">
+                <mat-icon style="min-width: 32px;" class="me-2">info</mat-icon>
+                <div>
+                    Por favor, selecciona un establecimiento para continuar con tu pago.
+                </div>
+            </div>
+        }
+    </mat-card-content>
+</mat-card>

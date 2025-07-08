@@ -61,7 +61,7 @@ export interface Price {
     grandTotal: string|number;
 }
 export interface Fee {
-    amount: string;
+    amount: string|number;
     type: string;
 }
 export interface PricingOptions {

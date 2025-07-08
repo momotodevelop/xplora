@@ -26,7 +26,7 @@ export class HotelDateSelectionSheetComponent implements OnInit {
   ){}
 
   ngOnInit(): void {
-    console.log(this.data);
+    //console.log(this.data);
     if(this.data.dates!==undefined){
       this.selectedDateRange = new DateRange(this.data.dates[0], this.data.dates[1]);
     }

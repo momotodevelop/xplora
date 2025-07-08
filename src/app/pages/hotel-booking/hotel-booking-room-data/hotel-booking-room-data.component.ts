@@ -15,7 +15,7 @@ export class HotelBookingRoomDataComponent implements OnInit {
   @Output() holderData: EventEmitter<HolderData[]> = new EventEmitter();
   form!:FormGroup;
   ngOnInit(): void {
-    console.log(this.accomodation);
+    //console.log(this.accomodation);
     const formArray: FormArray = new FormArray(
       this.accomodation.map(()=>{
         return new FormGroup({
@@ -29,7 +29,7 @@ export class HotelBookingRoomDataComponent implements OnInit {
         rooms: formArray
       }
     );
-    console.log(this.roomsForm.controls[0]);
+    //console.log(this.roomsForm.controls[0]);
     this.roomsForm.valueChanges.subscribe((value:HolderData)=>{
       const validRooms = this.roomsForm.controls
         .filter(control => control.valid)

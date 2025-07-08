@@ -23,6 +23,6 @@ export class HotelBookingAddonsTransfersSheetComponent implements OnInit {
     this.bottomSheetRef.dismiss();
   }
   ngOnInit(): void {
-    console.log(this.data);
+    //console.log(this.data);
   }
 }

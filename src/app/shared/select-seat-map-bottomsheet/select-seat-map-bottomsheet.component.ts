@@ -19,11 +19,11 @@ export class SelectSeatMapBottomsheetComponent {
     @Inject(MAT_BOTTOM_SHEET_DATA) public data: {deck: Deck, passenger: PassengerValue, selected:SelectionDisplay[]},
     private _bottomSheetRef: MatBottomSheetRef<SelectSeatMapBottomsheetComponent>
   ){
-    console.log(this.data);
+    //console.log(this.data);
   }
   selectedSeat(seat:SeatElement){
     this.seat=seat;
-    console.log(seat);
+    //console.log(seat);
   }
   close(){
     this._bottomSheetRef.dismiss();

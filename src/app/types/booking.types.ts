@@ -121,8 +121,8 @@ export type AdditionalServiceType = "INSURANCE"|"FLEXPASS"|"CARRYON"|"BAGGAGE"|"
 export type AdditionalServiceContext = 'FLIGHT' | 'HOTEL' | 'ACTIVITY' | 'TRANSPORT';
 
 export interface HotelBookingDetails{
-    checkin: Date|firebase.default.firestore.Timestamp,
-    checkout: Date|firebase.default.firestore.Timestamp,
+    checkin: Date|Timestamp,
+    checkout: Date|Timestamp,
     hotel: HotelInfoBookingDetails,
     accomodation: AccomodationData[],
     offer: ModifiedRoomType
@@ -133,9 +133,9 @@ export interface HotelInfoBookingDetails{
     name: string,
     address: string,
     image: string,
-    rating: number,
-    ratingCount: number,
-    stars: number,
+    rating: number|null,
+    ratingCount: number|null,
+    stars: number|null,
     lat: number,
     lng: number,
     city: string,

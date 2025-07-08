@@ -28,7 +28,6 @@ export class AddBaggageComponent implements OnInit {
   }
   ngOnInit(): void {
     if(this.data.saved){
-      console.log(this.data.saved);
       this.extraBaggage = this.data.saved;
       this.change();
     }
@@ -61,7 +60,6 @@ export class AddBaggageComponent implements OnInit {
     this._bottomSheetRef.dismiss();
   }
   save(){
-    console.log(this.extraBaggage);
     this._bottomSheetRef.dismiss(this.extraBaggage);
   }
   change(){

@@ -18,7 +18,7 @@ export class SelectedFlightComponent implements OnInit {
   ngOnInit(): void {
     this.offersHandler.selected.subscribe(({
       next: (selected) => {
-        console.log(selected);
+        //console.log(selected);
         if(selected&&selected.outbound){
           const selectedFlight = selected.outbound;
           this.offer = selectedFlight.offer;

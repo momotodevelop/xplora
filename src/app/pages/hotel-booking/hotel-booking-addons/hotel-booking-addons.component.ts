@@ -74,7 +74,7 @@ export class HotelBookingAddonsComponent {
       guests: this.guests.adults + this.guests.childrens,
       hotelName: this.hotelName
     }
-    console.log(data);
+    //console.log(data);
     this.bs.open(HotelBookingAddonsTransfersSheetComponent, {
       data,
       panelClass: ['bottomsheet-no-padding', 'bottomsheet-extras']

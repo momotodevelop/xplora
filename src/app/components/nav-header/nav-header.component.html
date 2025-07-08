@@ -1,9 +1,9 @@
 @if(headerType){
   <header #header data-add-bg="bg-dark-1" [ngClass]="{'-dashboard': dashboard,'bg-white': headerType==='white','bg-green': headerType==='light', 'bg-dark-3': headerType==='dark'}" class="header js-header" data-x="header" data-x-toggle="is-menu-opened">
-    <div data-anim="fade" class="header__container px-30 sm:px-20">
+    <div appScrollReveal data-anim="fade" class="header__container px-30 sm:px-20">
       @if(dashboard){
         <div class="-left-side">
-          <a href="/" class="header-logo" data-x="header-logo" data-x-toggle="is-logo-dark">
+          <a href="/inicio" class="header-logo" data-x="header-logo" data-x-toggle="is-logo-dark">
             <img src="assets/img/general/logo-light.svg" alt="Xplora Travel">
             <img src="assets/img/general/logo-dark.svg" alt="Xplora Travel">
           </a>
@@ -22,7 +22,7 @@
         <div class="col-auto">
           <div class="d-flex items-center">
             @if(!dashboard){
-              <a href="/" class="header-logo mr-20" data-x="header-logo" data-x-toggle="is-logo-dark">
+              <a href="/inicio" class="header-logo mr-20" data-x="header-logo" data-x-toggle="is-logo-dark">
                 <img src="assets/img/general/logo-light.svg" alt="Xplora Travel">
                 <img src="assets/img/general/logo-dark.svg" alt="Xplora Travel">
               </a>
@@ -140,23 +140,25 @@
   
             <div class="d-flex items-center ml-20 is-menu-opened-hide md:d-none">
               @if(!booking){
-                <a href="login.html" class="button px-30 fw-400 text-14 -white bg-white h-50 text-dark-1">Conviértete en Xperto</a>
+                <a href="/xplorers" class="button px-30 fw-400 text-14 -white bg-white h-50 text-dark-1">Conviértete en Xperto</a>
               }@else{
-                <a href="/inicio" class="button px-30 fw-400 text-14 -white bg-white h-50 text-dark-1">Salir</a>
+                <a (click)="exit()" class="button px-30 fw-400 text-14 -white bg-white h-50 text-dark-1">Salir</a>
               }
               @if(!user){
-                <a href="/entrar" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">Iniciar Sesión / Registrarse</a>
+                <a (click)="login()" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">Iniciar Sesión / Registrarse</a>
               }@else{
                 <a (click)="logout()" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">{{user.displayName ?? 'Bienvenido'}}</a>
               }
             </div>
   
             <div class="d-none xl:d-flex x-gap-20 items-center pl-30 text-white" data-x="header-mobile-icons" data-x-toggle="text-white">
-              <div><a href="login.html" class="d-flex items-center icon-user text-inherit text-22"></a></div>
+              @if(!user){
+                <div><a (click)="login()" class="d-flex items-center icon-user text-inherit text-22"></a></div>
+              }
               @if(!booking){
                 <div><button class="d-flex items-center icon-menu text-inherit text-20" data-x-click="html, header, header-logo, header-mobile-icons, mobile-menu"></button></div>
               }@else{
-                <div><button class="d-flex items-center icon-close text-inherit text-20"></button></div>
+                <div><button (click)="exit()" class="d-flex items-center icon-close text-inherit text-20"></button></div>
               }
             </div>
           </div>

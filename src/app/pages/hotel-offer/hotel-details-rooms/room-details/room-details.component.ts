@@ -7,20 +7,23 @@ import { CommonModule } from '@angular/common';
 import { IconDefinition } from '@fortawesome/free-brands-svg-icons';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { HotelPriceManagerPipe } from '../../../../hotel-price-manager.pipe';
 import { BoardTypeDictionarie } from '../../../../static/board-types.static';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HotelFirebaseBookingService } from '../../../../services/hotel-firebase-booking.service';
+import { MatIconModule } from '@angular/material/icon';
+import { FacilityTranslationService } from '../../../../services/facility-translation.service';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { RoomDetailsPopupComponent } from '../../../../shared/room-details-popup/room-details-popup.component';
 export interface RateDisplay extends Rate{
   occupancyIcons:IconDefinition[],
   board?: BoardTypeDefinition
 }
 @Component({
   selector: 'app-room-details',
-  imports: [TranslatePipe, CommonModule, FontAwesomeModule, HotelPriceManagerPipe, ReactiveFormsModule],
+  imports: [TranslatePipe, CommonModule, FontAwesomeModule, ReactiveFormsModule, MatIconModule],
   templateUrl: './room-details.component.html',
   styleUrl: './room-details.component.scss',
-  providers: [TranslatePipe, HotelPriceManagerPipe]
+  providers: [TranslatePipe]
 })
 export class RoomDetailsComponent implements OnInit {
   @Input() room!:HotelRoomDisplay;
@@ -31,14 +34,19 @@ export class RoomDetailsComponent implements OnInit {
   nights:number = 2;
   rateForm!: FormGroup;
   activeOffer?:RoomTypeDisplay;
-  constructor(private GoogleTranslate:GoogleTranslationService, private firebaseBooking:HotelFirebaseBookingService ){
+  constructor(
+    private GoogleTranslate:GoogleTranslationService, 
+    private firebaseBooking:HotelFirebaseBookingService, 
+    public facilityTranslate:FacilityTranslationService,
+    private bs: MatBottomSheet
+  ){
   }
   ngOnInit(): void {
     this.activeOffer = this.room.offers?.[0];
     this.rateForm = new FormGroup({
       rate: new FormControl({value: this.activeOffer?.offerId ?? null, disabled: false})
     });
-    console.log(this.checkIn);
+    //console.log(this.checkIn);
     const cancelLimit = new Date(this.checkIn); // Crear una copia de la fecha
     cancelLimit.setDate(cancelLimit.getDate() - 1);
     this.cancelationLimit = cancelLimit;
@@ -51,13 +59,13 @@ export class RoomDetailsComponent implements OnInit {
         }
       })
     }
-    console.log(this.room.offers![0].rates[0].board!.description.es);
+    //console.log(this.room.offers![0].rates[0].board!.description.es);
     this.rateControl.valueChanges.subscribe(value=>{
-      console.log(value);
+      //console.log(value);
       this.activeOffer = this.room.offers?.find(offer=>offer.offerId===value);
-      console.log(this.activeOffer);
+      //console.log(this.activeOffer);
     });
-    console.log(this.activeOffer?.offerRetailRate.amount);
+    //console.log(this.activeOffer?.offerRetailRate.amount);
   }
   selectRoomType(){
     this.selectedRoom.emit(this.activeOffer!);
@@ -67,5 +75,11 @@ export class RoomDetailsComponent implements OnInit {
   }
   get rateControl(){
     return this.rateForm.controls['rate'];
+  }
+  openRoomDetails(){
+      this.bs.open(RoomDetailsPopupComponent, {
+        data: this.room,
+        panelClass: 'custom-bottom-sheet'
+      });
   }
 }

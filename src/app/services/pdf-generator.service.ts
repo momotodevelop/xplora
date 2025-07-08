@@ -21,7 +21,7 @@ export class PdfGeneratorService {
   constructor(private http: HttpClient) { }
 
   private getToken():Observable<string>{
-    return this.http.get<string>("https://phphpgvd28.execute-api.us-east-2.amazonaws.com/default/pdfgeneratorJWT");
+    return this.http.get<string>("https://phphpgvd28.execute-api.us-east-2.amazonaws.com/default/pdfgeneratorJWT").pipe(retry(10));
   }
   private createDocument(templateId: string, data: any, token:string){
     const headers = new HttpHeaders({
@@ -35,7 +35,7 @@ export class PdfGeneratorService {
       format: "pdf",
       output: "base64",
       name: data.pnr
-    }, {headers});
+    }, {headers}).pipe(retry(10));
   }
 
   getPDFDocumentData(templateId: string, data: any):Promise<{data:string, name: string}>{

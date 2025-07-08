@@ -233,7 +233,7 @@ export class HotelBookingAddonsTransfersComponent {
   time:number=0;
   transferType:"ROUND"|"HOTEL"|"APTO"="ROUND";
   ngOnInit(): void {
-    console.log(this.hotelName);
+    //console.log(this.hotelName);
     this.airportSelector.valueChanges.subscribe(airport=>{
       if(airport){
         this.changeAirport(airport!);
@@ -244,7 +244,7 @@ export class HotelBookingAddonsTransfersComponent {
       this.selectedFare = fare?fare:undefined;
     });
     this.airports.getNearbyAirports(this.lat, this.lng).subscribe(airports=>{
-      console.log(airports.data[0].address.countryName);
+      //console.log(airports.data[0].address.countryName);
       this.loading = false;
       this.nearbyAirports = airports.data;
       if(airports.data.length>0){
@@ -267,7 +267,7 @@ export class HotelBookingAddonsTransfersComponent {
     this.transferType = type; 
   }
   changeRadio($event:MatRadioChange){
-    console.log($event); 
+    //console.log($event); 
     const fare = this.displayTransferFares![$event.value];
     this.selectedFare = fare?fare:undefined;
   }
@@ -280,14 +280,14 @@ export class HotelBookingAddonsTransfersComponent {
       this.legs=route.routes[0].legs[0];
       this.distance = Math.round(this.legs!.distance!.value/1000);
       this.time = Math.round(this.legs!.duration!.value/60);
-      console.log(this.legs);
+      //console.log(this.legs);
       this.displayTransferFares = TRANSFER_FARES.map(fare=>{
         return {
           ...fare,
           prices: this.calculatePrices(fare,route.routes[0].legs[0].distance!.value, route.routes[0].legs[0].duration!.value, this.guests)
         }
       });
-      console.log(this.displayTransferFares);
+      //console.log(this.displayTransferFares);
     });
   }
   changeAirport(airportIata:string){

@@ -154,7 +154,7 @@ export class FlightOffersDataHandlerService {
     }
     // Filtro por horario de salida
     if (filters.departureTime) {
-      console.log(filters.departureTime);
+      //console.log(filters.departureTime);
       filtered = this.filterByTime(filtered, filters.departureTime, true);
     }
     // Filtro por horario de llegada

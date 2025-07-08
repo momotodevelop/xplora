@@ -2,9 +2,10 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-newsletter-subscription',
-  standalone: false,
+  standalone: true,
   templateUrl: './newsletter-subscription.component.html',
-  styleUrl: './newsletter-subscription.component.scss'
+  styleUrl: './newsletter-subscription.component.scss',
+  imports: []
 })
 export class NewsletterSubscriptionComponent {
 

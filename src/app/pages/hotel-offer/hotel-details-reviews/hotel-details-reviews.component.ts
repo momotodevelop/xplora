@@ -31,7 +31,7 @@ export class HotelDetailsReviewsComponent implements OnInit {
   ngOnInit(): void {
     this.reviews = this.reviews?.slice(0,4);
     this.hotels.getRating("DKLONDSF").subscribe(rating=>{
-      console.log(rating);
+      //console.log(rating);
       if(rating.data!==undefined){
         if(rating.data.length>0){
           this.sentiments = rating.data[0].sentiments;
@@ -58,7 +58,7 @@ export class HotelDetailsReviewsComponent implements OnInit {
                 });
               }
             });
-            console.log(this.displaySentiments);
+            //console.log(this.displaySentiments);
           }
         }
       }

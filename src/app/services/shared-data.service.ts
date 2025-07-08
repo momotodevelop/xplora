@@ -20,6 +20,10 @@ export class SharedDataService {
   sidebarDashboardOpened = this._sidebarDashboardOpened.asObservable();
   private _hideNav = new BehaviorSubject<boolean>(false);
   hideNav = this._hideNav.asObservable();
+  private _minFooter = new BehaviorSubject<boolean>(false);
+  minFooter = this._minFooter.asObservable();
+  private _footerHeight = new BehaviorSubject<number>(0);
+  footerHeight = this._footerHeight.asObservable();
   constructor() { }
   changeHeaderType(headerType: HeaderType) {
     if(headerType){
@@ -27,8 +31,11 @@ export class SharedDataService {
     }
   }
   changeHeaderHeight(height:number){
-    console.log(height);
+    //console.log(height);
     this._headerHeight.next(height);
+  }
+  changeFooterHeight(height:number){
+    this._footerHeight.next(height);
   }
   toggleHideNav(hidden?:boolean){
     const isHidden = hidden ?? !this._hideNav.value;
@@ -49,11 +56,15 @@ export class SharedDataService {
   changeHeaderDashboard(isDashboard:boolean){
     this._headerDashboard.next(isDashboard);
   }
-  settBookingMode(isBooking:boolean){
+  setBookingMode(isBooking:boolean){
     if(isBooking){
       this._headerType.next("dark");
     }
+    this._minFooter.next(isBooking);
     this._headerBooking.next(isBooking);
+  }
+  setMinimizedFooter(min:boolean){
+    this._minFooter.next(min);
   }
   toggleDashboardSidebar(){
     this._sidebarDashboardOpened.next(!this._sidebarDashboardOpened.value);

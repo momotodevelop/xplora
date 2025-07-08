@@ -88,8 +88,8 @@ export class HotelSidebarFiltersComponent implements OnInit {
           this.filter(value);
         }
     });
-    console.log(this.hotelInput.pristine);
-    console.log(this.checkboxes);
+    //console.log(this.hotelInput.pristine);
+    //console.log(this.checkboxes);
   }
   get checkboxes() : FormArray {
     return this.form.get('filters') as FormArray;
@@ -103,7 +103,7 @@ export class HotelSidebarFiltersComponent implements OnInit {
     }else{
       this.hotelFilterOptions = this.hotelList;
     }
-    console.log(this.hotelFilterOptions);
+    //console.log(this.hotelFilterOptions);
   }
   resetHotelInput(){
     this.hotelInput.reset();

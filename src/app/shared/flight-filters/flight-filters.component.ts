@@ -55,7 +55,7 @@ export class FlightFiltersComponent {
     if(!this.bottomSheet){
       this.offersData.filterFormValue.subscribe((value)=>{
         if(value!==undefined){
-          console.log(value);
+          //console.log(value);
           this.filtersFormGroup.setValue(value as any);
         }
       });
@@ -84,7 +84,7 @@ export class FlightFiltersComponent {
         this.stopsOptions=stopsOptions;
         if(this.bottomSheet){
           combineLatest([this.offersData.filters, this.offersData.sorting]).pipe(first()).subscribe(data=>{
-            console.log(data);
+            //console.log(data);
             this.setFilterOptionsToForm(data[0]!, this.filtersFormGroup, this.carrierOptions, this.stopsOptions);
           });
         }
@@ -92,7 +92,7 @@ export class FlightFiltersComponent {
     });
     this.filtersFormGroup.valueChanges.pipe(debounceTime(500)).subscribe((value:FilterFormValue)=>{
       if(!this.bottomSheet){
-        console.log(value)
+        //console.log(value)
         this.filterByDeparture = value.departureTime ?? undefined;
         this.filterByArrival = value.arrivalTime ?? undefined;
         const selectedStops:number[]=this.getSelectedStopsIds();
@@ -144,13 +144,13 @@ export class FlightFiltersComponent {
     }
   
     if (filters.segments && filters.segments.length>0) {
-      console.log(filters.segments);
+      //console.log(filters.segments);
       // Obtén el FormArray de paradas del formulario
       const stopsFormArray = filtersFormGroup.get('stops') as FormArray;
       // Limpia el FormArray actual
       stopsFormArray.clear();
       // Rellena el FormArray basado en los segmentCounts seleccionados
-      console.log(stopsOptions);
+      //console.log(stopsOptions);
       stopsOptions.forEach((option, index) => {
         // Asume que la opción de paradas se mapea 1:1 con el número de segmentos - 1 (por ejemplo, 0 paradas = 1 segmento)
         stopsFormArray.push(new FormControl(filters.segments?.includes(index+2)));

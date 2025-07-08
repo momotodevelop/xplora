@@ -1,18 +1,18 @@
 @if(posts.length > 0){
   <section class="layout-pt-lg layout-pb-md">
-    <div data-anim-wrap class="container">
-      <div data-anim-child="slide-up delay-1" class="row justify-center text-center">
+    <div appScrollReveal data-anim-wrap class="container">
+      <div appScrollReveal data-anim-child="slide-up delay-1" class="row justify-center text-center">
         <div class="col-auto">
           <div class="sectionTitle -md">
-            <h2 class="sectionTitle__title">Get inspiration for your next trip</h2>
-            <p class=" sectionTitle__text mt-5 sm:mt-0">Interdum et malesuada fames</p>
+            <h2 class="sectionTitle__title">Explora, Aprende y Viaja</h2>
+            <p class=" sectionTitle__text mt-5 sm:mt-0">Viajes, cultura, tips y mucho más para aventureros como tú.</p>
           </div>
         </div>
       </div>
   
       <div class="row y-gap-30 pt-40">
         @for(post of posts; track $index){
-          <div data-anim-child="slide-left delay-1" class="col-lg-4 col-sm-6">
+          <div appScrollReveal data-anim-child="slide-left delay-1" class="col-lg-4 col-sm-6">
   
             <a href="" class="blogCard -type-1 d-block ">
               <div class="blogCard__image">

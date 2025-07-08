@@ -1,5 +1,5 @@
-<div class="px-50 py-50 sm:px-20 sm:py-20 bg-white" [ngClass]="{ 'rounded-4': rounded, 'shadow-4': floating }">
-    <div class="row y-gap-20">
+<div class="bg-white" [ngClass]="{ 'rounded-4': rounded, 'shadow-4': floating, 'px-50 py-50 sm:px-20 sm:py-20': !isBottomSheet, 'px-20 py-20': isBottomSheet }">
+    <div class="row y-gap-10 x-gap-10">
         <div class="col-12">
             <h1 class="text-22 fw-500">Ingresa a tu cuenta</h1>
             @if(!createNewAccount){
@@ -9,13 +9,13 @@
             }
         </div>
         @if(createNewAccount){
-            <div class="col-12" @fadeInOut>
+            <div class="col-6" @fadeInOut>
                 <div class="form-input">
                     <input type="text" required>
                     <label class="lh-1 text-14 text-light-1">Nombre</label>
                 </div>
             </div>
-            <div class="col-12" @fadeInOut>
+            <div class="col-6" @fadeInOut>
                 <div class="form-input">
                     <input type="text" required>
                     <label class="lh-1 text-14 text-light-1">Apellido(s)</label>
@@ -28,14 +28,14 @@
                 <label class="lh-1 text-14 text-light-1">Correo Electrónico</label>
             </div>
         </div>
-        <div class="col-12">
+        <div [ngClass]="{'col-6': createNewAccount, 'col-12': !createNewAccount}" class="col-12">
             <div class="form-input">
                 <input type="password" required>
                 <label class="lh-1 text-14 text-light-1">Contraseña</label>
             </div>
         </div>
         @if(createNewAccount){
-            <div class="col-12" @fadeInOut>
+            <div [ngClass]="{'col-6': createNewAccount, 'col-12': !createNewAccount}" @fadeInOut>
                 <div class="form-input">
                     <input type="password" required>
                     <label class="lh-1 text-14 text-light-1">Repite tu contraseña</label>
@@ -53,33 +53,29 @@
         }
         <div class="col-12">
             @if(createNewAccount){
-                <a href="#" class="button py-20 -dark-1 bg-blue-1 text-white" @fadeInOut>
+                <a (click)="createAccount()" class="button py-20 -dark-1 bg-blue-1 text-white" @fadeInOut>
                     Registrarse <div class="icon-arrow-top-right ml-15"></div>
                 </a>
             }@else{
-                <a href="#" class="button py-20 -dark-1 bg-blue-1 text-white" @fadeInOut>
+                <a class="button py-20 -dark-1 bg-blue-1 text-white" @fadeInOut>
                     Iniciar Sesión <div class="icon-arrow-top-right ml-15"></div>
                 </a>
             }
         </div>
     </div>
-    <div class="row y-gap-20 pt-30">
-        <div class="col-12">
-            <div class="text-center">O entrar con</div>
-            <button (click)="phoneLogin()" class="button col-12 -outline-blue-1 text-blue-1 py-15 rounded-8 mt-10">
+    <div class="row x-gap-10 mt-10">
+        <div class="text-center col-12">O entrar con</div>
+        <div class="col-6">
+            <button (click)="phoneLogin()" class="w-100 button -outline-blue-1 text-blue-1 py-15 rounded-8 mt-10">
                 <fa-icon [icon]="mobileIcon" class="text-15 mr-10"></fa-icon>
                 Teléfono (SMS)
             </button>
-            <button (click)="googleLogin()" class="button col-12 -outline-red-1 text-red-1 py-15 rounded-8 mt-15">
+        </div>
+        <div class="col-6">
+            <button (click)="googleLogin()" class="w-100 button -outline-red-1 text-red-1 py-15 rounded-8 mt-10">
                 <fa-icon [icon]="googleIcon" class="text-15 mr-10"></fa-icon>
                 Google
             </button>
-            @if(!createNewAccount){
-                <button @fadeInOut (click)="anonLogin()" class="button col-12 -outline-dark-2 text-dark-2 py-15 rounded-8 mt-15">
-                    <fa-icon [icon]="anonIcon" class="text-15 mr-10"></fa-icon>
-                    Anónimo (sin cuenta)
-                </button>
-            }
         </div>
     </div>
 </div>

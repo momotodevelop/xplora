@@ -1,4 +1,4 @@
-<section data-anim="fade" class="d-flex items-center py-15 border-top-light">
+<section appScrollReveal data-anim="fade" class="d-flex items-center py-15 border-top-light">
     <div class="container">
         <div class="row y-gap-10 items-center justify-between">
             <div class="col-auto">
@@ -27,9 +27,9 @@
         </div>
     </div>
 </section>
-<section data-anim-wrap class="layout-pt-md layout-pb-lg">
+<section appScrollReveal data-anim-wrap class="layout-pt-md layout-pb-lg">
     <div class="container">
-        <div data-anim-child="slide-up delay-1" class="row justify-center text-center">
+        <div appScrollReveal data-anim-child="slide-up delay-1" class="row justify-center text-center">
             <div class="col-auto">
                 <div class="sectionTitle -md">
                     <h2 class="sectionTitle__title">Bitácora Xplora</h2>
@@ -37,7 +37,7 @@
                 </div>
             </div>
         </div>
-        <div data-anim-child="slide-up delay-2" class="tabs -pills-3 pt-30 js-tabs">
+        <div appScrollReveal data-anim-child="slide-up delay-2" class="tabs -pills-3 pt-30 js-tabs">
             <div class="row y-gap-30">
                 @for(post of posts; track $index){
                     <div class="col-lg-4 col-sm-6">

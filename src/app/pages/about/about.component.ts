@@ -5,6 +5,9 @@ import { SecturComponent } from './sectur/sectur.component';
 import { AmavComponent } from './amav/amav.component';
 import { IataComponent } from './iata/iata.component';
 import { SharedDataService } from '../../services/shared-data.service';
+import { Title } from '@angular/platform-browser';
+import { ScrollRevealDirective } from '../../scroll-reveal.directive';
+import { MetaHandlerService } from '../../services/meta-handler.service';
 export interface Opinion {
   nombre: string;
   titulo: string;
@@ -321,16 +324,21 @@ export const OPINIONS: Opinion[] = [
 ]
 @Component({
     selector: 'app-about',
-    imports: [MatBottomSheetModule],
+    imports: [MatBottomSheetModule, ScrollRevealDirective],
     templateUrl: './about.component.html',
     styleUrl: './about.component.scss'
 })
 export class AboutComponent {
   opinions:Opinion[]=OPINIONS;
   rating:number=0;
-  constructor(private bs: MatBottomSheet, private shared: SharedDataService){
+  constructor(private bs: MatBottomSheet, private shared: SharedDataService, private meta: MetaHandlerService){
     this.rating = this.calcularPromedio(this.opinions);
     this.shared.changeHeaderType("dark");
+    this.meta.setMeta({
+      title: "Xplora Travel || ¿Quiénes Somos?",
+      description: "Conoce la historia, valores y experiencia de Xplora Travel, tu agencia de viajes confiable para descubrir México y el mundo.",
+      image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fus.jpg?alt=media&token=33849ca2-1a2a-48a1-a6ce-e017b6d0620a"
+    });
   }
   calcularPromedio(opiniones: Opinion[]): number {
     if (opiniones.length === 0) {
@@ -344,12 +352,12 @@ export class AboutComponent {
     this.bs.open(TripadvisorComponent, {panelClass: 'bottomsheet-no-padding'});
   }
   openRNT(){
-    this.bs.open(SecturComponent, {panelClass: 'bottomsheet-no-padding'})
+    this.bs.open(SecturComponent, {panelClass: 'bottomsheet-no-padding'});
   }
   openAMAV(){
-    this.bs.open(AmavComponent, {panelClass: 'bottomsheet-no-padding'})
+    this.bs.open(AmavComponent, {panelClass: 'bottomsheet-no-padding'});
   }
   openIATA(){
-    this.bs.open(IataComponent, {panelClass: 'bottomsheet-no-padding'})
+    this.bs.open(IataComponent, {panelClass: 'bottomsheet-no-padding'});
   }
 }

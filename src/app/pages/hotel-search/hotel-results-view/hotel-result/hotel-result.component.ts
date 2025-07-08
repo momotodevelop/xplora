@@ -10,14 +10,13 @@ import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-s
 import { GoogleMapBottomsheetComponent } from '../../../../shared/google-map-bottomsheet/google-map-bottomsheet.component';
 import { of } from 'rxjs';
 import { HotelListResultDisplay } from '../../hotel-search.component';
-import { HotelPriceManagerPipe } from '../../../../hotel-price-manager.pipe';
 import { LiteApiService } from '../../../../services/lite-api.service';
 import { FacilityDescription } from '../../../../types/lite-api.types';
 import { HotelHandlerService } from '../../../../services/hotel-handler.service';
 
 @Component({
   selector: 'app-hotel-result',
-  imports: [CommonModule, HotelPriceManagerPipe, FontAwesomeModule, MatBottomSheetModule],
+  imports: [CommonModule, FontAwesomeModule, MatBottomSheetModule],
   templateUrl: './hotel-result.component.html',
   styleUrl: './hotel-result.component.scss',
   providers: [DatePipe]
@@ -37,7 +36,7 @@ export class HotelResultComponent implements OnInit{
     
   }
   ngOnInit(): void {
-    console.log(this.hotelResult.zip);
+    //console.log(this.hotelResult.zip);
     this.lite.facilities.subscribe(facilities=>{
       if(facilities){
         this.facilities = facilities;

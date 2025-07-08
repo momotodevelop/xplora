@@ -1,0 +1,7 @@
+
+<div [ngClass]="{'disabled-element':loading}" id="clip_checkout"></div>
+@if(!loading){
+    <button class="button -md -blue-1 bg-dark-3 text-white w-100" (click)="getTokenClip()">Pagar {{total|currency:'MXN'}}</button>
+}@else{
+    <button [disabled]="true" class="button -md -blue-1 bg-dark-3 text-white w-100">Procesando Pago...</button>
+}  

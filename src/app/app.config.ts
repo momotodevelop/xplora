@@ -1,4 +1,4 @@
-import { ApplicationConfig, LOCALE_ID } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, importProvidersFrom, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import localeEsMX from '@angular/common/locales/es-MX';
 
@@ -12,15 +12,18 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getAnalytics, provideAnalytics, ScreenTrackingService, UserTrackingService } from '@angular/fire/analytics';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider, provideAppCheck } from '@angular/fire/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, provideAppCheck, ReCaptchaV3Provider } from '@angular/fire/app-check';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getFunctions, provideFunctions } from '@angular/fire/functions';
 import { getMessaging, provideMessaging } from '@angular/fire/messaging';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 import { provideLottieOptions } from 'ngx-lottie';
 import player from 'lottie-web';
-import { env } from 'process';
 import { firebaseConfig } from '../environments/environment';
+import { register } from 'swiper/element/bundle';
+import { provideServiceWorker } from '@angular/service-worker';
+register();
+//const GA4ID="G-24FJZWWE84";
 
 registerLocaleData(localeEsMX);
 
@@ -34,14 +37,29 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(), 
     provideAnimations(), 
     { provide: LOCALE_ID, useValue: 'es-MX' }, 
-    { provide: MAT_DATE_LOCALE, useValue: 'es-MX' }, 
+    { provide: MAT_DATE_LOCALE, useValue: 'es-MX' },
     provideHttpClient(withFetch()), 
     provideFirebaseApp(() => initializeApp(firebaseConfig)), 
     provideAuth(() => getAuth()), 
-    provideAnalytics(() => getAnalytics()), 
+    provideAnalytics(() => getAnalytics()),
     ScreenTrackingService, 
     UserTrackingService,
     provideFirestore(() => getFirestore()), provideFunctions(() => getFunctions()), provideMessaging(() => getMessaging()), provideStorage(() => getStorage()),
-    provideAnimationsAsync()
+    provideAnimationsAsync(), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          }), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          }), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          }), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          }), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          })
   ]
 };

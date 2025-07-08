@@ -38,7 +38,7 @@ export class HotelLocationSelectorBottomsheetComponent implements OnInit {
   constructor(private places: GooglePlacesService, private _ref: MatBottomSheetRef<HotelLocationSelectorBottomsheetComponent>){}
   options?:LocationOption[];
   ngOnInit(): void {
-    this.searchInput.valueChanges.pipe(debounceTime(200)).subscribe(value=>{
+    this.searchInput.valueChanges.pipe(debounceTime(500)).subscribe(value=>{
       if(this.searchInput.valid&&value.length>0){
         this.places.fetchAutocompleteSuggestions(value).then(results =>{
           this.options = results.map(result=>{
@@ -52,7 +52,7 @@ export class HotelLocationSelectorBottomsheetComponent implements OnInit {
               suggestion: result.placePrediction!
             };
           });
-          console.log(this.options)
+          //console.log(this.options)
         });
       }
     })

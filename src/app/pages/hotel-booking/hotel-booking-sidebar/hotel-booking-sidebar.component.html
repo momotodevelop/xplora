@@ -7,41 +7,45 @@
             </div>
 
             <div class="col">
-            <div class="d-flex x-gap-5 pb-10">
-                @if(hotel.stars>0){
-                    <i class="icon-star text-yellow-1 text-10"></i>
-                }
-                @if(hotel.stars>1){
-                    <i class="icon-star text-yellow-1 text-10"></i>
-                }
-                @if(hotel.stars>2){
-                    <i class="icon-star text-yellow-1 text-10"></i>
-                }
-                @if(hotel.stars>3){
-                    <i class="icon-star text-yellow-1 text-10"></i>
-                }
-                @if(hotel.stars>4){
-                    <i class="icon-star text-yellow-1 text-10"></i>
-                }
-            </div>
+            @if(hotel.stars){
+                <div class="d-flex x-gap-5 pb-10">
+                    @if(hotel.stars>0){
+                        <i class="icon-star text-yellow-1 text-10"></i>
+                    }
+                    @if(hotel.stars>1){
+                        <i class="icon-star text-yellow-1 text-10"></i>
+                    }
+                    @if(hotel.stars>2){
+                        <i class="icon-star text-yellow-1 text-10"></i>
+                    }
+                    @if(hotel.stars>3){
+                        <i class="icon-star text-yellow-1 text-10"></i>
+                    }
+                    @if(hotel.stars>4){
+                        <i class="icon-star text-yellow-1 text-10"></i>
+                    }
+                </div>
+            }
 
             <div class="lh-17 fw-500">{{hotel.name}}</div>
             <div class="text-14 lh-15 mt-5">{{hotel.address}}</div>
-            @if(hotel.ratingCount>0){
-                <div class="row x-gap-10 y-gap-10 items-center pt-10">
-                    <div class="col-auto">
-                    <div class="d-flex items-center">
-                        <div class="size-30 flex-center bg-blue-1 rounded-4">
-                            <div class="text-12 fw-600 text-white">{{hotel.rating}}</div>
+            @if(hotel.ratingCount&&hotel.rating){
+                @if(hotel.ratingCount>0){
+                    <div class="row x-gap-10 y-gap-10 items-center pt-10">
+                        <div class="col-auto">
+                        <div class="d-flex items-center">
+                            <div class="size-30 flex-center bg-blue-1 rounded-4">
+                                <div class="text-12 fw-600 text-white">{{hotel.rating}}</div>
+                            </div>
+                            <div class="text-14 fw-500 ml-10">{{hotelHandler.getRatingDescription(hotel.rating)}}</div>
                         </div>
-                        <div class="text-14 fw-500 ml-10">{{hotelHandler.getRatingDescription(hotel.rating)}}</div>
+                        </div>
+        
+                        <div class="col-auto">
+                        <div class="text-14">{{hotel.ratingCount|number}} opiniones</div>
+                        </div>
                     </div>
-                    </div>
-    
-                    <div class="col-auto">
-                    <div class="text-14">{{hotel.ratingCount|number}} opiniones</div>
-                    </div>
-                </div>
+                }
             }
             </div>
         </div>

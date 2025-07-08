@@ -1,5 +1,5 @@
 @if(confirmationLoader){
-    <app-booking-creation-loader (completed)="completeLoader()" [cashPaymentTime]="10" [speiPaymentTime]="10" [steps]="confirmationLoaderSteps" [paymentMethod]="paymentMethod" [paymentType]="'NOW'"></app-booking-creation-loader>
+    <app-booking-creation-loader [bookingId]="bookingID!" (completed)="completeLoader()" [cashPaymentTime]="43200" [speiPaymentTime]="600" [steps]="confirmationLoaderSteps" [paymentMethod]="paymentMethod" [paymentType]="'NOW'"></app-booking-creation-loader>
 }@else{
     @if(booking!==undefined){
         <!-- <section class="layout-pt-md">
@@ -60,16 +60,16 @@
                             <div class="col-6">
                                 @switch(activeStep){
                                     @case (0) {
-                                        <button mat-raised-button class="w-100" [disabled]="!passengers" color="primary" (click)="processPassengers()">Contacto</button>
+                                        <button mat-raised-button class="w-100" [disabled]="!passengers" color="primary" (click)="processPassengers()">Siguiente</button>
                                     }
                                     @case (1) {
-                                        <button mat-raised-button class="w-100" color="primary" [disabled]="!contactInfo" (click)="processContact()">Asientos</button>
+                                        <button mat-raised-button class="w-100" color="primary" [disabled]="!contactInfo" (click)="processContact()">Siguiente</button>
                                     }
                                     @case (2) {
-                                        <button mat-raised-button class="w-100" [disabled]="loadingSeats" color="primary" (click)="processSeats()">Extras</button>
+                                        <button mat-raised-button class="w-100" [disabled]="loadingSeats" color="primary" (click)="processSeats()">Siguiente</button>
                                     }
                                     @case (3) {
-                                        <button mat-raised-button class="w-100" color="primary" (click)="next()">Pago</button>
+                                        <button mat-raised-button class="w-100" color="primary" (click)="next()">Siguiente</button>
                                     }
                                 }
                             </div>

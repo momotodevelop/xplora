@@ -6,10 +6,17 @@ import { NavigationItem } from '../../types/sanity.types';
 import { MenuItem } from '../../types/navigation.types';
 import { FireAuthService } from '../../services/fire-auth.service';
 import { User } from 'firebase/auth';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
+import { BookingProcessExitDialogComponent } from './booking-process-exit-dialog/booking-process-exit-dialog.component';
+import { Router, RouterModule } from '@angular/router';
+import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
+import { BookingProcessLoginBottomsheetComponent } from './booking-process-login-bottomsheet/booking-process-login-bottomsheet.component';
+import { ScrollRevealDirective } from '../../scroll-reveal.directive';
 
 @Component({
     selector: 'app-nav-header',
-    imports: [CommonModule],
+    imports: [CommonModule, MatDialogModule, MatBottomSheetModule, ScrollRevealDirective],
     templateUrl: './nav-header.component.html',
     styleUrl: './nav-header.component.scss'
 })
@@ -50,7 +57,13 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
     }
   ];
   @ViewChild('header', {read: ElementRef, static:false}) headerElement!: ElementRef;
-  constructor(public shared: SharedDataService, private auth: FireAuthService){}
+  constructor(
+    public shared: SharedDataService,
+    private auth: FireAuthService,
+    private dialog: MatDialog,
+    private router: Router,
+    private bottomSheet: MatBottomSheet
+  ){}
   user?:User;
   hide:boolean=false;
   ngOnInit(): void {
@@ -65,9 +78,11 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
       this.hide=isHidden;
     })
     this.auth.user.subscribe(user=>{
+      if(user?.displayName==null || user?.displayName==undefined){
+        
+      }
       if(user){
         this.user=user;
-        console.log(user.displayName);
       }else{
         this.user=undefined;
       }
@@ -76,7 +91,21 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.shared.changeHeaderHeight(this.headerElement.nativeElement.offsetHeight);
   }
+  login(){
+    this.bottomSheet.open(BookingProcessLoginBottomsheetComponent, {panelClass: 'custom-bottom-sheet'});
+  }
   logout(){
     this.auth.logout();
+  }
+  exit(){
+    this.dialog.open(BookingProcessExitDialogComponent, {
+      disableClose: true,
+      width: '350px'
+    }).afterClosed().subscribe(result=>{
+      if(result){
+        this.shared.setBookingMode(false);
+        this.router.navigate(['inicio']);
+      }
+    })
   }
 }

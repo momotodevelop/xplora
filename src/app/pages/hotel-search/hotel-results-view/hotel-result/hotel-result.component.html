@@ -88,7 +88,7 @@
             @if(hotelResult.rate){
                 <div class="">
                     <div class="text-14 text-light-1 mt-50 md:mt-20">{{dN.d}} Días, {{dN.n}} {{dN.n>1?'Noches':'Noche'}}, {{rooms.length}} {{rooms.length>1?'Habitaciones':'Habitación'}}.</div>
-                    <div class="text-22 lh-12 fw-600 mt-5">{{hotelResult.rate|hotelPrice:20|currency:'MXN'}}</div>
+                    <div class="text-22 lh-12 fw-600 mt-5">{{hotelResult.rate|currency:'MXN'}}</div>
                     <div class="text-14 text-light-1 mt-5">Incluye Impuestos</div>
                     <button (click)="openDetails()" class="button -md -dark-1 bg-blue-1 text-white mt-24 w-100">
                         Detalles <div class="icon-arrow-top-right ml-15"></div>

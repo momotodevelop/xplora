@@ -19,6 +19,7 @@ import { TimeAgoPipe } from '../../time-ago.pipe';
 import { Timestamp } from 'firebase/firestore';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faClock, faHistory } from '@fortawesome/free-solid-svg-icons';
+import { PAYMENT_OFFICES, PaymentOffice } from '../../pages/booking-process/payment/payment.component';
 
 export interface Institucion {
   [0]: string; // Código de institución
@@ -158,6 +159,8 @@ interface DisplaySavedOfflinePayment extends OfflinePaymentData {
 })
 export class UploadPaymentReceiptComponent implements OnInit {
   @Input() bookingID: string = 'prueba'; // ID de la reserva para la que se subirá el comprobante
+  @Input() total: number = 0; // Monto total de la reserva, si es necesario mostrarlo
+  @Input() paymentMethod: 'SPEI' | 'CASH' = 'SPEI'; // Método de pago, por defecto SPEI
   selectedFile: File | undefined;
   uploadProgress: Observable<number | string> | null = null;
   downloadURL: string | null = null;
@@ -171,12 +174,17 @@ export class UploadPaymentReceiptComponent implements OnInit {
   banks: Institucion[] = SPEI_BANKS.instituciones; // Lista de bancos activos
   savedPayments: DisplaySavedOfflinePayment[] = []; // Lista de pagos guardados
   timeIcon = faHistory;
+  payed: number = 0;
+  pending: number = 0;
+  paymentOffices:PaymentOffice[] = PAYMENT_OFFICES;
   constructor(private storageService: StorageService, private snackBar: MatSnackBar, private bookingService: FireBookingService){}
 
   ngOnInit(): void {
-    console.log(this.savedPayments[0]);
+    //console.log(this.paymentOffices[0].id);
     this.bookingService.getOfflinePaymentsByBooking(this.bookingID).then(payments=>{
       this.savedPayments = payments as DisplaySavedOfflinePayment[];
+      this.payed = this.savedPayments.filter(p => p.status === 'COMPLETED').reduce((acc, payment) => acc + (payment.amount || 0), 0);
+      this.pending = this.savedPayments.filter(p => p.status === 'VALIDATING').reduce((acc, payment) => acc + (payment.amount || 0), 0);
     });
   }
 
@@ -220,14 +228,14 @@ export class UploadPaymentReceiptComponent implements OnInit {
       });
       return;
     }
-    console.log('Archivo seleccionado:', file);
+    //console.log('Archivo seleccionado:', file);
     this.selectedFile = file;
     return file;
   }
 
   testUpload(){
-    console.log(this.amount.value);
-    console.log(this.senderBank.value);
+    //console.log(this.amount.value);
+    //console.log(this.senderBank.value);
   }
 
   uploadFile(): void {
@@ -244,26 +252,28 @@ export class UploadPaymentReceiptComponent implements OnInit {
       this.uploadProgress.subscribe({
         next: (data: number | string) => {
           if (typeof data === 'number') {
-            console.log('Progreso de subida:', data);
+            //console.log('Progreso de subida:', data);
             // Aquí podrías actualizar una barra de progreso en el HTML
           } else if (typeof data === 'string') {
             this.downloadURL = data;
             this.uploading = false;
             this.uploadSuccess = true;
-            console.log('Archivo subido con éxito. URL:', this.downloadURL);
+            //console.log('Archivo subido con éxito. URL:', this.downloadURL);
             this.snackBar.open('Comprobante subido exitosamente.', 'Cerrar', {
               duration: 2500,
             });
             this.selectedFile = undefined; // Limpiar el archivo seleccionado
             this.bookingService.addPaymentToBooking(this.bookingID, {
-              amount: this.amount.value || 0, // Usa el nuevo monto del pago o 0 si no se especifica
-              method: 'SPEI',
+              amount: parseInt(this.amount.value) || 0, // Usa el nuevo monto del pago o 0 si no se especifica
+              method: this.paymentMethod,
               senderBank: this.senderBank.value,
               status: 'VALIDATING',
               timestamp: new Timestamp(new Date().getTime() / 1000, 0), // Timestamp de Firestore
               receptURL: this.downloadURL
             }).then(payments=>{
               this.savedPayments = payments as DisplaySavedOfflinePayment[];
+              this.payed = this.savedPayments.filter(p => p.status === 'COMPLETED').reduce((acc, payment) => acc + (payment.amount || 0), 0);
+              this.pending = this.savedPayments.filter(p => p.status === 'VALIDATING').reduce((acc, payment) => acc + (payment.amount || 0), 0);
               this.amount.reset();
               this.senderBank.reset();
             });
@@ -276,7 +286,7 @@ export class UploadPaymentReceiptComponent implements OnInit {
         },
         complete: () => {
           // opcional, si necesitas manejar el fin del observable
-          console.log('Subida completada');
+          //console.log('Subida completada');
         }
       });
     } else {

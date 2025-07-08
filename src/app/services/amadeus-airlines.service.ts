@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { mergeMap, throwError } from 'rxjs';
+import { mergeMap, retry, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AmadeusAuthService } from './amadeus-auth.service';
 
@@ -39,7 +39,7 @@ export class AmadeusAirlinesService {
         const headers = new HttpHeaders({
           'Authorization': `Bearer ${token}`
         });
-        return this.http.get<AirlineResponse>(`${environment.amadeusApiUrl}/v1/reference-data/airlines`, { headers: headers, params: {airlineCodes: iata}});
+        return this.http.get<AirlineResponse>(`${environment.amadeusApiUrl}/v1/reference-data/airlines`, { headers: headers, params: {airlineCodes: iata}}).pipe(retry(10));
       })
     );
   }

@@ -28,7 +28,7 @@ export interface SelectionDisplay{
 
 @Component({
     selector: 'app-seats',
-    imports: [MatButtonModule, MatIconModule, CommonModule, MatDividerModule, MatIconModule, InitialPipe, MatChipsModule, MatDialogModule, MatProgressSpinnerModule, FontAwesomeModule, MatCardModule, MatListModule],
+    imports: [MatButtonModule, MatIconModule, CommonModule, MatDividerModule, MatIconModule, MatChipsModule, MatDialogModule, MatProgressSpinnerModule, FontAwesomeModule, MatCardModule, MatListModule],
     providers: [InitialPipe],
     templateUrl: './seats.component.html',
     styleUrl: './seats.component.scss'
@@ -50,7 +50,6 @@ export class SeatsComponent implements OnInit {
   }
   ngOnInit(): void {
     this.loading.emit(true);
-    console.log(this.passengersData);
     this.bookingHandler.booking.subscribe((bookingData)=>{
       const booking:FlightBookingDetails = bookingData?.flightDetails as FlightBookingDetails;
       if(booking!==undefined){
@@ -78,11 +77,9 @@ export class SeatsComponent implements OnInit {
         if(booking.round){
           flights.push(booking.flights.inbound!.offer);
         }
-        console.log(flights);
         this.seatMapStatus = "LOADING";
         this.seatMapService.getSeatMap(flights).subscribe({
           next: (seatMap) => {
-            console.log(seatMap.data);
             this.seatMaps = seatMap.data;
             this.seatMaps.forEach((seatMap, index) => {
               if (!this.selection[index]) {
@@ -105,7 +102,7 @@ export class SeatsComponent implements OnInit {
           },
           error: (err) => {
             this.update();
-            console.log(err);
+            //console.log(err);
             this.seatMapStatus = "ERROR";
             this.loading.emit(false);
             //this.skip.emit();
@@ -121,7 +118,6 @@ export class SeatsComponent implements OnInit {
   openSeatSelector(deck:Deck, passengerID:number, seatMapID:number, available:number){
     if(available<1){
       this.dialog.open(NoAvailableSeatsDialog, {data: available}).afterClosed().subscribe(result=>{
-        if(result) console.log("No available seats");
         this.selection[seatMapID] = this.selection[seatMapID].map(passenger=>{
           return {
             ...passenger,
@@ -149,9 +145,7 @@ export class SeatsComponent implements OnInit {
     const seatSelector = this.bs.open(SelectSeatMapBottomsheetComponent, {data: {deck, passenger: this.passengersData![passengerID], selected: actualSelecion}, panelClass: 'seat-selector-bottomsheet'});
     seatSelector.afterDismissed().subscribe(result=>{
       if(result!==undefined){
-        console.log(result);
         this.selection[seatMapID][passengerID].seat=result as SeatElement;
-        console.log(this.selection);
         this.update();
       }
     })
@@ -182,7 +176,7 @@ export class SeatsComponent implements OnInit {
   }
   updatePendingSeats(){
     const pendingSelectionSeats=this.selection.filter(passenger=>passenger.filter(pass=>pass.seat===undefined).length>0).length;
-    console.log(pendingSelectionSeats)
+    //console.log(pendingSelectionSeats)
     this.pendingSeats.emit(pendingSelectionSeats);
   }
   saveSeatSelection(){

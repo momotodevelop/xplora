@@ -13,7 +13,6 @@ export class FlightClassNamePipe implements PipeTransform {
     if (!value ) {
       return '';
     }
-    console.log(value);
     const found = flightClasses.find(item => item.id === value);
     return found? found.name : "CABINA DESC.";
   }

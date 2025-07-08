@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import{d as e,e as t,g as o,h as p,i as m}from"./chunk-TUONQT2K.mjs";import"./chunk-X62WU7HB.mjs";import"./chunk-UYFIRDFP.mjs";import"./chunk-5XO7ITTW.mjs";import"./chunk-7HQ7XNS2.mjs";import{$c as r}from"./chunk-IB7CNCDV.mjs";import"./chunk-S6KH3LOX.mjs";import a from"./angular-app-manifest.mjs";e(a);export{m as default,p as \u0275destroyAngularServerApp,t as \u0275extractRoutesAndCreateRouteTree,o as \u0275getOrCreateAngularServerApp,r as \u0275resetCompiledComponents};

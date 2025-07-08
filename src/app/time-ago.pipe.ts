@@ -10,7 +10,7 @@ import { format, isThisMonth, differenceInMinutes, differenceInHours, difference
 export class TimeAgoPipe implements PipeTransform {
   transform(value: Timestamp): string {
     if (!value) return '';
-
+    console.log(value);
     const now = new Date();
     const date = value.toDate();
 

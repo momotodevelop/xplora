@@ -10,7 +10,6 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: R
   const shared = inject(SharedDataService);
 
   const allowedRoles: string[] = route.data['roles'] ?? []; // 📌 Asegura que siempre sea un array
-  console.log("start loading");
   shared.setLoading(true);
 
   return authService.role.pipe(
@@ -20,7 +19,6 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: R
       if (userRole && allowedRoles.includes(userRole)) {
         return true;
       }else{
-        console.log("No includes role");
         router.navigate(['/entrar']);
       }
 
@@ -41,7 +39,6 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: R
         }
       } else {
         // ❌ Usuario no autenticado, enviarlo a login
-        console.log("No logged");
         router.navigate(['/entrar']);
       }
 

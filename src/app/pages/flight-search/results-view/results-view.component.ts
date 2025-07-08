@@ -1,15 +1,12 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, ViewChild, input } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, ViewChild, input } from '@angular/core';
 import { FlightOffersAmadeusService } from '../../../services/flight-offers-amadeus.service';
 import { Dictionaries, FlightOffer } from '../../../types/flight-offer-amadeus.types';
 import { CommonModule } from '@angular/common';
-import { DateStringPipe } from '../../../date-string.pipe';
-import { DurationPipe } from '../../../duration.pipe';
 import { FlightClassType } from '../search-topbar/search-topbar.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
-import { FlightOfferDetailsComponent } from '../../../shared/flight-offer-details/flight-offer-details.component';
 import { PriceMutatorService } from '../../../services/price-mutator.service';
 import { PaginatePipe } from '../../../paginate.pipe';
 import { FlightOffersDataHandlerService } from '../../../services/flight-offers-data-handler.service';
@@ -21,6 +18,8 @@ import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { first } from 'rxjs';
 import { FlightOfferComponent } from '../flight-offer/flight-offer.component';
 import { SharedDataService } from '../../../services/shared-data.service';
+import { Analytics, logEvent } from '@angular/fire/analytics';
+import { FacebookPixelService } from '../../../services/facebook-pixel.service';
 
 interface PaginationItem {
   pageNumber: number;
@@ -39,7 +38,7 @@ interface PaginatorData{
 
 @Component({
     selector: 'app-flight-search-results-view',
-    imports: [CommonModule, DateStringPipe, DurationPipe, MatIconModule, MatChipsModule, MatTooltipModule, MatBottomSheetModule, PaginatePipe, MatSnackBarModule, NgxSkeletonLoaderModule, FlightOfferComponent],
+    imports: [CommonModule, MatIconModule, MatChipsModule, MatTooltipModule, MatBottomSheetModule, PaginatePipe, MatSnackBarModule, NgxSkeletonLoaderModule, FlightOfferComponent],
     templateUrl: './results-view.component.html',
     styleUrl: './results-view.component.scss',
     animations: [
@@ -67,6 +66,7 @@ export class ResultsViewComponent implements OnInit {
   mobileView!: boolean;
   selectionStatus:"OUTBOUND"|"INBOUND"="OUTBOUND";
   constructor(
+    private gtag: Analytics,
     private flightOffers: FlightOffersAmadeusService, 
     public flightOffersHandler: FlightOffersDataHandlerService,
     private bs:MatBottomSheet, 
@@ -74,14 +74,15 @@ export class ResultsViewComponent implements OnInit {
     private toast: MatSnackBar,
     private cd : ChangeDetectorRef,
     private breakpointObserver: BreakpointObserver,
+    private fbp: FacebookPixelService,
     private sharedData:SharedDataService){
       this.breakpointObserver.observe([
         "(max-width: 991px)"
       ]).subscribe((result: BreakpointState) => {
-        console.log(result);
+        //console.log(result);
         this.mobileView=result.matches;
       });
-      console.log(this.breakpointObserver.isMatched("(max-width: 991px)"));
+      //console.log(this.breakpointObserver.isMatched("(max-width: 991px)"));
     }
 
   @HostListener('window:resize', ['$event'])  
@@ -105,6 +106,7 @@ export class ResultsViewComponent implements OnInit {
                 this.flightOffersHandler.setData(this.priceMutator.applyDiscount(resultsToBeMutated, 20), results.dictionaries,  this.mobileView?12:7, {}, ['duracion', 'asc']);
               }
               this.loading=false;
+              this.sharedData.setLoading(false);
             },
             error: (err) => {
               console.error(err);
@@ -119,6 +121,7 @@ export class ResultsViewComponent implements OnInit {
                 this.dictionaries = results.dictionaries;
                 this.flightOffersHandler.setData(this.priceMutator.applyDiscount(resultsToBeMutated, 20), results.dictionaries,  this.mobileView?12:7, {}, ['duracion', 'asc']);
               }
+              this.sharedData.setLoading(false);
               this.loading=false;
             },
             error: (err) => {
@@ -131,14 +134,14 @@ export class ResultsViewComponent implements OnInit {
       }
     });
     this.flightOffersHandler.selected.subscribe(flights=>{
-      console.log(flights);
+      //console.log(flights);
     });
     this.flightOffersHandler.filtered.subscribe(offers=>{
       this.results=offers;
       if(offers.length>0){
         this.paginator=this.createPaginators(offers.length, this.mobileView, 1);
       }
-      console.log();
+      //console.log();
     });
     this.flightOffersHandler.page.subscribe(actualPage=>{
       setTimeout(() => {
@@ -153,7 +156,7 @@ export class ResultsViewComponent implements OnInit {
       }, 100);
       this.paginator=this.createPaginators(this.results.length, this.mobileView, actualPage);
     });
-    console.log(this.round);
+    //console.log(this.round);
 
   }
 
@@ -167,6 +170,27 @@ export class ResultsViewComponent implements OnInit {
   }
 
   selectFlight(flight:FlightOffer, type:"OUTBOUND"|"INBOUND"){
+    const items = flight.itineraries[0].segments.map((segment,i)=>{
+        return {
+          item_id: segment.id,
+          item_name: segment.departure.iataCode+'-'+segment.arrival.iataCode,
+          affiliation: "Amadeus GDS",
+          index: i,
+          item_brand: segment.operating.carrierCode??segment.carrierCode,
+          item_category: "Vuelo",
+          location_id: segment.departure.iataCode
+        }
+    })
+    logEvent(this.gtag, 'add_to_cart',{
+      currency: 'MXN',
+      value: parseInt(flight.price.total as string),
+      items
+    });
+    this.fbp.track('AddToCart', {
+      currency: 'MXN',
+      value: flight.price.total,
+      items
+    });
     this.flightOffersHandler.selectFlight(flight, this.dictionaries, type==="INBOUND", this.round);
     this.toast.open("Vuelo de "+(type==='OUTBOUND'?'ida':'regreso')+" seleccionado", type==="OUTBOUND"&&this.round?"Deshacer":undefined, {verticalPosition: "top", duration: 5000})
     this.loading = true;

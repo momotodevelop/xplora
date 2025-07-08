@@ -1,6 +1,6 @@
 <section class="layout-pt-lg layout-pb-md">
     <div class="container">
-      <div data-anim="slide-up delay-1" class="row y-gap-20 justify-between items-end">
+      <div appScrollReveal data-anim="slide-up delay-1" class="row y-gap-20 justify-between items-end">
         <div class="col-auto">
           <div class="sectionTitle -md">
             <h2 class="sectionTitle__title">Popular Destinations</h2>
@@ -17,15 +17,15 @@
         </div>
       </div>
   
-      <div class="relative pt-40 sm:pt-20 js-section-slider" data-gap="30" data-scrollbar data-slider-cols="base-2 xl-4 lg-3 md-2 sm-2 base-1" data-anim="slide-up delay-2">
+      <div class="relative pt-40 sm:pt-20 js-section-slider" data-gap="30" data-scrollbar data-slider-cols="base-2 xl-4 lg-3 md-2 sm-2 base-1" appScrollReveal data-anim="slide-up delay-2">
         <div class="swiper-wrapper">
   
           @for(destination of featuredDestinations; track $index){
             <div class="swiper-slide">
   
-              <a href="#" class="citiesCard -type-1 d-block rounded-4 ">
+              <a class="citiesCard -type-1 d-block rounded-4 ">
                 <div class="citiesCard__image ratio ratio-3:4">
-                  <img src="#" [src]="destination.image" alt="image" class="js-lazy">
+                  <img [src]="destination.image" alt="image" class="js-lazy">
                 </div>
     
                 <div class="citiesCard__content d-flex flex-column justify-between text-center pt-30 pb-20 px-20">
@@ -37,7 +37,7 @@
     
                   <div class="citiesCard__bottom">
                     <h4 class="text-26 md:text-20 lh-13 text-white mb-20">{{destination.name|titlecase}}</h4>
-                    <button class="button col-12 h-60 -blue-1 bg-white text-dark-1">Descubrir</button>
+                    <button (click)="openDestination(destination.name)" class="button col-12 h-60 -blue-1 bg-white text-dark-1">Descubrir</button>
                   </div>
                 </div>
               </a>
@@ -77,7 +77,7 @@
   <section class="layout-pt-md layout-pb-md">
     <div class="container">
       <div class="row y-gap-20">
-        <div data-anim="slide-up" class="col-md-6">
+        <div appScrollReveal data-anim="slide-up" class="col-md-6">
   
           <div class="ctaCard -type-1 rounded-4 ">
             <div class="ctaCard__image ratio ratio-63:55">
@@ -96,7 +96,7 @@
           </div>
   
         </div>
-        <div data-anim="slide-up delay-1" class="col-md-6">
+        <div appScrollReveal data-anim="slide-up delay-1" class="col-md-6">
           <div class="ctaCard -type-1 rounded-4">
             <div class="ctaCard__image ratio ratio-63:55">
               <img class="img-ratio js-lazy" src="#" data-src="/assets/img/pages/home/xplora-banner-2.jpg" alt="image">

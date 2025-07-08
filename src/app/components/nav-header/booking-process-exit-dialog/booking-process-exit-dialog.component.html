@@ -1,0 +1,8 @@
+<h2 mat-dialog-title>¿Salir del proceso de reservación?</h2>
+<mat-dialog-content>
+    ¿Estás seguro que deseas salir? Se perderán los datos ingresados hasta ahora.
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button mat-dialog-close>No, continuar</button>
+    <button mat-button color="warn" [mat-dialog-close]="true">Sí, salir</button>
+</mat-dialog-actions>

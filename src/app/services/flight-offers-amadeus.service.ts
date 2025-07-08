@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, mergeMap, throwError } from 'rxjs';
+import { Observable, map, mergeMap, retry, throwError } from 'rxjs';
 import { Dictionaries, FlightOfferSearchResponse } from '../types/flight-offer-amadeus.types'
 import { AmadeusAuthService } from './amadeus-auth.service';
 import { environment } from '../../environments/environment';
 import { FlightClassType } from '../pages/flight-search/search-topbar/search-topbar.component';
+export const PRICE_MUTATOR_FLIGHTS: number = -50;
 
 @Injectable({
   providedIn: 'root'
@@ -32,9 +33,39 @@ export class FlightOffersAmadeusService {
           travelClass: travelClasses
         };
 
-        return this.http.get<FlightOfferSearchResponse>(`${environment.amadeusApiUrl}/v2/shopping/flight-offers`, { headers: headers, params: params });
+        return this.http.get<FlightOfferSearchResponse>(`${environment.amadeusApiUrl}/v2/shopping/flight-offers`, { headers: headers, params: params }).pipe(retry(5)).pipe(map(response => {
+          return {
+            ...response,
+            data: response.data.map(offer=>{
+              return {
+                ...offer,
+                price: {
+                  ...offer.price,
+                  base: this._applyPriceModifier(parseInt(offer.price.base as string), PRICE_MUTATOR_FLIGHTS),
+                  grandTotal: this._applyPriceModifier(parseInt(offer.price.grandTotal as string), PRICE_MUTATOR_FLIGHTS),
+                  total: this._applyPriceModifier(parseInt(offer.price.total as string), PRICE_MUTATOR_FLIGHTS)
+                },
+                travelerPricings: offer.travelerPricings.map(traveler => {
+                  return {
+                    ...traveler,
+                    price: {
+                      ...traveler.price,
+                      base: this._applyPriceModifier(parseInt(traveler.price.base as string), PRICE_MUTATOR_FLIGHTS),
+                      grandTotal: this._applyPriceModifier(parseInt(traveler.price.grandTotal as string), PRICE_MUTATOR_FLIGHTS),
+                      total: this._applyPriceModifier(parseInt(traveler.price.total as string), PRICE_MUTATOR_FLIGHTS)
+                    }
+                  }
+                })
+              }
+            })
+          }
+        })).pipe(retry(10));
       })
     );
+  }
+  private _applyPriceModifier(originalPrice: number, percentageModifier: number, round: boolean = true): number {
+    const modified = originalPrice + (originalPrice * (percentageModifier / 100));
+    return round ? Math.round(modified) : modified;
   }
   getAirlineName(code: string, dictionaries:Dictionaries): string {
     return dictionaries?.carriers?.[code] ?? 'Desconocido';

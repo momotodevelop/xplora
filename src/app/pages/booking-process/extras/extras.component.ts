@@ -233,7 +233,6 @@ export class ExtrasComponent implements OnInit {
     this.dialog.open(AddBaggageComponent, {panelClass: 'custom-bottom-sheet', data}).afterDismissed().subscribe(value=>{
       if(value!==undefined){
         this.additionalServices!.baggage = value;
-        console.log(this.additionalServices?.baggage);
         this.updateExtrasTotal();
         this.fireBooking.nestedUpdateBooking(this.booking!.bookingID!, {
           "flightDetails.aditionalServices.baggage": value
@@ -280,7 +279,6 @@ export class ExtrasComponent implements OnInit {
       sumServices(aditional.baggage!.inbound);
     this.baggageTotal = baggageTotal;
     total += baggageTotal;
-    console.log(total);
     // Asignación total y activación de cambios
     this.total = total;
     //this.hasChanges = true;

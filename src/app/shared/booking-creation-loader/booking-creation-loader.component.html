@@ -56,7 +56,7 @@
                 </div>
             }@else{
                 <div style="max-width: 380px; margin: auto;">
-                    <ng-lottie style="width: 50%; margin: auto" (animationCreated)="animationCreated($event)" (loopComplete)="onLoopComplete()" [options]="animationOptions" />
+                    <ng-lottie style="max-width: 35%; margin: auto; display: block;" (animationCreated)="animationCreated($event)" (loopComplete)="onLoopComplete()" [options]="animationOptions" />
                     @if(status==='confirmed'){
                         <p class="text-22 fw-500 text-center text-dark-1">Reservación Confirmada</p>
                     }@else if(status==='pending'){
@@ -75,7 +75,7 @@
                     }
                 </div>
                 <div class="w-100" style="position: absolute; left: 0; bottom: 10px; text-align: center;">
-                    @if(paymentMethod==='SPEI'){
+                    @if(paymentMethod==='SPEI'||paymentMethod==='CASH'){
                         <h1 class="w-100 mb-0" [ngClass]="{'danger': countdownDanger}">
                             <countdown [config]="countdownConfig" (event)="countdownNotify($event)" />
                         </h1>
@@ -89,12 +89,12 @@
                     @switch(paymentMethod){
                         @case ("CARD") {
                             @if(paymentType==='NOW'){
-                                <button class="mb-20" mat-stroked-button>
-                                    <mat-icon>refresh</mat-icon> Reintentar
-                                </button> 
-                                <button class="mb-20 ml-10" mat-stroked-button color="primary">
+                                <button [routerLink]="['/reservar', 'realizar-pago', bookingId]" class="mb-20" mat-stroked-button>
+                                    <mat-icon>refresh</mat-icon> Reintentar (<countdown [config]="countdownConfig" (event)="countdownNotify($event)" />)
+                                </button>
+                                <!-- <a href="https://wa.me/message/3LPTTCXX4ZMKH1" target="_blank" class="mb-20 ml-10" mat-stroked-button color="primary">
                                     <mat-icon>monetization_on</mat-icon> Cambiar Metodo de Pago
-                                </button> 
+                                </a>  -->
                             }@else{
                                 <button class="mb-20" mat-stroked-button color="primary">
                                     <mat-icon>arrow_forward</mat-icon> Continuar
@@ -102,13 +102,19 @@
                             }
                         }
                         @case ("CASH") {
-                            <button class="mb-20" mat-stroked-button color="primary">
-                                <mat-icon>arrow_forward</mat-icon> Continuar
-                            </button> 
+                            @if(!countdownCompleted){ 
+                                <button [routerLink]="['/reservar', 'realizar-pago', bookingId]" class="mb-20" style="color: green;" mat-stroked-button color="primary">
+                                    <mat-icon>paid</mat-icon> Pagar Ahora
+                                </button>
+                            }@else{
+                                <button class="mb-20" mat-stroked-button color="primary">
+                                    <mat-icon>more_time</mat-icon> Solicitar Más Tiempo
+                                </button>
+                            }
                         }
                         @case ("SPEI") {
                             @if(!countdownCompleted){ 
-                                <button class="mb-20" style="color: green;" mat-stroked-button color="primary">
+                                <button [routerLink]="['/reservar', 'realizar-pago', bookingId]" class="mb-20" style="color: green;" mat-stroked-button color="primary">
                                     <mat-icon>paid</mat-icon> Pagar Ahora
                                 </button>
                             }@else{

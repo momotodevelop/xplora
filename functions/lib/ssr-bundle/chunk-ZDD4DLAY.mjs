@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import{Eb as n,Gc as r,dc as o,ec as i}from"./chunk-IB7CNCDV.mjs";import"./chunk-S6KH3LOX.mjs";var p=(()=>{class e{static{this.\u0275fac=function(t){return new(t||e)}}static{this.\u0275cmp=n({type:e,selectors:[["app-admin-lite-vouchers"]],decls:2,vars:0,template:function(t,s){t&1&&(o(0,"p"),r(1,"admin-lite-vouchers works!"),i())},encapsulation:2})}}return e})();export{p as AdminLiteVouchersComponent};

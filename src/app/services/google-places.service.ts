@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, retry } from 'rxjs/operators';
 declare const google: any;
 
 @Injectable({
@@ -56,7 +56,7 @@ export class GooglePlacesService {
         }
         return null;
       })
-    );
+    ).pipe(retry(10));
   }
 
   getAutocompleteSuggestions(input: string, lat?: number, lng?: number, country:boolean=true, locality:boolean=true, lodging:boolean=true, airport:boolean=true, point_of_interest:boolean=true): Observable<any[]> {
@@ -88,7 +88,7 @@ export class GooglePlacesService {
         }
         return [];
       })
-    );
+    ).pipe(retry(10));
   }
 
   async getPlace(placeId:string, fields: string[]){
@@ -137,6 +137,6 @@ export class GooglePlacesService {
     return `${this.baseUrl}/photo?${params.toString()}`;
   }
   getPhotoUrlFromCityCountry(city: string, country: string): Observable<string|null> {
-    return this.getPhotoUrlFromPlace(encodeURIComponent(city + ', ' + country));
+    return this.getPhotoUrlFromPlace(encodeURIComponent(city + ', ' + country)).pipe(retry(10));
   }
 }

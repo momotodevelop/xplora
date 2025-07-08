@@ -78,12 +78,9 @@ export class PassengersComponent implements OnInit {
         min: new Date(today.getFullYear() - 2, today.getMonth(), today.getDate())
       }
     }
-    console.log(this.dateLimits);
   }
   ngOnInit(): void {
-    console.log(this.dateLimits);
     this.initializeForm();
-    console.log(this.passengers);
     this.bookingHandler.booking.subscribe(booking=>{
       if(booking!==undefined){
         let passengersData = booking.flightDetails!.passengers.details;
@@ -134,7 +131,6 @@ export class PassengersComponent implements OnInit {
       };
       return value;
     });
-    console.log(data);
     this.valid.emit(data);
   }
   initializeForm(): void {
@@ -157,7 +153,6 @@ export class PassengersComponent implements OnInit {
       id++;
       infantIterator++;
     }
-    console.log(this.passengers);
   }
   addPassenger(type: "ADULT"|"CHILDREN"|"INFANT", id:number, iteratorNumber:number): void {
     let passengerForm:FormGroup;
@@ -197,7 +192,5 @@ export class PassengersComponent implements OnInit {
     this.passengerTitles.push(passengerTypeText+iteratorNumber.toString());
     this.passengerDetails.push({id, maxDate, minDate, type})
     this.passengers.push(passengerForm);
-    console.log(passengerForm);
-    console.log(minDate, maxDate);
   }
 }

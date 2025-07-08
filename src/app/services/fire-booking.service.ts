@@ -3,6 +3,7 @@ import { Firestore, collection, doc, addDoc, updateDoc, getDocs, query, where, g
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AdditionalServiceItem, AdditionalServiceType, FirebaseBooking, FlightAdditionalServiceItem, FlightFirebaseBooking, OfflinePaymentData } from '../types/booking.types';
+import { DataCleanerService } from './data-cleaner.service';
 
 const OFFLINE_PAYMENTS_COLLECTION = 'offline_payments';
 
@@ -15,7 +16,7 @@ export class FireBookingService {
   // Agregar una nueva reservación
   async addBooking(booking: FirebaseBooking): Promise<string> {
     const colRef = collection(this.firestore, 'bookings');
-    const docRef = addDoc(colRef, booking);
+    const docRef = addDoc(colRef, booking as FirebaseBooking);
     return (await docRef).id;
   }
 

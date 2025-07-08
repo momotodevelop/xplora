@@ -33,5 +33,5 @@ export class BookingHandlerService {
   setCharges(charges:Charge[]){
     this._charges.next(charges);
   }
-
+  
 }

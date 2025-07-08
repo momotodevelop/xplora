@@ -38,7 +38,7 @@ export class HotelRoomsSelectionSheetComponent {
   }
   removeRoom(index:number){
     const rooms = this.rooms.splice(index, 1);
-    console.log(rooms);
+    //console.log(rooms);
   }
   close(){
     this._ref.dismiss();

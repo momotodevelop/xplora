@@ -34,7 +34,7 @@ export class PaxSelectionSheetComponent implements OnInit {
         this.adults=this.adults+1;
         break;
     }
-    console.log(this.adults);
+    //console.log(this.adults);
   }
   minusPax(type:"ADULTS"|"CHILDRENS"|"INFANTS"){
     switch (type) {

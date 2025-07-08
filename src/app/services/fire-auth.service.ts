@@ -1,12 +1,15 @@
 import { Injectable } from '@angular/core';
-import { Auth, authState, signInAnonymously, signOut, User, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signInWithPhoneNumber, RecaptchaVerifier, createUserWithEmailAndPassword, signInWithCredential, PhoneAuthProvider } from '@angular/fire/auth';
+import { Auth, authState, signInAnonymously, signOut, User, GoogleAuthProvider, getAuth, signInWithPopup, signInWithEmailAndPassword, signInWithPhoneNumber, RecaptchaVerifier, createUserWithEmailAndPassword, signInWithCredential, PhoneAuthProvider } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore'; // ✅ Nueva API modular de Firestore
 import { BehaviorSubject, EMPTY, from, Observable, of, switchMap } from 'rxjs';
 export type Role = "traveler"|"xplorer"|"admin"|"superadmin";
 interface UserData {
   uid: string;
-  email: string;
   role: Role;
+  createdAt?: Date;
+  updatedAt?: Date;
+  name?: string;
+  lastName?: string;
 }
 
 @Injectable({
@@ -85,11 +88,12 @@ export class FireAuthService {
     return createUserWithEmailAndPassword(this.auth, email, password);
   }
 
-  setupRecaptcha(containerId: string) {
+  setupRecaptcha(containerId: string):RecaptchaVerifier {
     return new RecaptchaVerifier(this.auth, containerId, {
       'size': 'normal',
       'callback': (response: any) => {
         // Recaptcha solved
+        console.log("Recaptcha solved", response);
       }
     });
   }

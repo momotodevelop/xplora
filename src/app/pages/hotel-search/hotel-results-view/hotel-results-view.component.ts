@@ -23,7 +23,7 @@ export class HotelResultsViewComponent implements OnInit {
   @Input() hotelsList!:HotelsListResponse;
   ngOnInit(): void {
     this.dN = this.calcularDiasNoches(this.checkIn, this.checkOut);
-    console.log(this.hotelsList.total);
+    //console.log(this.hotelsList.total);
   }
   calcularDiasNoches(fechaInicio: Date, fechaFin: Date): { d: number, n: number } {
     const inicio = new Date(fechaInicio);

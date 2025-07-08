@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-hotel-details-header',
@@ -11,5 +11,5 @@ export class HotelDetailsHeaderComponent {
   @Input() address!:string;
   @Input() hotelName!:string;
   @Input() priceFrom!:number;
-  
+  @Output() goToRooms: EventEmitter<void> = new EventEmitter<void>();
 }

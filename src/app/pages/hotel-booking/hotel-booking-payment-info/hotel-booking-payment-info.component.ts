@@ -109,11 +109,11 @@ export class HotelBookingPaymentInfoComponent implements OnInit {
     
   }
   changePaymentType(){
-    console.log("Chance Payment Type"); 
+    //console.log("Chance Payment Type"); 
     this.paymentType.emit(this.paymentTypeSelected);
   }
   changePaymentMethod(tab:MatTabChangeEvent){
-    console.log(tab);
+    //console.log(tab);
     switch(tab.index){
       case 0:
         this.paymentMethod.emit("CARD");

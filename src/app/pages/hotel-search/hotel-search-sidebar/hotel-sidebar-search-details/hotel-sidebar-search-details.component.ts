@@ -28,7 +28,7 @@ export class HotelSidebarSearchDetailsComponent implements OnInit {
     
   }
   ngOnInit(): void {
-    console.log(this.checkIn);
+    //console.log(this.checkIn);
   }
   openRoomSelector(){
     this._bottomSheet.open(HotelRoomsSelectionSheetComponent, {panelClass: 'bottomsheet-no-padding', data: this.rooms}).afterDismissed().subscribe((result:number[][])=>{

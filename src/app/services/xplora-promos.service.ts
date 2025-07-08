@@ -27,7 +27,7 @@ export class XploraPromosService {
    * Obtiene una promoción por su código con filtros opcionales.
    */
   getPromoByCode(promocode: string, onlyActive: boolean = true, onlyNotExpired: boolean = true): Observable<Promo | undefined> {
-    console.log('Buscando promoción con código:', promocode);
+    //console.log('Buscando promoción con código:', promocode);
     
     const promosCollection = collection(this.firestore, 'promocodes');
     let promoQuery = query(promosCollection, where('code', '==', promocode));
@@ -53,7 +53,7 @@ export class XploraPromosService {
     try {
       const promosCollection = collection(this.firestore, 'promocodes'); 
       await addDoc(promosCollection, promo);
-      console.log('Promoción agregada correctamente:', promo);
+      //console.log('Promoción agregada correctamente:', promo);
     } catch (error) {
       console.error('Error al agregar la promoción:', error);
       throw error;
@@ -67,7 +67,7 @@ export class XploraPromosService {
     try {
       const promoRef = doc(this.firestore, 'promocodes', promoID); // 🔥 Usamos `doc(this.firestore, 'collection', 'id')`
       await updateDoc(promoRef, updates);
-      console.log(`Promoción ${promoID} actualizada correctamente.`);
+      //console.log(`Promoción ${promoID} actualizada correctamente.`);
     } catch (error) {
       console.error('Error al actualizar la promoción:', error);
       throw error;

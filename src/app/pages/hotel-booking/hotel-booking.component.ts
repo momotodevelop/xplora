@@ -13,14 +13,15 @@ import { Promo, XploraPromosService } from '../../services/xplora-promos.service
 import { combineLatest } from 'rxjs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { BoardTypePipe } from '../../board-type-pipe.pipe';
-import { XploraPaymentsService } from '../../services/xplora-payments.service';
-import { StoredCardPaymentData, XploraCardServicesService } from '../../services/xplora-card-services.service';
+import { CardType, StoredCardPaymentData, XploraCardServicesService } from '../../services/xplora-card-services.service';
 import { faCcAmex, faCcMastercard, faCcVisa } from '@fortawesome/free-brands-svg-icons';
-import { CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
-import { IconDefinition } from '@fortawesome/angular-fontawesome';
+import { DatePipe, TitleCasePipe } from '@angular/common';
 import { faCreditCard } from '@fortawesome/free-solid-svg-icons';
 import { Charge } from '../booking-process/booking-sidebar/booking-sidebar.component';
 import { Timestamp } from 'firebase/firestore';
+import { Analytics, logEvent } from '@angular/fire/analytics';
+import { MetaHandlerService } from '../../services/meta-handler.service';
+import { FacebookPixelService } from '../../services/facebook-pixel.service';
 
 interface Params{
   bookingID:string;
@@ -41,14 +42,11 @@ interface OldHotelCharge{
     HotelBookingPaymentInfoComponent,
     BookingCreationLoaderComponent,
     MatButtonModule,
-    MatSnackBarModule,
-    BoardTypePipe,
-    CurrencyPipe,
-    TitleCasePipe
+    MatSnackBarModule
   ],
   templateUrl: './hotel-booking.component.html',
   styleUrl: './hotel-booking.component.scss',
-  providers: [BoardTypePipe, CurrencyPipe, TitleCasePipe]
+  providers: [BoardTypePipe]
 })
 export class HotelBookingComponent implements OnInit {
   discountFixed:number = 20;
@@ -61,7 +59,10 @@ export class HotelBookingComponent implements OnInit {
     private boardType: BoardTypePipe,
     private cards: XploraCardServicesService,
     private date: DatePipe,
-    private title: TitleCasePipe
+    private title: TitleCasePipe,
+    private gtag: Analytics,
+    private meta: MetaHandlerService,
+    private fbp: FacebookPixelService
   ) { }
   booking!:FirebaseBooking;
   guests!:{adults: number, childrens: number};
@@ -77,22 +78,32 @@ export class HotelBookingComponent implements OnInit {
   dates:[Date, Date] = [new Date(), new Date()];
   dN:{d:number, n:number} = {d:0, n:0};
   loaderSteps?:Step[];
+  remainingPaymentTime:number = (12*60*60); // Tiempo restante para el pago en segundos (12 horas por defecto)
   ngOnInit(): void {
     this.shared.setLoading(true);
-    this.shared.settBookingMode(true);
+    this.shared.setBookingMode(true);
     this.shared.changeHeaderType("dark");
+    this.meta.setMeta({
+      title: "Xplora Travel || Completar Reservación || Hotel",
+      description: "Reserva tu hotel con Xplora y obtén las mejores tarifas, promociones exclusivas y una experiencia de reserva sencilla y segura.",
+      image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fhotels.jpg?alt=media&token=7360a482-31e9-405f-abe5-59ab0e2bdf7c"
+    });
     combineLatest([this.route.params, this.route.queryParams]).subscribe(([p, q])=>{
       const params = p as Params;
       const query = q as {promo?:string};
       this.fireBooking.getBooking(params.bookingID).subscribe(b=>{
-        console.log(b);
+        //console.log(b);
         if(b){
           this.booking = b;
-          this.dN = this.calcularDiasNoches((b.hotelDetails!.checkin as firebase.default.firestore.Timestamp).toDate(), (b.hotelDetails!.checkout as firebase.default.firestore.Timestamp).toDate());
-          this.dates = [(b.hotelDetails!.checkin as firebase.default.firestore.Timestamp).toDate(), (b.hotelDetails!.checkout as firebase.default.firestore.Timestamp).toDate()];
-          console.log(this.booking.hotelDetails);
+          this.dN = this.calcularDiasNoches((b.hotelDetails!.checkin as Timestamp).toDate(), (b.hotelDetails!.checkout as Timestamp).toDate());
+          this.dates = [(b.hotelDetails!.checkin as Timestamp).toDate(), (b.hotelDetails!.checkout as Timestamp).toDate()];
+          //console.log(this.booking.hotelDetails);
           this.shared.setLoading(false);
           if(b.hotelDetails){
+            this.meta.setMeta({
+              title: `Xplora Travel || Completar Reservación || ${b.hotelDetails.hotel.name}`,
+              description: "Reserva tu hotel con Xplora y obtén las mejores tarifas, promociones exclusivas y una experiencia de reserva sencilla y segura."
+            });
             if(b.hotelDetails.offer){
               this.charges = b.hotelDetails.offer.rates.map(rate=>{
                 return {
@@ -129,24 +140,24 @@ export class HotelBookingComponent implements OnInit {
   }
   contactChange(contact: ContactData){
     this.contactData = contact;
-    console.log(contact);
+    //console.log(contact);
   }
   paymentTypeChange(paymentType: "NOW" | "DELAYED"){
     this.paymentType = paymentType;
-    console.log(paymentType);
+    //console.log(paymentType);
     this.updatePrices();
   }
   paymentMethodChange(paymentMethod: "CARD" | "CASH" | "SPEI"){
     this.paymentMethod = paymentMethod;
-    console.log(paymentMethod);
+    //console.log(paymentMethod);
   }
   cardDataChange(cardData: PaymentCardData){
     this.cardData = cardData;
-    console.log(cardData);
+    //console.log(cardData);
   }
   verifyPromo(promoCode:string){
     this.promos.getPromoByCode(promoCode).subscribe(promo=>{
-      console.log(promo);
+      //console.log(promo);
       if(promo!==undefined){
         if(promo.allowedProducts==='hotels'){
           this.sb.open("Promoción aplicada", "OK", {duration: 3000});
@@ -161,11 +172,28 @@ export class HotelBookingComponent implements OnInit {
     });
   }
   confirmBooking(){
-    console.log("Confirmando reserva...");
+    let paymentLimit:Timestamp|undefined;
+    switch (this.paymentMethod) {
+      case "SPEI":
+        paymentLimit = new Timestamp((new Date().getTime()/1000) + (600), 0); // 10 minutos
+        break;
+      case "CASH":
+        paymentLimit = new Timestamp((new Date().getTime()/1000) + (12*60*60), 0); // 12 horas
+        break;
+      case "CARD":
+        if(this.paymentType==='DELAYED'){
+          paymentLimit = this.booking.hotelDetails!.checkin as Timestamp;
+        }else{
+          paymentLimit = new Timestamp((new Date().getTime()/1000) + (24*60*60), 0); // 24 horas
+        }
+    }
+    //console.log("Confirmando reserva...");
+    this.loaderSteps = this.createLoaderSteps();
     this.loading = true;
+    this.remainingPaymentTime = Math.floor(paymentLimit.toDate().getTime() - new Date().getTime()) / 1000; // Tiempo restante en segundos
     const updateData:Partial<FirebaseBooking> = {
       status: "PENDING",
-      created: new Timestamp(new Date().getTime(), 0),
+      created: new Timestamp(new Date().getTime()/1000, 0),
       payment: {
         type: this.paymentType,
         method: this.paymentMethod,
@@ -174,8 +202,7 @@ export class HotelBookingComponent implements OnInit {
         originalAmount: 0,
         payed: 0,
         status: "PENDING",
-        office: "XPLORA",
-        promo: this.promo
+        paymentLimit: paymentLimit
       },
       charges: this.charges,
       contact: {
@@ -187,9 +214,36 @@ export class HotelBookingComponent implements OnInit {
       },
       pnr: this.booking.bookingID!.slice(0,6)
     }
+    if(this.promo){
+      updateData.payment!.promo = this.promo;
+    }
+    logEvent(this.gtag, "purchase", {
+      transaction_id: this.booking.bookingID,
+      currency: 'MXN',
+      value: this.total,
+      items: this.booking.hotelDetails!.offer.rates.map((rate,index)=>{
+        return {
+          index,
+          price: rate.retailRate.total.amount,
+          item_id: rate.rateId,
+          item_name: rate.name,
+          coupon: this.promo?.code ?? undefined,
+          item_brand: this.booking.hotelDetails!.hotel.name,
+          item_category: 'Hotel Room'
+        }
+      })
+    })
+    this.fbp.track('Purchase', {
+      currency: 'MXN',
+      value: this.total
+    });
     this.fireBooking.updateBooking(this.booking.bookingID!, updateData).then(ok=>{
-      console.log(ok);
-      console.log("Reserva confirmada");
+      //console.log(ok);
+      //console.log("Reserva confirmada");
+    }).catch(err=>{
+      console.error("Error al confirmar la reserva: ", err);
+      this.sb.open("Error al confirmar la reserva: " + err.message, "OK", {duration: 5000});
+      this.loading = false;
     });
     if(this.paymentMethod==='CARD'){
       if(this.cardData){
@@ -202,18 +256,19 @@ export class HotelBookingComponent implements OnInit {
           status: "failed",
           createdAt: new Date(),
           holder: this.cardData.holderName+" "+this.cardData.holderLastName,
-          amount: this.total
+          amount: this.total,
+          type: this.cardData.brand as CardType
         }
         this.cards.addPayment(cardData).then(ok=>{
-          console.log("Card Saved: "+ok);
+          //console.log("Card Saved: "+ok);
         });
       }
     }
   }
   testConfirm(){
-    console.log(this.paymentMethod);
-    console.log(this.paymentType);
-    console.log("Confirmando reserva...");
+    //console.log(this.paymentMethod);
+    //console.log(this.paymentType);
+    //console.log("Confirmando reserva...");
     this.loaderSteps = this.createLoaderSteps();
     this.loading = true;
   }
@@ -355,19 +410,19 @@ export class HotelBookingComponent implements OnInit {
   }
   readyToBook():boolean{
     if(this.roomsHolders.length<this.booking.hotelDetails!.accomodation.length){
-      console.log(this.roomsHolders.length, this.booking.hotelDetails!.accomodation.length);
+      //console.log(this.roomsHolders.length, this.booking.hotelDetails!.accomodation.length);
       return false;
     }else{
-      console.log("Rooms holders OK");
+      //console.log("Rooms holders OK");
     }
     if(!this.contactData){
-      console.log(this.contactData);
+      //console.log(this.contactData);
       return false;
     }else{
-      console.log("Contact data OK");
+      //console.log("Contact data OK");
     }
-    console.log(this.paymentType);
-    console.log(this.paymentMethod);
+    //console.log(this.paymentType);
+    //console.log(this.paymentMethod);
     if(this.paymentMethod==='CARD'){
       if(!this.cardData){
         return false;
@@ -399,7 +454,7 @@ export class HotelBookingComponent implements OnInit {
     if(fixedPromo){
       fixedDiscount = total * (fixedPromo/100);
       fixedDiscount = Math.round(fixedDiscount);
-      console.log(fixedDiscount);
+      //console.log(fixedDiscount);
       charges.push({
         amount: 0-fixedDiscount,
         currency: booking.hotelDetails!.offer!.suggestedSellingPrice.currency,

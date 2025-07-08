@@ -1,21 +1,25 @@
 <div id="overview" class="col-12">
     <h3 class="text-22 fw-500 pt-40 border-top-light">Descripción General</h3>
     <div class="text-dark-1 text-15 mt-20" [innerHTML]="description"></div>
-    <a href="#" class="d-block text-14 text-blue-1 fw-500 underline mt-10">Show More</a>
 </div>
-<div class="col-12">
-    <h3 class="text-22 fw-500 pt-40 border-top-light">Most Popular Facilities</h3>
-    <div class="row y-gap-10 pt-20">
-        @for(facility of details.facilities; track facility;){
-            <div class="col-md-6">
-                <div class="d-flex x-gap-15 y-gap-15 items-center">
-                    <fa-icon [icon]="getFacilityIcon(facility.facilityId)"></fa-icon>
-                    <div class="text-15">{{getFacilityText(facility)|async}}</div>
+@if(details.facilities){
+    <div class="col-12">
+        <h3 class="text-22 fw-500 pt-40 border-top-light">Servicios y Amenidades</h3>
+        <div class="row y-gap-10 pt-20">
+            @for(facility of details.facilities.slice(0,(showAllFacilities?details.facilities.length:20)); track facility;){
+                <div class="col-md-6">
+                    <div class="d-flex x-gap-15 y-gap-15 items-center" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <fa-icon [icon]="getFacilityIcon(facility.facilityId)"></fa-icon>
+                        <div class="text-15">{{getFacilityText(facility)|async}}</div>
+                    </div>
                 </div>
-            </div>
+            }
+        </div>
+        @if(details.facilities.length > 20){
+            <a (click)="showAllFacilities = !showAllFacilities" class="d-block text-14 text-blue-1 fw-500 underline mt-10">{{showAllFacilities ? 'Ver menos' : 'Ver más'}}</a>
         }
     </div>
-</div>
+}
 @if(visits>10){
     <div class="col-12 mt-20">
         <div class="px-24 py-20 rounded-4 bg-green-1">

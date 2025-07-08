@@ -20,6 +20,7 @@ import { DirectDestination } from '../../types/amadeus-direct-airport-response.t
 import { GeolocationService } from '../../services/geolocation.service';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { GoogleTranslationService } from '../../services/google-translation.service';
 
 @Component({
     selector: 'app-location-selection-sheet',
@@ -48,7 +49,7 @@ export class LocationSelectionSheetComponent implements OnInit {
     @Inject(MAT_BOTTOM_SHEET_DATA) public data: { isOrigin: boolean, suggestedDestinations?: DirectDestination[] },
     private auth: AmadeusAuthService,
     private airports: AirportSearchService,
-    private translate: TranslateService,
+    private translate: GoogleTranslationService,
     private el: ElementRef<HTMLElement>,
     private location: GeolocationService,
     private _snackBar: MatSnackBar
@@ -58,7 +59,7 @@ export class LocationSelectionSheetComponent implements OnInit {
   ngOnInit(): void {
     this.searchInput.disable();
     this.generateToken();
-    this.searchInput.valueChanges.pipe(debounceTime(2000)).subscribe({
+    this.searchInput.valueChanges.pipe(debounceTime(500)).subscribe({
       next: (value)=>{
         this.locationResults=[];
         if(value!==null&&(value as string).length>1){
@@ -70,16 +71,16 @@ export class LocationSelectionSheetComponent implements OnInit {
       if(this.data.suggestedDestinations!==undefined){
         this.loading=true;
         const solicitudesTraduccion = this.data.suggestedDestinations.map(resultado => {
-          const traducirCityName = this.translate.translateText(resultado.name, 'en', 'es');
-          const traducirCountryName = this.translate.translateText(resultado.address.countryName, 'en', 'es');
+          const traducirCityName = this.translate.translateV2(resultado.name, 'es');
+          const traducirCountryName = this.translate.translateV2(resultado.address.countryName, 'es');
           return forkJoin([traducirCityName, traducirCountryName]).pipe(
             map(([cityNameTraducido, countryNameTraducido]) => ({
               ...resultado,
               address: {
                 ...resultado.address,
-                countryName: countryNameTraducido
+                countryName: countryNameTraducido.data.translations[0].translatedText
               },
-              name: cityNameTraducido
+              name: cityNameTraducido.data.translations[0].translatedText
             })),
             catchError(error => {
               console.error('Error al traducir:', error);
@@ -99,15 +100,15 @@ export class LocationSelectionSheetComponent implements OnInit {
     this.airports.searchAirports(keyword, this.token as string).subscribe({
       next: (resultados) => {
         const solicitudesTraduccion = resultados.data.map(resultado => {
-          const traducirCityName = this.translate.translateText(resultado.address.cityName, 'en', 'es');
-          const traducirCountryName = this.translate.translateText(resultado.address.countryName, 'en', 'es');
+          const traducirCityName = this.translate.translateV2(resultado.address.cityName, 'es');
+          const traducirCountryName = this.translate.translateV2(resultado.address.countryName, 'es');
           return forkJoin([traducirCityName, traducirCountryName]).pipe(
             map(([cityNameTraducido, countryNameTraducido]) => ({
               ...resultado,
               address: {
                 ...resultado.address,
-                cityName: cityNameTraducido,
-                countryName: countryNameTraducido
+                cityName: cityNameTraducido.data.translations[0].translatedText,
+                countryName: countryNameTraducido.data.translations[0].translatedText
               }
             })),
             catchError(error => {
@@ -150,20 +151,20 @@ export class LocationSelectionSheetComponent implements OnInit {
     this.loading=true;
     this.location.getUbicacionActual().subscribe({
       next: (response) => {
-        console.log(response);
+        //console.log(response);
         this.airports.getNearbyAirports(response.coords.latitude, response.coords.longitude, this.token as string).subscribe({
           next: (resultados) => {
-            console.log(response);
+            //console.log(response);
             const solicitudesTraduccion = resultados.data.map(resultado => {
-              const traducirCityName = this.translate.translateText(resultado.address.cityName, 'en', 'es');
-              const traducirCountryName = this.translate.translateText(resultado.address.countryName, 'en', 'es');
+              const traducirCityName = this.translate.translateV2(resultado.address.cityName, 'es');
+              const traducirCountryName = this.translate.translateV2(resultado.address.countryName, 'es')
               return forkJoin([traducirCityName, traducirCountryName]).pipe(
                 map(([cityNameTraducido, countryNameTraducido]) => ({
                   ...resultado,
                   address: {
                     ...resultado.address,
-                    cityName: cityNameTraducido,
-                    countryName: countryNameTraducido
+                    cityName: cityNameTraducido.data.translations[0].translatedText,
+                    countryName: countryNameTraducido.data.translations[0].translatedText
                   }
                 })),
                 catchError(error => {

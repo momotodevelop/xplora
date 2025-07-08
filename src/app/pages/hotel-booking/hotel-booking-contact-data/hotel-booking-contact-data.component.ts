@@ -7,12 +7,13 @@ import { MatChipListbox, MatChipListboxChange, MatChipSet, MatChipsModule } from
 import { CountryData, CountryDataDisplay, RestcountriesService } from '../../../services/restcountries.service';
 import { MatSelectModule } from '@angular/material/select';
 import { PhoneFormatDirective } from '../../../phone-format.directive';
+import { MatIconModule } from '@angular/material/icon';
 
 export interface ContactData {name:string, lastname: string, email: string, phone: string, countryCode: string};
 
 @Component({
   selector: 'app-hotel-booking-contact-data',
-  imports: [MatFormFieldModule, MatInputModule, ReactiveFormsModule, FormsModule, MatChipsModule, MatSelectModule, PhoneFormatDirective],
+  imports: [MatFormFieldModule, MatInputModule, ReactiveFormsModule, FormsModule, MatChipsModule, MatSelectModule, PhoneFormatDirective, MatIconModule],
   templateUrl: './hotel-booking-contact-data.component.html',
   styleUrl: './hotel-booking-contact-data.component.scss'
 })
@@ -26,7 +27,7 @@ export class HotelBookingContactDataComponent implements OnInit, OnChanges {
     lastname: new FormControl(null, [Validators.required, Validators.minLength(2)]),
     email: new FormControl(null, [Validators.required, Validators.email]),
     countryCode: new FormControl(null, [Validators.required]),
-    phone: new FormControl(null, [Validators.required, Validators.minLength(9)])
+    phone: new FormControl(null, [Validators.required, Validators.minLength(14), Validators.maxLength(14)]),
   });
   selectedHolder?:number;
   countriesData:CountryDataDisplay[]=[];
@@ -52,14 +53,14 @@ export class HotelBookingContactDataComponent implements OnInit, OnChanges {
       this.countriesData = codes.map(c=>this.countries.simplifyCountryData(c)).sort((a,b)=>{
         return a.translations['spa'].common.localeCompare(b.translations['spa'].common);
       });
-      console.log(this.countriesData);
+      //console.log(this.countriesData);
       //this.selectedCountry = this.countriesData.find(c=>c.code === "MX");
       this.countryCodeInput.setValue("MX");
     });
     this.countryCodeInput.valueChanges.subscribe(value=>{
       if(value!==null&&this.countriesData.length>0){
         this.selectedCountry = this.countriesData.find(c=>c.code === value);
-        console.log(this.selectedCountry);
+        //console.log(this.selectedCountry);
       }
     });
   }
@@ -72,7 +73,7 @@ export class HotelBookingContactDataComponent implements OnInit, OnChanges {
     );
   }
   selectHolder(chip:MatChipListboxChange){
-    console.log(chip.value)
+    //console.log(chip.value)
     this.selectedHolder = chip.value;
     if(this.selectedHolder !== undefined){
       this.form.controls['name'].setValue(this.selectedHolderData?.name);

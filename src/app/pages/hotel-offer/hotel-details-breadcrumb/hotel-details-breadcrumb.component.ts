@@ -1,4 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { HotelDetails } from '../../../types/lite-api.types';
+export interface BreadcrumbItem {
+  label: string;
+  link?: string;
+}
 
 @Component({
   selector: 'app-hotel-details-breadcrumb',
@@ -7,5 +12,8 @@ import { Component } from '@angular/core';
   styleUrl: './hotel-details-breadcrumb.component.scss'
 })
 export class HotelDetailsBreadcrumbComponent {
-
+  @Input() hotel!: HotelDetails;
+  constructor(){
+    
+  }
 }

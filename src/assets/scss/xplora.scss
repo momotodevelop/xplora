@@ -1,4 +1,18 @@
 @import url('https://fonts.cdnfonts.com/css/glacial-indifference-2');
+@import "swiper/css/bundle";
+
+.hidden-for-screen {
+  display: none; /* Oculta por defecto en pantalla */
+}
+/* Al imprimir, invertir visibilidad de acuerdo a clases */
+@media print {
+    .hidden-for-screen {
+        display: block !important; /* Mostrar imagen solo en impresión */
+    }
+    .no-print {
+        display: none !important;   /* Ocultar elementos que no quieres imprimir */
+    }
+}
 
 .locationSelectionSheet{
     .mat-bottom-sheet-container{
@@ -116,6 +130,10 @@
 .custom-bottom-sheet{
     .mat-bottom-sheet-container{
         padding: 0px !important;
+        max-width: 500px;
+    }
+    .content{
+        padding: 8px 16px;
     }
 }
 .country-code-option{

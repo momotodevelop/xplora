@@ -25,19 +25,21 @@
             </div>
         </div>
     </div>
-    <div class="col-auto">
-        <div class="row x-gap-15 y-gap-15 items-center">
-            <div class="col-auto">
-                <div class="text-14">
-                    Desde
-                    <span class="text-22 text-dark-1 fw-500">{{priceFrom|currency:'MXN'}}</span>
+    @if(priceFrom>0){
+        <div class="col-auto">
+            <div class="row x-gap-15 y-gap-15 items-center">
+                <div class="col-auto">
+                    <div class="text-14">
+                        Desde
+                        <span class="text-22 text-dark-1 fw-500">{{priceFrom|currency:'MXN'}}</span>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <a (click)="goToRooms.emit()" class="button h-50 px-24 -dark-1 bg-blue-1 text-white">
+                        Ver Habitaciones <div class="icon-arrow-top-right ml-15"></div>
+                    </a>
                 </div>
             </div>
-            <div class="col-auto">
-                <a href="#" class="button h-50 px-24 -dark-1 bg-blue-1 text-white">
-                    Ver Habitaciones <div class="icon-arrow-top-right ml-15"></div>
-                </a>
-            </div>
         </div>
-    </div>
+    }
 </div>

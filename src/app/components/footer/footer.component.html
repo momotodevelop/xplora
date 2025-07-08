@@ -1,53 +1,58 @@
-<footer class="footer -type-1" [ngClass]="{'text-white bg-dark-2 mt-60' : bookingMode}">
+<footer #footer class="footer -type-1" [ngClass]="{'text-white bg-dark-2 mt-60' : minFooter}">
     <div class="container">
-        <div class="pb-60" [ngClass]="bookingMode?'pt-20':'pt-60'">
-            <div class="row y-gap-40 justify-between xl:justify-start">
-            <div class="col-xl-2 col-lg-4 col-sm-6">
-                <h5 class="text-16 fw-500 mb-30">Contáctanos</h5>
-                <div class="mt-30">
-                <div class="text-14 mt-30">Reservaciones 24 Hrs</div>
-                    <a href="tel:+528009530159" [ngClass]="bookingMode?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5">(800) 953 0519</a>
-                </div>
+        @if(!minFooter){
+            <div class="pb-60" [ngClass]="minFooter?'pt-20':'pt-60'">
+                <div class="row y-gap-40 justify-between xl:justify-start">
+                    <div class="col-xl-2 col-lg-4 col-sm-6">
+                        <h5 class="text-16 fw-500 mb-20">Contáctanos</h5>
+                        <div class="mt-20">
+                            <div class="text-14 mt-20">Lada Sin Costo</div>
+                            <a href="tel:+528004611015" [ngClass]="minFooter?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5">(800) 461 1015</a>
+                        </div>
+                        <div class="mt-20">
+                            <div class="text-14 mt-20">Desde el Extranjero</div>
+                            <a href="tel:+525588974866" [ngClass]="minFooter?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5">+52 (55) 8897 4866</a>
+                        </div>
+                        <div class="mt-20">
+                        <div class="text-14 mt-20">¿Necesitas Ayuda Inmediata?</div>
+                            <a href="https://wa.me/message/VV33TBRFV4Q3A1" [ngClass]="minFooter?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5"><fa-icon [icon]="waIcon"></fa-icon> (81) 5351 0637</a>
+                        </div>
+                    </div>
 
-                <div class="mt-35">
-                <div class="text-14 mt-30">¿Necesitas Ayuda Inmediata?</div>
-                    <a href="tel:+528153510637" [ngClass]="bookingMode?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5">(81) 5351 0637</a>
-                </div>
-            </div>
+                    @for(column of columns; track column){
+                        <div class="col-xl-2 col-lg-4 col-sm-6">
+                            <h5 class="text-16 fw-500 mb-30">{{column.title}}</h5>
+                            <div class="d-flex y-gap-10 flex-column">
+                                @for(link of column.links; track link;){
+                                    <a href="{{link.url}}">{{link.title}}</a>
+                                }
+                            </div>
+                        </div>
+                    }
 
-            @for(column of columns; track column){
-                <div class="col-xl-2 col-lg-4 col-sm-6">
-                    <h5 class="text-16 fw-500 mb-30">{{column.title}}</h5>
-                    <div class="d-flex y-gap-10 flex-column">
-                        @for(link of column.links; track link;){
-                            <a href="{{link.url}}">{{link.title}}</a>
-                        }
+                    <div class="col-xl-2 col-lg-4 col-sm-6">
+                        <h5 class="text-16 fw-500 mb-30">Nuestra WebApp</h5>
+
+                        <div class="d-flex items-center px-15 py-10 rounded-4 border-light">
+                        <div class="icon-apple text-24"></div>
+                        <div class="ml-20">
+                            <div class="text-12 text-light-1">Instalar WebApp En</div>
+                            <div class="text-13 lh-1 fw-500">Dispositivos iOS</div>
+                        </div>
+                        </div>
+
+                        <div class="d-flex items-center px-15 py-10 rounded-4 border-light mt-20">
+                        <fa-icon [icon]="androidIcon" class="text-24"></fa-icon>
+                        <div class="ml-20">
+                            <div class="text-12 text-light-1">Instalar WebApp En</div>
+                            <div class="text-13 lh-1 fw-500">Android</div>
+                        </div>
+                        </div>
                     </div>
                 </div>
-            }
-
-            <div class="col-xl-2 col-lg-4 col-sm-6">
-                <h5 class="text-16 fw-500 mb-30">Nuestra WebApp</h5>
-
-                <div class="d-flex items-center px-15 py-10 rounded-4 border-light">
-                <div class="icon-apple text-24"></div>
-                <div class="ml-20">
-                    <div class="text-12 text-light-1">Instalar WebApp En</div>
-                    <div class="text-13 lh-1 fw-500">Dispositivos iOS</div>
-                </div>
-                </div>
-
-                <div class="d-flex items-center px-15 py-10 rounded-4 border-light mt-20">
-                <fa-icon [icon]="androidIcon" class="text-24"></fa-icon>
-                <div class="ml-20">
-                    <div class="text-12 text-light-1">Instalar WebApp En</div>
-                    <div class="text-13 lh-1 fw-500">Android</div>
-                </div>
-                </div>
             </div>
-            </div>
-        </div>
-        <div class="py-20 border-top-light">
+        }
+        <div class="py-20">
             <div class="row justify-between items-center y-gap-10">
             <div class="col-auto">
                 <div class="row x-gap-30 y-gap-10">
@@ -59,9 +64,8 @@
 
                 <div class="col-auto">
                     <div class="d-flex x-gap-15">
-                    <a href="#">Privacidad</a>
-                    <a href="#">Términos y Condiciones</a>
-                    <a href="#">Mapa del Sitio</a> 
+                    <a href="/privacidad">Privacidad</a>
+                    <a href="/terminos-condiciones">Términos y Condiciones</a>
                     </div>
                 </div>
                 </div>
@@ -76,19 +80,18 @@
                         <span class="underline">English (US)</span>
                     </button> -->
 
-                    <button class="d-flex items-center text-14 fw-500 text-dark-1">
+                    <button [ngClass]="minFooter?'text-white':'text-dark-1'" class="d-flex items-center text-14 fw-500">
                         <i class="icon-usd text-16 mr-10"></i>
-                        <span class="underline">Precios en MXN</span>
+                        <span>Precios en MXN</span>
                     </button>
                     </div>
                 </div>
 
                 <div class="col-auto">
                     <div class="d-flex x-gap-20 items-center">
-                    <a href="#"><i class="icon-facebook text-14"></i></a>
-                    <a href="#"><i class="icon-twitter text-14"></i></a>
-                    <a href="#"><i class="icon-instagram text-14"></i></a>
-                    <a href="#"><i class="icon-linkedin text-14"></i></a>
+                    <a href="https://wa.me/message/VV33TBRFV4Q3A1" target="_blank"><fa-icon [icon]="waIcon"></fa-icon></a>
+                    <a href="https://www.facebook.com/xplora.travel.mx" target="_blank"><fa-icon [icon]="fbIcon"></fa-icon></a>
+                    <a href="https://www.instagram.com/xplora.trips" target="_blank"><fa-icon [icon]="igIcon"></fa-icon></a>
                     </div>
                 </div>
                 </div>

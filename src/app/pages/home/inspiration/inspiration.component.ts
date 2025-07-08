@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { WordpressService } from '../../../services/wordpress.service';
 import { PostSimpleCard } from '../../../types/wordpress.types';
 import { DatePipe } from '@angular/common';
+import { ScrollRevealDirective } from '../../../scroll-reveal.directive';
 
 @Component({
   selector: 'app-inspiration',
-  standalone: false,
+  standalone: true,
   templateUrl: './inspiration.component.html',
   styleUrl: './inspiration.component.scss',
-  providers: [DatePipe]
+  imports: [ScrollRevealDirective]
 })
 export class InspirationComponent implements OnInit {
   constructor(private wp: WordpressService, private date: DatePipe){}

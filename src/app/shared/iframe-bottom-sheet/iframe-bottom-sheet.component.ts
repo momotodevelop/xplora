@@ -38,7 +38,7 @@ export class IframeBottomSheetComponent implements OnInit, OnDestroy {
     const data = event.data;
 
     if (data.status === 'completed') {
-      console.log('Autenticación 3D Secure completada con Payment ID:', data.paymentId);
+      //console.log('Autenticación 3D Secure completada con Payment ID:', data.paymentId);
       // Cerrar el bottom sheet tras la autenticación exitosa
       this.bottomSheetRef.dismiss({ status: 'completed', paymentId: data.paymentId });
     } else if (data.status === 'error') {

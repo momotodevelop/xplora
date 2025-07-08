@@ -11,7 +11,6 @@ export class ToggleClassDirective implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this.init();
-    console.log("Toggle class")
   }
 
   ngOnDestroy() {

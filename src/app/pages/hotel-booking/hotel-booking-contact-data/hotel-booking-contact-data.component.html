@@ -47,7 +47,8 @@
                 <div class="col col-7">
                     <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
                         <mat-label>Teléfono</mat-label>
-                        <input phoneInput formControlName="phone" type="tel" maxlength="14" matInput placeholder="1234567890">
+                        <input phoneInput formControlName="phone" type="tel" maxlength="14" matInput placeholder="10 dígitos" inputmode="numeric">
+                        <mat-icon matSuffix>phone</mat-icon>
                     </mat-form-field>
                 </div>
             </div>

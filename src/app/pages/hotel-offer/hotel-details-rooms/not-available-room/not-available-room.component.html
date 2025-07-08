@@ -1,0 +1,29 @@
+<div class="border-light rounded-4 px-30 py-20 mb-20 xplora-rooms">
+    <div class="row y-gap-20">
+        <div class="col-12">
+            <h3 class="text-18 fw-500 mb-15">{{room.roomName | titlecase}}</h3>
+            <div class="roomGrid">
+                <div>
+                    <div>
+                        <div class="ratio ratio-1:1">
+                            <img src="{{room.photos[0].url}}" alt="image" class="img-ratio rounded-4">
+                        </div>
+                        <div class="y-gap-5 mt-20">
+                            <div class="d-flex items-center">
+                                <mat-icon class="mr-10">square_foot</mat-icon>
+                                <div class="text-15">{{room.roomSizeSquare}} {{room.roomSizeUnit}}</div>
+                            </div>
+                            @for(amenity of room.roomAmenities.slice(0,3); track amenity){
+                                <div class="d-flex items-center">
+                                    <mat-icon class="mr-10">check</mat-icon>
+                                    <div class="text-15">{{facilityTranslate.getFacilityText({facilityId: amenity.amenitiesId, name: amenity.name})|async|titlecase}}</div>
+                                </div>
+                            }
+                        </div>
+                        <a (click)="openRoomDetails()" class="d-block text-15 fw-500 underline text-blue-1 mt-15">Más información</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
