@@ -8,11 +8,14 @@ import { Promo } from "../services/xplora-promos.service";
 import { AmadeusLocation } from "./amadeus-airport-response.types";
 import { SeatMapSavingData } from "./amadeus-seat-map.types";
 import { CancellationPolicies, Commission, Rate, RetailRate, RoomType, TaxesAndFees } from "./lite-api.types";
+import { PayPalOrderCaptureResponse } from "../services/paypal.service";
+import { PaymentErrorOutput } from "../services/payment-error.service";
+import { CodigoPostalInfo } from "../services/copomex.service";
 
-export type PaymentMethod = "CARD"|"CASH"|"SPEI";
+export type PaymentMethod = "CARD"|"CASH"|"SPEI"|"PAYPAL";
 export type PaymentType = "NOW"|"DELAYED";
-export type BookingStatus = "CONFIRMED"|"PENDING"|"HOLD"|"CANCELED"|"REJECTED";
-export type BookingTypes = 'FLIGHT' | 'HOTEL' | 'TRANSPORTATION' | 'ACTIVITY' | 'CAR_RENTAL' | 'CRUISE';
+export type BookingStatus = "CONFIRMED"|"PENDING"|"HOLD"|"CANCELED"|"REJECTED"|"VALIDATING";
+export type BookingTypes = 'FLIGHT' | 'HOTEL' | 'TRANSPORTATION' | 'ACTIVITY' | 'CAR_RENTAL' | 'CRUISE' | 'PACKAGE' ;
 
 export interface FlightFirebaseBooking extends FirebaseBooking{
     type: "FLIGHT";
@@ -191,10 +194,26 @@ export interface AccomodationData{
 export interface OfflinePaymentData {
     id?: string;
     amount: number;
-    method: 'SPEI' | 'CASH';
-    status: 'PENDING' | 'VALIDATING' | 'COMPLETED' | 'CANCELED' | 'REJECTED';
+    method: 'SPEI' | 'CASH' | string;
+    status: PaymentStatus;
     timestamp: Timestamp | Date;
     receptURL: string; // URL del comprobante de pago
     senderBank?: string;
     paymentOffice?: string;
+}
+
+export interface PayPalPaymentData {
+    method: 'PAYPAL';
+    response: PayPalOrderCaptureResponse;
+    timestamp: Timestamp | Date;
+    statusMessage: PaymentErrorOutput;
+    address: {
+        line1: string;
+        line2?: string;
+        city: string;
+        postal_code: string;
+        country_code: string;
+        neighborhood?: string;
+        postal_code_info: CodigoPostalInfo|null;
+    }
 }

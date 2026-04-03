@@ -1,0 +1,156 @@
+.admin-config {
+  padding: 10px 0 40px;
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.config-section {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.config-section__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.config-section__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+.config-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.config-empty-state {
+  padding: 16px;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.config-list-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.config-list-item--office {
+  align-items: center;
+}
+
+.config-list-item__main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.config-list-item__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.config-list-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.config-icon-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge--inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.config-office-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: 0 0 64px;
+}
+
+.config-office-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.config-office-thumb .mat-icon {
+  color: #6b7280;
+}
+
+@media (max-width: 767px) {
+  .config-list-item,
+  .config-list-item--office {
+    flex-direction: column;
+  }
+
+  .config-list-item__side,
+  .config-list-item__actions {
+    width: 100%;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+}
+
+:host ::ng-deep .admin-config .mat-mdc-tab-body,
+:host ::ng-deep .admin-config .mat-mdc-tab-body-content {
+  overflow: visible;
+  height: auto;
+}

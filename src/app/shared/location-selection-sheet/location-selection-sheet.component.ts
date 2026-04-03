@@ -99,7 +99,11 @@ export class LocationSelectionSheetComponent implements OnInit {
     this.loading=true;
     this.airports.searchAirports(keyword, this.token as string).subscribe({
       next: (resultados) => {
-        const solicitudesTraduccion = resultados.data.map(resultado => {
+        if(resultados.meta.count===0){
+          this._snackBar.open('No se encontraron resultados', 'Cerrar', { duration: 3000 });
+          this.loading=false;
+        }else{
+          const solicitudesTraduccion = resultados.data.map(resultado => {
           const traducirCityName = this.translate.translateV2(resultado.address.cityName, 'es');
           const traducirCountryName = this.translate.translateV2(resultado.address.countryName, 'es');
           return forkJoin([traducirCityName, traducirCountryName]).pipe(
@@ -121,6 +125,7 @@ export class LocationSelectionSheetComponent implements OnInit {
           this.locationResults = resultadosTraducidos;
           this.loading=false;
         });
+        }
       },
       error: (error:AmadeusLocationResponseError)=>{
         if(error.status===401){

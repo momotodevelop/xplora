@@ -1,0 +1,13 @@
+.status-indicator.status-pending{
+    color: orange;
+}
+.status-indicator.status-confirmed{
+    color: green;
+}
+.status-label{
+    font-weight: bold;
+    margin-left: 5px;
+}
+.status-indicator{
+    white-space: nowrap;
+}

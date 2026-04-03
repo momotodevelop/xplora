@@ -45,10 +45,28 @@
         <div class="col-md-auto">
             <div class="d-flex items-center h-full">
                 <div class="pl-30 border-left-light h-full md:d-none"></div>
-                <div>
-                    <div class="text-right md:text-left mb-10">
-                        <div class="text-18 lh-16 fw-500">{{offer.price.grandTotal|currency:'MXN'}}</div>
-                        <div class="text-15 lh-16 text-light-1">TUA e IVA incluido</div>
+                <div class="w-100" style="min-width: 220px;">
+                    <div class="mb-10 justify-between d-flex w-100">
+                        <div class="w-100">
+                            @if(offer.promoPrice){
+                                <div class="text-14 text-light-1" style="text-decoration: line-through;">{{offer.promoPrice.originalTotal|currency:'MXN'}}</div>
+                            }
+                            <div class="text-18 lh-16 fw-500">
+                                {{(offer.promoPrice?.discountedTotal ?? offer.price.grandTotal)|currency:'MXN'}}
+                                <span class="badge badge-success" matTooltip="Incluye una maleta de mano en la tarifa"><fa-icon [icon]="carryOnIcon"></fa-icon> 1</span>
+                                @if(offer.promoPrice){
+                                    <span class="badge badge-pill badge-primary text-8 ml-5" [matTooltip]="offer.promoPrice.promoCode ? 'Promo '+offer.promoPrice.promoCode : 'Promoción aplicada'">
+                                        -{{offer.promoPrice.discountType === 'percentage' ? (offer.promoPrice.discountAmount + '%') : (offer.promoPrice.discountAmount|currency:'MXN')}}
+                                    </span>
+                                }
+                            </div>
+                            <div class="d-flex justify-between w-100">
+                                <div class="text-15 lh-16 text-light-1 fw-500 xplora"><fa-icon [icon]="includedIcon"></fa-icon> Incluye T.U.A.</div>
+                                @if(offer.smartFare){
+                                    <img (click)="openSmartFareInfo($event)" src="assets/img/XplorAI.svg" alt="Smart Fare" style="width: 70px; height: auto;">
+                                }
+                            </div>
+                        </div>
                     </div>
                     <div class="accordion__button">
                         @if(selected){
@@ -56,7 +74,7 @@
                                 Eliminar <div class="icon-trash-2 ml-15"></div>
                             </button>
                         }@else{
-                            <button (click)="selectFlight($event)" class="button -dark-1 px-20 h-50 bg-blue-1 text-white">
+                            <button (click)="selectFlight($event)" class="button -dark-1 px-20 h-50 bg-blue-1 text-white w-100">
                                 Seleccionar <div class="icon-check ml-15"></div>
                             </button>
                         }

@@ -2,14 +2,54 @@
     <div class="text-20 fw-500 mb-0 d-inline-block">FlexPass</div>
     <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
 </div>
-<div style="max-height: calc(80vh - 120px); min-height: calc(80vh - 120px); overflow: auto;">
+<div class="scrollable-content">
+    <div style="padding: 12px 16px 0 16px;">
+        <div class="row y-gap-10 x-gap-0">
+            <div class="col-6">
+                <img src="/assets/img/flexpass-benefits/Cambio-sin-costo.svg" style="width: 60%; margin: auto; display: block;">
+                <div class="fw-500 lh-14 text-14 text-dark-1 xplora items-center" style="text-align: center;">
+                    <fa-icon [icon]="includedIcon"></fa-icon> Cambios ilimitados
+                </div>
+                <div class="text-12 text-light-1" style="text-align: center;">
+                    Sin costo adicional
+                </div>
+            </div>
+            <div class="col-6">
+                <img src="/assets/img/flexpass-benefits/Adelantar-Vuelo.svg" style="width: 60%; margin: auto; display: block;">
+                <div class="fw-500 lh-14 text-14 text-dark-1 xplora items-center" style="text-align: center;">
+                    <fa-icon [icon]="includedIcon"></fa-icon> Adelantar tu vuelo
+                </div>
+                <div class="text-12 text-light-1" style="text-align: center;">
+                    Sin costo adicional
+                </div>
+            </div>
+            <div class="col-6">
+                <img src="/assets/img/flexpass-benefits/Atencion-Prioritaria.svg" style="width: 60%; margin: auto; display: block;">
+                <div class="fw-500 lh-14 text-14 text-dark-1 xplora items-center" style="text-align: center;">
+                    <fa-icon [icon]="includedIcon"></fa-icon> Atención prioritaria
+                </div>
+                <div class="text-12 text-light-1" style="text-align: center;">
+                    24 Horas 7 Días a la semana
+                </div>
+            </div>
+            <div class="col-6">
+                <img src="/assets/img/flexpass-benefits/Asiento-garantizado.svg" style="width: 60%; margin: auto; display: block;">
+                <div class="fw-500 lh-14 text-14 text-dark-1 xplora items-center" style="text-align: center;">
+                    <fa-icon [icon]="includedIcon"></fa-icon> Asiento Garantizado
+                </div>
+                <div class="text-12 text-light-1" style="text-align: center;">
+                    Si llegas tarde
+                </div>
+            </div>
+        </div>
+    </div>
     <mat-tab-group>
         <mat-tab [label]="data.flights[0].departure.iataCode+' - '+data.flights[0].arrival.iataCode">
             <mat-selection-list #outbound color="primary" (selectionChange)="change()">
                 @for (passenger of data.passengers; track passenger; let i = $index) {
                     <mat-list-option [value]="i">
                         <span matListItemTitle style="font-weight: 500;">{{passenger.name}}</span>
-                        <span matListItemLine>{{passenger.type}} - {{price|currency:'MXN'}}</span>
+                        <span matListItemLine>{{passenger.type}} - {{outboundPrice|currency:'MXN'}}</span>
                     </mat-list-option>
                 }
             </mat-selection-list>
@@ -19,8 +59,8 @@
                 <mat-selection-list #inbound color="primary" (selectionChange)="change()">
                     @for (passenger of data.passengers; track passenger; let i = $index) {
                         <mat-list-option [value]="i">
-                            <span matListItemTitle style="font-weight: 500;">{{passenger.name}}</span>
-                            <span matListItemLine>{{passenger.type}} - {{price|currency:'MXN'}}</span>
+                        <span matListItemTitle style="font-weight: 500;">{{passenger.name}}</span>
+                        <span matListItemLine>{{passenger.type}} - {{inboundPrice|currency:'MXN'}}</span>
                         </mat-list-option>
                     }
                 </mat-selection-list>

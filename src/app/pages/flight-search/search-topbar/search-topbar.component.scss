@@ -1,0 +1,38 @@
+.location-label{
+    white-space: nowrap;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Evita desbordamientos */
+.no-overflow {
+    overflow: hidden;
+}
+
+/* Permite que flex-items se encojan y respeten contenedores */
+.shrinkable {
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+/* Evita que íconos o botones se deformen */
+.no-shrink {
+    flex-shrink: 0;
+}
+
+/* Texto truncado con puntos suspensivos */
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+}
+
+/* Para columnas centradas verticalmente */
+.column-center {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    min-width: 0;
+}

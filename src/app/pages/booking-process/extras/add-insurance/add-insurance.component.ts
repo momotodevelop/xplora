@@ -11,11 +11,13 @@ import { FlightAdditionalServiceItem } from "../../../../types/booking.types";
   selector: 'app-extras-insurance',
   standalone: true,
   imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule],
-  templateUrl: './add-insurance.component.html'
+  templateUrl: './add-insurance.component.html',
+  styleUrl: './add-insurance.component.scss'
 })
 export class AddPremiumInsuranceComponent implements AfterViewInit {
   price: number;
   total: number = 0;
+  showAllBenefits: boolean = false;
 
   @ViewChild('outbound') outbound!: MatSelectionList;
   @ViewChild('inbound') inbound?: MatSelectionList;
@@ -26,6 +28,12 @@ export class AddPremiumInsuranceComponent implements AfterViewInit {
   ) {
     this.price = this.data.price;
   }
+  get outboundPrice(): number {
+    return this.price * (this.data.outboundSegmentCount || 1);
+  }
+  get inboundPrice(): number {
+    return this.price * (this.data.inboundSegmentCount || 0);
+  }
 
   ngAfterViewInit(): void {
     if (this.data.saved) {
@@ -34,7 +42,7 @@ export class AddPremiumInsuranceComponent implements AfterViewInit {
       // Outbound
       if (saved.outbound?.length > 0) {
         const selectedOptions: MatListOption[] = saved.outbound
-          .map(item => this.outbound.options.find((option,i) => option.value === i))
+          .map((item, i) => item.active || item.value > 0 ? this.outbound.options.find(option => option.value === i) : undefined)
           .filter(option => option !== undefined) as MatListOption[];
         this.outbound.selectedOptions.select(...selectedOptions);
       }
@@ -42,7 +50,7 @@ export class AddPremiumInsuranceComponent implements AfterViewInit {
       // Inbound
       if (saved.inbound?.length > 0 && this.inbound) {
         const selectedOptions: MatListOption[] = saved.inbound
-          .map(item => this.inbound!.options.find((option,i) => option.value === i))
+          .map((item, i) => item.active || item.value > 0 ? this.inbound!.options.find(option => option.value === i) : undefined)
           .filter(option => option !== undefined) as MatListOption[];
         this.inbound.selectedOptions.select(...selectedOptions);
       }
@@ -56,19 +64,24 @@ export class AddPremiumInsuranceComponent implements AfterViewInit {
   }
 
   save() {
+    const outboundSelected = new Set(this.outbound.selectedOptions.selected.map(option => option.value));
+    const inboundSelected = new Set(this.inbound?.selectedOptions.selected.map(option => option.value) ?? []);
+
     const selectedOutbound: FlightAdditionalServiceItem[] = this.data.saved.outbound.map((item,i)=>{
+      const isSelected = outboundSelected.has(i);
       return {
         ...item,
-        active: this.outbound.selectedOptions.selected[i]?.selected ?? false,
-        value: this.outbound.selectedOptions.selected[i]?.selected ? 1 : 0
+        active: isSelected,
+        value: isSelected ? 1 : 0
       }
     });
 
     const selectedInbound: FlightAdditionalServiceItem[] = this.data.saved.inbound.map((item,i)=>{
+      const isSelected = inboundSelected.has(i);
       return {
         ...item,
-        active: this.inbound?.selectedOptions.selected[i]?.selected ?? false,
-        value: this.inbound?.selectedOptions.selected[i]?.selected ? 1 : 0
+        active: isSelected,
+        value: isSelected ? 1 : 0
       }
     })
 
@@ -82,6 +95,12 @@ export class AddPremiumInsuranceComponent implements AfterViewInit {
   change() {
     const outboundCount = this.outbound.selectedOptions.selected.length;
     const inboundCount = this.inbound?.selectedOptions.selected.length || 0;
-    this.total = this.price * (outboundCount + inboundCount);
+    const outboundTotal = this.outboundPrice * outboundCount;
+    const inboundTotal = this.inboundPrice * inboundCount;
+    this.total = outboundTotal + inboundTotal;
+  }
+
+  toggleBenefits() {
+    this.showAllBenefits = !this.showAllBenefits;
   }
 }

@@ -7,6 +7,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
 import { Timestamp } from 'firebase/firestore';
+import { FireAuthService } from '../../../services/fire-auth.service';
+import { CommonModule } from '@angular/common';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 export interface PassengerValue {
   id:       number;
@@ -27,7 +30,7 @@ export interface PassengerFormValue {
 
 @Component({
     selector: 'app-passengers',
-    imports: [MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatDatepickerModule, FormsModule, MatNativeDateModule, MatOptionModule, MatSelectModule],
+    imports: [MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatDatepickerModule, FormsModule, MatNativeDateModule, MatOptionModule, MatSelectModule, CommonModule, MatCheckboxModule],
     templateUrl: './passengers.component.html',
     styleUrl: './passengers.component.scss'
 })
@@ -59,7 +62,7 @@ export class PassengersComponent implements OnInit {
       max: Date|null
     }
   }
-  constructor(private fb: FormBuilder, private bookingHandler:BookingHandlerService){
+  constructor(private fb: FormBuilder, private bookingHandler:BookingHandlerService, public auth: FireAuthService) {
     const today = new Date();
     this.form = this.fb.group({
       passengers: this.fb.array([])
@@ -80,6 +83,9 @@ export class PassengersComponent implements OnInit {
     }
   }
   ngOnInit(): void {
+    this.auth.user.subscribe(user=>{
+
+    })
     this.initializeForm();
     this.bookingHandler.booking.subscribe(booking=>{
       if(booking!==undefined){

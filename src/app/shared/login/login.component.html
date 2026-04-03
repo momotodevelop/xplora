@@ -1,81 +1,114 @@
 <div class="bg-white" [ngClass]="{ 'rounded-4': rounded, 'shadow-4': floating, 'px-50 py-50 sm:px-20 sm:py-20': !isBottomSheet, 'px-20 py-20': isBottomSheet }">
-    <div class="row y-gap-10 x-gap-10">
-        <div class="col-12">
-            <h1 class="text-22 fw-500">Ingresa a tu cuenta</h1>
-            @if(!createNewAccount){
-                <p class="mt-10">¿Aún no tienes una cuenta? <a (click)="createAccount(true)" class="text-blue-1">Crea una gratis</a></p>
-            }@else{
-                <p class="mt-10">¿Ya tienes una cuenta? <a (click)="createAccount(false)" class="text-blue-1">Inicia Sesión</a></p>
-            }
-        </div>
-        @if(createNewAccount){
-            <div class="col-6" @fadeInOut>
-                <div class="form-input">
-                    <input type="text" required>
-                    <label class="lh-1 text-14 text-light-1">Nombre</label>
-                </div>
+    @if(!user){
+            <div class="row y-gap-10 x-gap-10">
+            <div class="col-12">
+                <h1 class="text-22 fw-500">Ingresa a tu cuenta</h1>
+                @if(!createNewAccount){
+                    <p class="mt-10">¿Aún no tienes una cuenta? <a (click)="createNewAccount=true" class="text-blue-1">Crea una gratis</a></p>
+                }@else{
+                    <p class="mt-10">¿Ya tienes una cuenta? <a (click)="createNewAccount=false" class="text-blue-1">Inicia Sesión</a></p>
+                }
             </div>
-            <div class="col-6" @fadeInOut>
-                <div class="form-input">
-                    <input type="text" required>
-                    <label class="lh-1 text-14 text-light-1">Apellido(s)</label>
-                </div>
-            </div>
-        }
-        <div class="col-12">
-            <div class="form-input">
-                <input type="text" required>
-                <label class="lh-1 text-14 text-light-1">Correo Electrónico</label>
-            </div>
-        </div>
-        <div [ngClass]="{'col-6': createNewAccount, 'col-12': !createNewAccount}" class="col-12">
-            <div class="form-input">
-                <input type="password" required>
-                <label class="lh-1 text-14 text-light-1">Contraseña</label>
-            </div>
-        </div>
-        @if(createNewAccount){
-            <div [ngClass]="{'col-6': createNewAccount, 'col-12': !createNewAccount}" @fadeInOut>
-                <div class="form-input">
-                    <input type="password" required>
-                    <label class="lh-1 text-14 text-light-1">Repite tu contraseña</label>
-                </div>
-            </div>
-        }
-        @if(createNewAccount){
-            <div class="col-12" @fadeInOut>
-                <a (click)="createAccount(false)" class="text-14 fw-500 text-blue-1 underline">¿Ya tienes una cuenta?</a>
-            </div>
-        }@else{
-            <div class="col-12" @fadeInOut>
-                <a href="#" class="text-14 fw-500 text-blue-1 underline">¿Olvidaste tu contraseña?</a>
-            </div>
-        }
-        <div class="col-12">
             @if(createNewAccount){
-                <a (click)="createAccount()" class="button py-20 -dark-1 bg-blue-1 text-white" @fadeInOut>
-                    Registrarse <div class="icon-arrow-top-right ml-15"></div>
-                </a>
-            }@else{
-                <a class="button py-20 -dark-1 bg-blue-1 text-white" @fadeInOut>
-                    Iniciar Sesión <div class="icon-arrow-top-right ml-15"></div>
-                </a>
+                <div class="col-6" @fadeInOut>
+                    <div class="form-input">
+                        <input [formControl]="name" type="text">
+                        <label class="lh-1 text-14 text-light-1">Nombre</label>
+                    </div>
+                </div>
+                <div class="col-6" @fadeInOut>
+                    <div class="form-input">
+                        <input [formControl]="lastname" type="text">
+                        <label class="lh-1 text-14 text-light-1">Apellido(s)</label>
+                    </div>
+                </div>
             }
+            <div class="col-12">
+                <div class="form-input">
+                    <input [formControl]="email" type="email">
+                    <label class="lh-1 text-14 text-light-1">Correo Electrónico</label>
+                </div>
+            </div>
+            <div [ngClass]="{'col-6': createNewAccount, 'col-12': !createNewAccount}" class="col-12">
+                <div class="form-input">
+                    <input [formControl]="password" type="password">
+                    <label class="lh-1 text-14 text-light-1">Contraseña</label>
+                </div>
+            </div>
+            @if(createNewAccount){
+                <div [ngClass]="{'col-6': createNewAccount, 'col-12': !createNewAccount}" @fadeInOut>
+                    <div class="form-input">
+                        <input type="password" required>
+                        <label class="lh-1 text-14 text-light-1">Repite tu contraseña</label>
+                    </div>
+                </div>
+            }
+            @if(createNewAccount){
+                <div class="col-12" @fadeInOut>
+                    <a (click)="createAccount()" class="text-14 fw-500 text-blue-1 underline">¿Ya tienes una cuenta?</a>
+                </div>
+            }@else{
+                <div class="col-12" @fadeInOut>
+                    <a href="#" class="text-14 fw-500 text-blue-1 underline">¿Olvidaste tu contraseña?</a>
+                </div>
+            }
+            <div class="col-12">
+                @if(createNewAccount){
+                    <a (click)="createAccount()" class="button py-20 -dark-1 bg-blue-1 text-white" @fadeInOut>
+                        Registrarse <div class="icon-arrow-top-right ml-15"></div>
+                    </a>
+                }@else{
+                    <a class="button py-20 -dark-1 bg-blue-1 text-white" @fadeInOut>
+                        Iniciar Sesión <div class="icon-arrow-top-right ml-15"></div>
+                    </a>
+                }
+            </div>
         </div>
-    </div>
-    <div class="row x-gap-10 mt-10">
-        <div class="text-center col-12">O entrar con</div>
-        <div class="col-6">
-            <button (click)="phoneLogin()" class="w-100 button -outline-blue-1 text-blue-1 py-15 rounded-8 mt-10">
-                <fa-icon [icon]="mobileIcon" class="text-15 mr-10"></fa-icon>
-                Teléfono (SMS)
-            </button>
+        <div class="row x-gap-10 mt-10">
+            <div class="text-center col-12">O entrar con</div>
+            <!-- <div class="col-6">
+                <button (click)="phoneLogin()" class="w-100 button -outline-blue-1 text-blue-1 py-15 rounded-8 mt-10">
+                    <fa-icon [icon]="mobileIcon" class="text-15 mr-10"></fa-icon>
+                    Teléfono (SMS)
+                </button>
+            </div> -->
+            <div class="col-12">
+                <button (click)="googleLogin()" class="w-100 button -outline-red-1 text-red-1 py-15 rounded-8 mt-10">
+                    <fa-icon [icon]="googleIcon" class="text-15 mr-10"></fa-icon>
+                    Google
+                </button>
+            </div>
         </div>
-        <div class="col-6">
-            <button (click)="googleLogin()" class="w-100 button -outline-red-1 text-red-1 py-15 rounded-8 mt-10">
-                <fa-icon [icon]="googleIcon" class="text-15 mr-10"></fa-icon>
-                Google
-            </button>
+    }@else{
+        <div class="row y-gap-10 x-gap-10">
+            <div class="col-12 text-center">
+                <img [src]="profileAvatar" style="max-width: 100px;" class="rounded-full h-100" alt="User Photo">
+            </div>
+            <div class="col-12 text-center">
+                <h1 class="text-22 fw-500">Bienvenido {{userData?.name ?? user.displayName?? 'viajero'}}</h1>
+                <p class="mt-10">Miembro desde el {{user.metadata.creationTime | date:'mediumDate'}}</p>
+                @if(isGoogleUser(user)){
+                    <p class="mt-10">Registrado con <fa-icon [icon]="googleIcon"></fa-icon> Google</p>
+                }
+            </div>
+            <div class="col-6" [ngClass]="{'col-md-4':!isBottomSheet}">
+                <a (click)="goTo('/mi-cuenta')" mat-stroked-button class="w-100" color="primary">
+                    <mat-icon>account_box</mat-icon>
+                    Mi Perfil
+                </a>
+            </div>
+            <div class="col-6" [ngClass]="{'col-md-4':!isBottomSheet}">
+                <button (click)="goTo('/mi-cuenta/reservaciones')" mat-stroked-button class="w-100" color="primary">
+                    <mat-icon>flight</mat-icon>
+                    Mis Viajes
+                </button>
+            </div>
+            <div [ngClass]="{'col-md-4':!isBottomSheet}" class="col-12">
+                <button (click)="logout()" mat-stroked-button class="w-100" color="warn">
+                    <mat-icon>exit_to_app</mat-icon>
+                    Cerrar Sesión
+                </button>
+            </div>
         </div>
-    </div>
+    }
 </div>

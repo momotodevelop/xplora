@@ -17,9 +17,10 @@ import { FireBookingService } from '../../services/fire-booking.service';
 import { Timestamp } from 'firebase/firestore';
 import { BookingStatus, FlightFirebaseBooking } from '../../types/booking.types';
 import { GoogleTranslationService } from '../../services/google-translation.service';
-import { Title } from '@angular/platform-browser';
 import  * as _  from 'lodash';
 import { MetaHandlerService } from '../../services/meta-handler.service';
+import { Promo, XploraPromosService } from '../../services/xplora-promos.service';
+import { TitleCasePipe } from '@angular/common';
 export interface SearchParams{
   adults: string
   childrens: string
@@ -53,6 +54,8 @@ export class FlightSearchComponent implements OnInit {
   destination!: AmadeusLocation;
   departure: Date = new Date();
   return: Date|undefined;
+  promoCode?: string;
+  promo?: Promo;
   passengers: Passengers = {
     adults: 1,
     childrens: 0,
@@ -69,7 +72,9 @@ export class FlightSearchComponent implements OnInit {
     private flightOffersHandler: FlightOffersDataHandlerService,
     private router: Router,
     private xplora: XploraApiService,
-    private meta: MetaHandlerService
+    private meta: MetaHandlerService,
+    private promos: XploraPromosService,
+    private titlecase: TitleCasePipe
   ){}
 
   ngOnInit(): void {
@@ -82,6 +87,26 @@ export class FlightSearchComponent implements OnInit {
       //this.headerType = type;
       this.sharedService.changeHeaderType(type);
     });
+    this.route.queryParams.subscribe(q => {
+      const query = q as { promo?: string };
+      this.promoCode = query.promo;
+      if (this.promoCode) {
+        this.promos.getPromoByCode(this.promoCode).subscribe({
+          next: promo => {
+            if (promo && (promo.allowedProducts === 'flights' || promo.allowedProducts === 'all')) {
+              this.promo = promo;
+            } else {
+              this.promo = undefined;
+            }
+          },
+          error: () => {
+            this.promo = undefined;
+          }
+        });
+      } else {
+        this.promo = undefined;
+      }
+    });
     this.route.params.subscribe((p)=>{
       const params:SearchParams = p as SearchParams;
       this.searchParams={
@@ -90,7 +115,7 @@ export class FlightSearchComponent implements OnInit {
         destination: this.removeLocationType(params.destination)
       };
       this.meta.setMeta({
-        title: "Xplora Travel || Vuelos " + params.origin.toUpperCase() + " → " + params.destination.toUpperCase(),
+        title: "Xplora Travel || Vuelos " + params.origin.toUpperCase() + " ✈ " + params.destination.toUpperCase(),
         description: "Encuentra y compara vuelos baratos desde " + params.origin.toUpperCase() + " hacia " + params.destination.toUpperCase() + ". Explora las mejores opciones de aerolíneas, horarios y precios para tu próximo viaje con Xplora Travel.",
         image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3"
       });
@@ -110,22 +135,25 @@ export class FlightSearchComponent implements OnInit {
             this.destination = results[1].data;
             this.sharedService.setLoading(false);
             this.meta.setMeta({
-              title: "Xplora Travel || Vuelos "+this.origin.address.cityName+" → "+this.destination.address.cityName,
-              description: "Encuentra y compara vuelos baratos desde " + this.origin.address.cityName + " hacia " + this.destination.address.cityName + ". Explora las mejores opciones de aerolíneas, horarios y precios para tu próximo viaje con Xplora Travel.",
+              title: "Xplora Travel || Vuelos "+this.titlecase.transform(this.origin.address.cityName)+" ✈ "+this.titlecase.transform(this.destination.address.cityName),
+              description: "Encuentra y compara vuelos baratos desde " + this.titlecase.transform(this.origin.address.cityName) + " hacia " + this.titlecase.transform(this.destination.address.cityName) + ". Explora las mejores opciones de aerolíneas, horarios y precios para tu próximo viaje con Xplora Travel.",
+              image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3"
             });
           })
         }
-      })
+      });
     });
     this.flightOffersHandler.flightSelectionStatus.subscribe(status=>{
+      console.log(status); 
       if(status==="FULL"){
         const round = this.return!==undefined;
         this.sharedService.setLoading(true);
-        let bookingInfo:FlightFirebaseBooking = {
+        let bookingInfo: FlightFirebaseBooking = {
           type: "FLIGHT",
           status: "PENDING",
+          created: Timestamp.fromDate(new Date()),
           flightDetails: {
-            departure: new Timestamp(this.departure.getTime()/1000, 0),
+            departure: Timestamp.fromDate(this.departure),
             origin: this.origin,
             destination: this.destination,
             passengers: {
@@ -133,12 +161,15 @@ export class FlightSearchComponent implements OnInit {
               details: []
             },
             round,
-            flights: this.flightOffersHandler.getFlights()
+            flights: {
+              outbound: this.flightOffersHandler.getFlights().outbound,
+              inbound: this.flightOffersHandler.getFlights().inbound??null
+            }
           }
         }
         if(round&&this.return){
           bookingInfo.flightDetails.return = new Timestamp(this.return.getTime()/1000, 0);
-        }
+        }else{}
         this.fireBooking.addBooking(bookingInfo).then(ok=>{
           /* const outboundFlight = bookingInfo.flightDetails.flights.outbound!;
           //console.log(ok);
@@ -163,10 +194,12 @@ export class FlightSearchComponent implements OnInit {
               value: total,
               items
             }); */
-          this.router.navigate(['/reservar', 'vuelos', ok]);
+          this.router.navigate(['/reservar', 'vuelos', ok], {
+            queryParams: this.promoCode ? { promo: this.promoCode } : undefined
+          });
         }).catch(err=>{
           console.error(err);
-          this.sharedService.setLoading(false);
+          //this.sharedService.setLoading(false);
         });
       }
     })

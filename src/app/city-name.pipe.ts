@@ -1,12 +1,147 @@
+import { TitleCasePipe } from '@angular/common';
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'cityName'
+  name: 'location',
+  standalone: true
 })
-export class CityNamePipe implements PipeTransform {
+export class LocationNamePipe implements PipeTransform {
+  private readonly substitutions: Record<string, string> = {
+    // — 20 destinos principales de México (aeropuerto y ciudad)
+    'AMEX': 'CDMX (AICM)',
+    'CMEX': 'CDMX',
+    'ACUN': 'Cancún',
+    'CCUN': 'Cancún',
+    'AGDL': 'Guadalajara',
+    'CGDL': 'Guadalajara',
+    'AMTY': 'Monterrey',
+    'CMTY': 'Monterrey',
+    'ATIJ': 'Tijuana',
+    'CTIJ': 'Tijuana',
+    'APVR': 'P. Vallarta',
+    'CPVR': 'Puerto Vallarta',
+    'ACAB': 'Los Cabos',
+    'CCAB': 'Los Cabos',
+    'AMID': 'Mérida',
+    'CMID': 'Mérida',
+    'AOAX': 'Oaxaca',
+    'COAX': 'Oaxaca',
+    'ANLU': 'CDMX (AIFA)',
+    'CNLU': 'CDMX (AIFA)',
+    // — 80 destinos globales (aeropuerto y ciudad)
+    'AATL': 'Atlanta International',
+    'CATL': 'Atlanta',
+    'ADXB': 'Dubái',
+    'CDXB': 'Dubái',
+    'AHND': 'Tokio',
+    'CTYO': 'Tokio',
+    'ALHR': 'Londres',
+    'CLON': 'Londres',
+    'AICN': 'Seúl',
+    'CSEL': 'Seúl',
+    'ASIN': 'Singapur',
+    'CSIN': 'Singapur',
+    'AAMS': 'Ámsterdam',
+    'CAMS': 'Ámsterdam',
+    'ACDG': 'París',
+    'CPAR': 'París',
+    'AFRA': 'Frankfurt',
+    'CFRA': 'Frankfurt',
+    'AHKG': 'Hong Kong',
+    'CHKG': 'Hong Kong',
+    'ADOH': 'Doha',
+    'CDOH': 'Doha',
+    'AISL': 'Estambul',
+    'CIST': 'Estambul',
+    'ASHG': 'Shanghái',
+    'CSHG': 'Shanghái',
+    'ADFW': 'Dallas/F.Worth',
+    'CDFW': 'Dallas/F.Worth',
+    'ADEN': 'Denver',
+    'CDEN': 'Denver',
+    'AORD': 'Chicago',
+    'CCHI': 'Chicago',
+    'ALAX': 'Los Ángeles',
+    'CLAX': 'Los Ángeles',
+    'ASFO': 'SFO',
+    'CSFO': 'San Francisco',
+    'AMIA': 'Miami',
+    'CMIA': 'Miami',
+    'AEWR': 'Newark',
+    'CEWR': 'Newark',
+    'ABOS': 'Boston',
+    'CBOS': 'Boston',
+    'APHX': 'Phoenix',
+    'CPHX': 'Phoenix',
+    'AIAH': 'Houston',
+    'CHOU': 'Houston',
+    'ACLG': 'Charlotte',
+    'CCLT': 'Charlotte',
+    'ANYC': 'JFK',
+    'CNYC': 'Nueva York',
+    'ABRU': 'Bruselas',
+    'CBRU': 'Bruselas',
+    'AMAD': 'Madrid',
+    'CMAD': 'Madrid',
+    'ABCN': 'Barcelona',
+    'CBCN': 'Barcelona',
+    'AVIE': 'Viena',
+    'CVIE': 'Viena',
+    'ACPH': 'Copenhague',
+    'CCPH': 'Copenhague',
+    'AMUC': 'Múnich',
+    'CMUC': 'Múnich',
+    'APMI': 'P.Mallorca',
+    'CPMI': 'Palma Mallorca',
+    'ALGW': 'Gatwick',
+    'CLGW': 'Londres Gatwick',
+    'ASTO': 'Estocolmo',
+    'CSTO': 'Estocolmo',
+    'AMEL': 'Melbourne',
+    'CMEL': 'Melbourne',
+    'ASYD': 'Sídney',
+    'CSYD': 'Sídney',
+    'ABOM': 'Bombay',
+    'CBOM': 'Bombái',
+    'ADEL': 'Delhi',
+    'CDEL': 'Delhi',
+    'AJED': 'Jeddah',
+    'CJED': 'Jeddah',
+    'AKUL': 'K.Lumpur',
+    'CKUL': 'Kuala Lumpur',
+    'AZRH': 'Zúrich',
+    'CZRH': 'Zúrich',
+    'ACAI': 'El Cairo',
+    'CCAI': 'El Cairo',
+    'ANRT': 'Nairobi',
+    'CNRT': 'Nairobi',
+    'APVG': 'Vancouver',
+    'CYVR': 'Vancouver',
+    'ATOR': 'Toronto',
+    'CYYZ': 'Toronto',
+    'AHYD': 'Hyderabad',
+    'CHYD': 'Hyderabad',
+    'ATPE': 'Taipéi',
+    'CTPE': 'Taipéi',
+    'AMAN': 'Manila',
+    'CMNL': 'Manila',
+    'AKMG': 'Krabi',
+    'CKBV': 'Krabi',
+    'ATBS': 'Brasilia',
+    'CBSB': 'Brasilia',
+    'AGRU': 'S.Paulo',
+    'CGRU': 'São Paulo',
+  };
+  private titleCasePipe = new TitleCasePipe();
 
-  transform(value: unknown, ...args: unknown[]): unknown {
-    return null;
+  transform(original: unknown, amadeusCode?: string): string {
+    if (!amadeusCode || typeof amadeusCode !== 'string') {
+      return this.titleCasePipe.transform(String(original ?? ''));
+    }
+
+    const code = amadeusCode.trim().toUpperCase();
+    const substitution = this.substitutions[code];
+
+    return substitution ?? this.titleCasePipe.transform(String(original ?? ''));
   }
-
 }

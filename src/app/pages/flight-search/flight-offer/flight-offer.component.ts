@@ -9,10 +9,13 @@ import { DurationPipe } from '../../../duration.pipe';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
+import { XploraiSmartfareComponent } from '../../../shared/xplorai-smartfare/xplorai-smartfare.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faCheck, faCheckCircle, faCheckDouble, faSuitcaseRolling } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
     selector: 'app-flight-offer',
-    imports: [MatBottomSheetModule, CommonModule, DateStringPipe, DurationPipe, MatChipsModule, MatTooltipModule, MatIconModule, CurrencyPipe,],
+    imports: [MatBottomSheetModule, CommonModule, DateStringPipe, DurationPipe, MatChipsModule, MatTooltipModule, MatIconModule, CurrencyPipe, FontAwesomeModule, MatTooltipModule],
     templateUrl: './flight-offer.component.html',
     styleUrl: './flight-offer.component.scss'
 })
@@ -26,6 +29,9 @@ export class FlightOfferComponent {
   }> = new EventEmitter();
   @Output() removedFlight: EventEmitter<void> = new EventEmitter();
   hovered:boolean=false;
+  includedIcon = faCheck;
+  includedCircleIcon = faCheckCircle;
+  carryOnIcon = faSuitcaseRolling;
   constructor(private bs:MatBottomSheet,public flightOffersHandler: FlightOffersDataHandlerService){}
   openDetails(offer:FlightOffer){
     this.bs.open(FlightOfferDetailsComponent, {data: {offer, dictionaries:this.dictionaries}, panelClass: 'flight-offer-details-bottomsheet'});
@@ -41,5 +47,8 @@ export class FlightOfferComponent {
     });
     event.stopPropagation();
   }
-
+  openSmartFareInfo(event: Event){
+    event.stopPropagation();
+    this.bs.open(XploraiSmartfareComponent, {panelClass: 'bottomsheet-no-padding'});
+  }
 }

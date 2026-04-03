@@ -1,0 +1,15 @@
+:host ::ng-deep .mat-mdc-list-item,
+:host ::ng-deep .mdc-list-item__content {
+  overflow: hidden;
+}
+
+:host ::ng-deep .mat-mdc-list-item {
+  height: auto;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+:host ::ng-deep .mdc-list-item__primary-text,
+:host ::ng-deep .mdc-list-item__secondary-text {
+  white-space: normal;
+}

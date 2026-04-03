@@ -1,0 +1,26 @@
+/* Clase base del contenedor */
+.option-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    background: #fff;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    &:not(:first-child) {
+        margin-top: 15px;
+    }
+}
+
+/* Al pasar el mouse */
+.option-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+/* Cuando está seleccionado */
+.option-card.selected {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    border-color: #297eff;
+    background-color: rgba(41,126,255,0.05);
+}

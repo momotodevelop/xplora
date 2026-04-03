@@ -1,0 +1,98 @@
+<div class="tour-admin">
+  <div class="row y-gap-20 justify-between items-end pb-30">
+    <div class="col-auto">
+      <h1 class="text-30 lh-14 fw-600">Buscar tours</h1>
+      <div class="text-15 text-light-1">Busca por coordenadas, revisa resultados y guarda el tour en Firestore.</div>
+    </div>
+    <div class="col-auto">
+      <button mat-stroked-button color="primary" type="button" (click)="createManualTour()">
+        Crear tour manual
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="searchForm" class="row y-gap-15 tour-search">
+    <div class="col-md-3 col-sm-6">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Latitud</mat-label>
+        <input matInput formControlName="latitude" type="number" step="0.000001" />
+      </mat-form-field>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Longitud</mat-label>
+        <input matInput formControlName="longitude" type="number" step="0.000001" />
+      </mat-form-field>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Radio (km)</mat-label>
+        <input matInput formControlName="radius" type="number" min="1" />
+      </mat-form-field>
+    </div>
+    <div class="col-md-3 col-sm-6 d-flex items-end">
+      <button mat-flat-button color="primary" class="w-100" type="button" (click)="searchTours()">
+        Buscar
+      </button>
+    </div>
+  </form>
+
+  <div class="tour-results-meta">
+    @if (searched) {
+      <div class="text-14 text-light-1">Resultados: {{ totalResults }}</div>
+    }
+    @if (errorMessage) {
+      <div class="text-14 text-danger">{{ errorMessage }}</div>
+    }
+  </div>
+
+  <div class="tour-results-controls">
+    <mat-form-field appearance="outline" class="tour-results-controls__search">
+      <mat-label>Buscar</mat-label>
+      <input matInput [formControl]="searchQuery" placeholder="Nombre, descripcion o ID" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="tour-results-controls__sort">
+      <mat-label>Ordenar</mat-label>
+      <mat-select [formControl]="sortOption">
+        <mat-option value="name">Alfabetico (A-Z)</mat-option>
+        <mat-option value="price-asc">Precio (menor a mayor)</mat-option>
+        <mat-option value="price-desc">Precio (mayor a menor)</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (searched && !displayedResults.length && !errorMessage) {
+    <div class="tour-empty">No se encontraron tours con esas coordenadas.</div>
+  }
+
+  <div class="tour-grid">
+    @for (item of displayedResults; track item.activity.id) {
+      <div class="tour-card" [class.--saved]="item.isSaved">
+        <div class="tour-card__image">
+          @if (item.activity.pictures?.length) {
+            <img [src]="item.activity.pictures[0]" alt="tour" />
+          } @else {
+            <div class="tour-card__placeholder">Sin imagen</div>
+          }
+        </div>
+        <div class="tour-card__body">
+          <div class="tour-card__head">
+            <div>
+              <div class="tour-card__title">{{ item.activity.name || 'Sin nombre' }}</div>
+              <div class="tour-card__id">ID: {{ item.activity.id }}</div>
+            </div>
+            <span class="tour-card__badge" [class.--saved]="item.isSaved">
+              {{ item.isSaved ? 'Guardado' : 'Nuevo' }}
+            </span>
+          </div>
+          <div class="tour-card__desc">{{ item.description || 'Sin descripcion.' }}</div>
+          <div class="tour-card__actions">
+            <button mat-stroked-button color="primary" type="button" (click)="openTour(item)">
+              {{ item.isSaved ? 'Editar' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

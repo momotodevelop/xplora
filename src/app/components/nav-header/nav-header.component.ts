@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { SanityService } from '../../services/sanity.service';
 import { NavigationItem } from '../../types/sanity.types';
 import { MenuItem } from '../../types/navigation.types';
-import { FireAuthService } from '../../services/fire-auth.service';
+import { FireAuthService, UserData } from '../../services/fire-auth.service';
 import { User } from 'firebase/auth';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -38,6 +38,12 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
       openInNewTab: false
     },
     {
+      name: "Confianza",
+      tipoEnlace: "interno",
+      route: "confianza",
+      openInNewTab: false
+    },
+    {
       name: "Contacto",
       tipoEnlace: "interno",
       route: "contacto",
@@ -52,7 +58,7 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
     {
       name: "Ayuda",
       tipoEnlace: "interno",
-      route: "blog",
+      route: "ayuda",
       openInNewTab: false
     }
   ];
@@ -66,6 +72,7 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
   ){}
   user?:User;
   hide:boolean=false;
+  userData:UserData|null = null;
   ngOnInit(): void {
     this.shared.headerType.subscribe((type:HeaderType)=>{
       if(type!==undefined){
@@ -78,14 +85,16 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
       this.hide=isHidden;
     })
     this.auth.user.subscribe(user=>{
-      if(user?.displayName==null || user?.displayName==undefined){
-        
-      }
       if(user){
         this.user=user;
+        console.log("User logged in:", user);
       }else{
+        console.log("User logged out");
         this.user=undefined;
       }
+    });
+    this.auth.data.subscribe(data=>{
+      this.userData = data;
     });
   }
   ngAfterViewInit(): void {
@@ -107,5 +116,23 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
         this.router.navigate(['inicio']);
       }
     })
+  }
+  get profileAvatar():string{
+    if(this.user?.photoURL){
+      return this.user.photoURL;
+    } else if(this.userData){
+      if(this.userData.name && this.userData.lastName){
+        return `https://ui-avatars.com/api/?background=004aad&color=fff&name=${this.userData.name}+${this.userData.lastName}&rounded=true&bold=true`;
+      }else{
+        if(this.user?.displayName){
+          const name = this.user.displayName.replace(/\s+/g, '+') || '';
+          return `https://ui-avatars.com/api/?background=004aad&color=fff&name=${name}+&rounded=true&bold=true`;
+        }else{
+          return `https://ui-avatars.com/api/?background=004aad&color=fff&name=Xplora+Travel&rounded=true&bold=true`;
+        }
+      }
+    }else{
+      return `https://ui-avatars.com/api/?background=004aad&color=fff&name=Xplora+Travel&rounded=true&bold=true`;
+    }
   }
 }

@@ -5,7 +5,6 @@ import { SecturComponent } from './sectur/sectur.component';
 import { AmavComponent } from './amav/amav.component';
 import { IataComponent } from './iata/iata.component';
 import { SharedDataService } from '../../services/shared-data.service';
-import { Title } from '@angular/platform-browser';
 import { ScrollRevealDirective } from '../../scroll-reveal.directive';
 import { MetaHandlerService } from '../../services/meta-handler.service';
 export interface Opinion {

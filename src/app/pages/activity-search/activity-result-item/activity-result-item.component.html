@@ -1,0 +1,54 @@
+<div>
+    <a [routerLink]="['/actividades/detalle', activity.id]" [queryParams]="searchParams" class="activityCard -type-1 rounded-4">
+        <div class="activityCard__image">
+            <div class="cardImage ratio ratio-1:1">
+                <div class="cardImage__contents">
+                    <ngx-slick-carousel [config]="sliderConfig" class="swiper-slide cardImage-slider rounded-4 overflow-hidden">
+                        @for(picture of activity.pictures; track picture){
+                            <div ngxSlickItem class="swiper-slide">
+                                <img [src]="picture" alt="image">
+                            </div>
+                        }
+                    </ngx-slick-carousel>
+                </div>
+                <div class="d-flex justify-between absolute-full-center px-15 py-15">
+                    @if (includeTransfer) {
+                        <div class="cardImage__leftBadge">
+                            <div class="py-5 px-15 rounded-right-4 text-12 lh-16 fw-500 uppercase bg-blue-1 text-white">
+                                Traslado Incluido
+                            </div>
+                        </div>
+                    }
+                    <div class="cardImage__wishlist">
+                        <button class="button -blue-1 bg-white size-30 rounded-full shadow-2">
+                            <i class="icon-heart text-12"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="activityCard__content mt-10">
+            <div class="text-14 lh-14 text-light-1 mb-5"><fa-icon [icon]="timeIcon"></fa-icon>  {{activity.minimumDuration.length>0 ? activity.minimumDuration : 'Más de 2 Horas'}}</div>
+            <h4 style="min-height: 3em;" class="activityCard__title lh-16 fw-500 text-dark-1 text-18">
+                <span>{{activity.name|titlecase}}</span>
+            </h4>
+            <p class="text-light-1 text-14 lh-14 mt-5"> <fa-icon [icon]="locationIcon"></fa-icon> {{destination|titlecase}}</p>
+            <div class="row justify-between items-center pt-10">
+                <div class="col-auto">
+                    <!--<div class="d-flex items-center">
+                        <div class="icon-star text-yellow-1 text-10 mr-5"></div>
+                        <div class="text-14 text-light-1">
+                            <span class="text-15 text-dark-1 fw-500">4.82</span>
+                            94 reviews
+                        </div>
+                    </div>-->
+                </div>
+                <div class="col-auto">
+                    <div class="text-14 text-light-1">
+                        @if(activity.originalPrice){<span style="text-decoration: line-through; margin-right: 5px;">{{activity.originalPrice?.amount | currency:activity.originalPrice?.currencyCode}}</span>} <span class="text-16 fw-500 text-dark-1">{{activity.price.amount | currency:activity.price.currencyCode}} / <fa-icon [icon]="paxIcon"></fa-icon></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </a>
+</div>

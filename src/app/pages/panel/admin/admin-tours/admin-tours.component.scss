@@ -1,0 +1,135 @@
+.tour-admin {
+  padding: 10px 0 40px;
+}
+
+.tour-search {
+  margin-bottom: 10px;
+}
+
+.tour-results-meta {
+  margin-top: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.tour-results-controls {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(220px, 260px);
+  gap: 12px;
+  align-items: end;
+}
+
+.tour-results-controls__search,
+.tour-results-controls__sort {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .tour-results-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tour-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.tour-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.tour-card.--saved {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.tour-card__image {
+  height: 180px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tour-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tour-card__placeholder {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.tour-card__body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tour-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.tour-card__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.tour-card__id {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.tour-card__desc {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.4;
+  max-height: 3.2em;
+  overflow: hidden;
+}
+
+.tour-card__badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.tour-card__badge.--saved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.tour-card__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tour-empty {
+  margin-top: 16px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  color: #6b7280;
+  text-align: center;
+}

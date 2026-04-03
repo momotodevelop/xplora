@@ -28,7 +28,7 @@ export class FlightFiltersComponent {
   segments!:{min:number, max:number};
   stopsOptions:{text:string, value:number}[]=[];
   filtersFormGroup:FormGroup = new FormGroup({
-    orderBy: new FormControl("duracion.asc"),
+    orderBy: new FormControl("precio.asc"),
     stops: new FormArray([]),
     airlines: new FormArray([]),
     price: new FormGroup({
@@ -212,8 +212,14 @@ export class FlightFiltersComponent {
     return { min, max }; // Devuelve tanto el mínimo como el máximo
   }
   getMinMaxPrice(offers: FlightOffer[]): { min: number; max: number } {
-    // Extrae todos los precios de las ofertas de vuelo
-    const prices = offers.map(offer => offer.price.total as number); // Ajusta el acceso a la propiedad según tu estructura
+    // Extrae precios comparables (si hay promo, usa el rebajado)
+    const prices = offers.map(offer => {
+      const promoTotal = offer.promoPrice?.discountedTotal;
+      if (Number.isFinite(promoTotal)) return promoTotal as number;
+      const raw = offer.price.total ?? offer.price.grandTotal;
+      const total = typeof raw === 'number' ? raw : parseFloat(String(raw ?? '0'));
+      return Number.isFinite(total) ? total : 0;
+    });
 
     // Usa Lodash para encontrar los precios mínimo y máximo
     const minPrice = _.min(prices) ?? 0;

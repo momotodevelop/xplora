@@ -1,1 +1,319 @@
-<p>admin-lite-vouchers works!</p>
+<div class="admin-config">
+  <div class="row y-gap-20 justify-between items-end pb-30">
+    <div class="col-auto">
+      <h1 class="text-30 lh-14 fw-600">Configuracion</h1>
+      <div class="text-15 text-light-1">Administra valores globales, pagos y sugerencias para tours.</div>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Tours">
+      <form [formGroup]="configForm" class="config-form">
+        <div class="config-section">
+          <div class="config-section__title">Precios</div>
+          <div class="row y-gap-15">
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Tipo de cambio por defecto</mat-label>
+                <input matInput formControlName="defaultExchangeRate" type="number" step="0.0001" />
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="row y-gap-15">
+            <div class="col-md-4">
+              <mat-checkbox formControlName="applyPriceMultiplier">Aplicar mutador de precio</mat-checkbox>
+            </div>
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Mutador (%)</mat-label>
+                <input matInput formControlName="priceMultiplierPercent" type="number" step="0.01" />
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="text-13 text-light-1">
+            El mutador se aplica al precio lista (USD convertido) antes del descuento.
+          </div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section__title">Sugerencias de operador</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Operadores</mat-label>
+            <mat-chip-grid #operatorGrid aria-label="Operadores">
+              @for (operator of getOperatorSuggestions(); track operator) {
+                <mat-chip-row (removed)="removeOperator(operator)">
+                  {{ operator }}
+                  <button matChipRemove type="button" aria-label="Eliminar operador">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+            </mat-chip-grid>
+            <input
+              matInput
+              placeholder="Agregar operador"
+              [matChipInputFor]="operatorGrid"
+              [matChipInputSeparatorKeyCodes]="separatorKeys"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addOperator($event)" />
+          </mat-form-field>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section__title">Categorias de tours</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Categorias</mat-label>
+            <mat-chip-grid #categoryGrid aria-label="Categorias">
+              @for (category of getCategorySuggestions(); track category) {
+                <mat-chip-row (removed)="removeCategory(category)">
+                  {{ category }}
+                  <button matChipRemove type="button" aria-label="Eliminar categoria">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+            </mat-chip-grid>
+            <input
+              matInput
+              placeholder="Agregar categoria"
+              [matChipInputFor]="categoryGrid"
+              [matChipInputSeparatorKeyCodes]="separatorKeys"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addCategory($event)" />
+          </mat-form-field>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section__title">Sugerencias de incluye</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Incluye</mat-label>
+            <mat-chip-grid #includeGrid aria-label="Incluye">
+              @for (item of getIncludeSuggestions(); track item) {
+                <mat-chip-row (removed)="removeInclude(item)">
+                  {{ item }}
+                  <button matChipRemove type="button" aria-label="Eliminar incluye">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+            </mat-chip-grid>
+            <input
+              matInput
+              placeholder="Agregar incluye"
+              [matChipInputFor]="includeGrid"
+              [matChipInputSeparatorKeyCodes]="separatorKeys"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addInclude($event)" />
+          </mat-form-field>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section__title">Sugerencias de no incluye</div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>No incluye</mat-label>
+            <mat-chip-grid #excludeGrid aria-label="No incluye">
+              @for (item of getExcludeSuggestions(); track item) {
+                <mat-chip-row (removed)="removeExclude(item)">
+                  {{ item }}
+                  <button matChipRemove type="button" aria-label="Eliminar no incluye">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </mat-chip-row>
+              }
+            </mat-chip-grid>
+            <input
+              matInput
+              placeholder="Agregar no incluye"
+              [matChipInputFor]="excludeGrid"
+              [matChipInputSeparatorKeyCodes]="separatorKeys"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addExclude($event)" />
+          </mat-form-field>
+        </div>
+
+        <div class="config-actions">
+          <button mat-flat-button color="primary" type="button" (click)="saveConfig()" [disabled]="configForm.invalid">
+            Guardar configuracion
+          </button>
+        </div>
+      </form>
+    </mat-tab>
+
+    <mat-tab label="Pagos y Cuentas">
+      <div class="config-form">
+        <div class="config-section">
+          <div class="config-section__header">
+            <div>
+              <div class="config-section__title">Cuentas SPEI</div>
+              <div class="text-13 text-light-1">
+                Cada cuenta se administra de forma individual y se asigna por rango de montos.
+              </div>
+            </div>
+            <button mat-flat-button color="primary" type="button" (click)="openSpeiAccountDialog()">
+              Agregar cuenta
+            </button>
+          </div>
+
+          @if(speiCoverageWarnings.length > 0){
+            <div class="alert alert-warning" role="alert">
+              @for (warning of speiCoverageWarnings; track warning) {
+                <div>{{ warning }}</div>
+              }
+            </div>
+          }
+
+          @if(speiAccounts.length === 0){
+            <div class="config-empty-state">
+              No hay cuentas SPEI registradas.
+            </div>
+          }@else{
+            <div class="config-list">
+              @for (account of speiAccounts; track account.id) {
+                <div class="config-list-item">
+                  <div class="config-list-item__main">
+                    <div class="text-15 fw-600">{{ account.label }}</div>
+                    <div class="text-13 text-light-1">{{ account.bank }} · {{ account.holder }}</div>
+                    <div class="text-13 text-light-1">{{ account.account }}</div>
+                    <div class="text-13">Rango: {{ formatAmountRange(account.minAmount, account.maxAmount) }}</div>
+                  </div>
+                  <div class="config-list-item__side">
+                    <span class="status-badge" [class.status-badge--inactive]="!account.active">
+                      {{ account.active ? 'Activa' : 'Inactiva' }}
+                    </span>
+                    <div class="config-list-item__actions">
+                      <button mat-stroked-button color="primary" type="button" (click)="openSpeiAccountDialog(account)">
+                        Editar
+                      </button>
+                      <button mat-stroked-button color="warn" type="button" (click)="removeSpeiAccount(account)">
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="config-section">
+          <div class="config-section__header">
+            <div>
+              <div class="config-section__title">Tipos de oficina</div>
+              <div class="text-13 text-light-1">
+                Agrupa oficinas por categoría y define el icono de Font Awesome que las representa.
+              </div>
+            </div>
+            <button mat-flat-button color="primary" type="button" (click)="openOfficeTypeDialog()">
+              Agregar tipo
+            </button>
+          </div>
+
+          @if(officeTypeOptions.length === 0){
+            <div class="config-empty-state">
+              No hay tipos de oficina registrados.
+            </div>
+          }@else{
+            <div class="config-list">
+              @for (officeType of officeTypeOptions; track officeType.id) {
+                <div class="config-list-item">
+                  <div class="config-list-item__main">
+                    <div class="text-15 fw-600">{{ officeType.name }}</div>
+                    <div class="config-icon-line">
+                      @if(officeType.icon){
+                        <i [class]="officeType.icon"></i>
+                      }
+                      <span>{{ officeType.icon }}</span>
+                    </div>
+                    <div class="text-13 text-light-1">
+                      {{ getOfficeTypeUsageCount(officeType.id) }} oficina(s) usando este tipo
+                    </div>
+                  </div>
+                  <div class="config-list-item__actions">
+                    <button mat-stroked-button color="primary" type="button" (click)="openOfficeTypeDialog(officeType)">
+                      Editar
+                    </button>
+                    <button
+                      mat-stroked-button
+                      color="warn"
+                      type="button"
+                      [disabled]="getOfficeTypeUsageCount(officeType.id) > 0"
+                      (click)="removeOfficeType(officeType)">
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="config-section">
+          <div class="config-section__header">
+            <div>
+              <div class="config-section__title">Oficinas de pago en efectivo</div>
+              <div class="text-13 text-light-1">
+                Cada oficina tiene sus propios límites e instrucciones. La edición y guardado se realiza en una vista separada.
+              </div>
+            </div>
+            <button mat-flat-button color="primary" type="button" (click)="openOfficeDialog()">
+              Agregar oficina
+            </button>
+          </div>
+
+          @if(officeTypeOptions.length === 0){
+            <div class="alert alert-warning" role="alert">
+              Aún no hay tipos de oficina, pero puedes crear uno directamente desde el editor de oficina.
+            </div>
+          }
+
+          @if(paymentOffices.length === 0){
+            <div class="config-empty-state">
+              No hay oficinas de pago registradas.
+            </div>
+          }@else{
+            <div class="config-list">
+              @for (office of paymentOffices; track office.id) {
+                <div class="config-list-item config-list-item--office">
+                  <div class="config-office-thumb">
+                    @if(office.img){
+                      <img [src]="office.img" [alt]="office.name" />
+                    }@else{
+                      <mat-icon>storefront</mat-icon>
+                    }
+                  </div>
+                  <div class="config-list-item__main">
+                    <div class="text-15 fw-600">{{ office.name }}</div>
+                    <div class="text-13 text-light-1">{{ getOfficeTypeName(office.typeId) }}</div>
+                    <div class="text-13">Rango: {{ formatAmountRange(office.minAmount, office.maxAmount) }}</div>
+                    <div class="text-13">Máximo por operación: {{ formatCurrency(office.maxPerOperation, 'Sin límite') }}</div>
+                    <div class="text-13">Pasos configurados: {{ office.steps.length }}</div>
+                    @if(office.account){
+                      <div class="text-13 text-light-1">Referencia / cuenta: {{ office.account }}</div>
+                    }
+                  </div>
+                  <div class="config-list-item__side">
+                    <span class="status-badge" [class.status-badge--inactive]="!office.active">
+                      {{ office.active ? 'Activa' : 'Inactiva' }}
+                    </span>
+                    <div class="config-list-item__actions">
+                      <button mat-stroked-button color="primary" type="button" (click)="openOfficeDialog(office)">
+                        Editar
+                      </button>
+                      <button mat-stroked-button color="warn" type="button" (click)="removeOffice(office)">
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Otros">
+      <div class="text-14 text-light-1">Proximamente.</div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

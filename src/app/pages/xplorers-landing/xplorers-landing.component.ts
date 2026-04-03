@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SharedDataService } from '../../services/shared-data.service';
-import { Title } from '@angular/platform-browser';
+import { MetaHandlerService } from '../../services/meta-handler.service';
 
 @Component({
   selector: 'app-xplorers-landing',
@@ -9,7 +9,7 @@ import { Title } from '@angular/platform-browser';
   styleUrl: './xplorers-landing.component.scss'
 })
 export class XplorersLandingComponent implements OnInit {
-  constructor(private shared: SharedDataService, private title: Title){}
+  constructor(private shared: SharedDataService, private meta: MetaHandlerService){}
   faqs: {question: string, answer: string}[] = [
     {
       question: "¿Quién puede unirse al Xplorers Club?",
@@ -193,7 +193,11 @@ export class XplorersLandingComponent implements OnInit {
     }
   ]
   ngOnInit(): void {
-    this.title.setTitle("Xplora Travel || Xplorers Club");
+    this.meta.setMeta({
+      title: 'Xplora Travel || Xplorers Club',
+      description: 'Únete a Xplorers Club y gana recompensas por compartir Xplora Travel. Referidos, comisiones y beneficios exclusivos.',
+      image: '/assets/img/pages/xplorers/xplorers.jpg'
+    });
     this.shared.changeHeaderType("dark");
   }
 

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { LocationSelectionSheetComponent } from '../../../shared/location-selection-sheet/location-selection-sheet.component';
 import { PaxSelectionSheetComponent } from '../../../shared/pax-selection-sheet/pax-selection-sheet.component';
+import { TourLocationSelectionSheetComponent } from '../../../shared/tour-location-selection-sheet/tour-location-selection-sheet.component';
 import { AmadeusLocation } from '../../../types/amadeus-airport-response.types';
 import { FormGroup, FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
@@ -10,7 +11,7 @@ import { AmadeusAuthService } from '../../../services/amadeus-auth.service';
 import { AirportSearchService } from '../../../services/airport-search.service';
 import { DirectDestination } from '../../../types/amadeus-direct-airport-response.types';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HotelLocationSelectorBottomsheetComponent } from '../../../shared/hotel-location-selector-bottomsheet/hotel-location-selector-bottomsheet.component';
 import { HotelDateSelectionSheetComponent } from '../../../shared/hotel-date-selection-sheet/hotel-date-selection-sheet.component';
 import { HotelRoomsSelectionSheetComponent } from '../../../shared/hotel-rooms-selection-sheet/hotel-rooms-selection-sheet.component';
@@ -36,9 +37,6 @@ export interface HotelSearchLocationData{
   templateUrl: './search.component.html',
   styleUrl: './search.component.scss',
   imports: [
-    LocationSelectionSheetComponent,
-    PaxSelectionSheetComponent,
-    FlightDateSelectionSheetComponent,
     MatBottomSheetModule,
     ScrollRevealDirective,
     MatButtonModule,
@@ -66,6 +64,15 @@ export class SearchComponent {
   hotelRooms:number[][]=[
     [2,0]
   ];
+  promoCode?: string;
+  tourDestination?: AmadeusLocation;
+  tourDestinationInput: FormControl<string | null> = new FormControl(null);
+  tourPassengers: Passengers = {
+    adults: 1,
+    childrens: 0,
+    infants: 0
+  };
+  tourPassengersTotal: number = this.tourPassengers.adults + this.tourPassengers.childrens + this.tourPassengers.infants;
   constructor(
     private _bottomSheet: MatBottomSheet, 
     private titlecase: TitleCasePipe, 
@@ -74,10 +81,16 @@ export class SearchComponent {
     private snackBar: MatSnackBar, 
     private datepipe: DatePipe, 
     private router: Router, 
+    private route: ActivatedRoute,
     private shared: SharedDataService,
     private gtag: Analytics,
     private fbp: FacebookPixelService
-  ) {}
+  ) {
+    this.route.queryParams.subscribe(q => {
+      const query = q as { promo?: string };
+      this.promoCode = query.promo;
+    });
+  }
   openLocationBottomSheet(isOrigin:boolean): void {
     this._bottomSheet.open(LocationSelectionSheetComponent, {data: {isOrigin, suggestedDestinations: this.sugestedDestinations}, panelClass: "locationSelectionSheet"}).afterDismissed().subscribe((location:AmadeusLocation)=>{
       if(location!==undefined){
@@ -140,6 +153,27 @@ export class SearchComponent {
         this.passengers.childrens=paxes[1];
         this.passengers.infants=paxes[2];
         this.passengersTotal=this.passengers.adults+this.passengers.childrens+this.passengers.infants;
+      }
+    });
+  }
+  openTourPaxBottomSheet(){
+    this._bottomSheet.open(PaxSelectionSheetComponent, {data: [this.tourPassengers.adults, this.tourPassengers.childrens, this.tourPassengers.infants]}).afterDismissed().subscribe(paxes=>{
+      if(paxes!==undefined){
+        this.tourPassengers.adults=paxes[0];
+        this.tourPassengers.childrens=paxes[1];
+        this.tourPassengers.infants=paxes[2];
+        this.tourPassengersTotal=this.tourPassengers.adults+this.tourPassengers.childrens+this.tourPassengers.infants;
+      }
+    });
+  }
+  openTourDestinationBottomSheet(): void {
+    this._bottomSheet.open(TourLocationSelectionSheetComponent, {panelClass: "locationSelectionSheet"}).afterDismissed().subscribe((location:AmadeusLocation)=>{
+      if(location!==undefined){
+        this.tourDestination=location;
+        this.tourDestinationInput.setValue((location.subType==="AIRPORT"?("Aeropuerto de "+this.titlecase.transform(location.address.cityName)+" ("+location.iataCode+")"):(this.titlecase.transform(location.address.cityName)+", "+this.titlecase.transform(location.address.countryName)+" (Todos los aeropuertos)")));
+      }else{
+        this.tourDestination=undefined;
+        this.tourDestinationInput.setValue(null);
       }
     });
   }
@@ -244,9 +278,25 @@ export class SearchComponent {
       +(this.passengers.childrens.toString())+"/"
       +this.passengers.infants.toString()+"/ECONOMY";
       //console.log(url);
-      this.router.navigateByUrl(url);
+      const promoQuery = this.promoCode ? `?promo=${encodeURIComponent(this.promoCode)}` : '';
+      this.router.navigateByUrl(url + promoQuery);
     }
     
+  }
+
+  searchTours(){
+    if(this.tourDestination!==undefined){
+      const locationCode = (this.tourDestination.subType==="AIRPORT"?'A':'C') + this.tourDestination.iataCode;
+      this.router.navigate(['/actividades', locationCode], {
+        queryParams: {
+          adults: this.tourPassengers.adults,
+          children: this.tourPassengers.childrens,
+          infants: this.tourPassengers.infants
+        }
+      });
+    }else{
+      this.snackBar.open("Elige un destino para tus tours", undefined, {duration: 1500});
+    }
   }
   areTravelParamsDefined(): boolean {
     if (this.origin !== undefined && this.destination !== undefined && this.dates !== undefined) {

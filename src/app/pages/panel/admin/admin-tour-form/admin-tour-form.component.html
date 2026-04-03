@@ -1,0 +1,341 @@
+<div class="tour-form">
+  <div class="row y-gap-20 justify-between items-end pb-30">
+    <div class="col-auto">
+      <h1 class="text-30 lh-14 fw-600">{{ isEditing ? 'Editar tour' : 'Nuevo tour' }}</h1>
+      <div class="text-15 text-light-1">Completa la informacion para guardar el tour en Firestore.</div>
+    </div>
+    <div class="col-auto">
+      <button mat-stroked-button color="primary" type="button" routerLink="/admin/tours">
+        Volver al listado
+      </button>
+    </div>
+  </div>
+
+  @if (!isEditing) {
+    <div class="tour-form__load">
+      <div class="tour-form__section-title">Cargar desde Amadeus</div>
+      <div class="row y-gap-15">
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>ID de actividad</mat-label>
+            <input matInput [formControl]="apiActivityId" placeholder="Ej. 12345" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-3 d-flex items-end">
+          <button mat-flat-button color="primary" type="button" (click)="loadFromAmadeus(apiActivityId.value || '')">
+            Cargar datos
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="tour-form__error">{{ errorMessage }}</div>
+  }
+
+  <form [formGroup]="form" class="tour-form__grid">
+    <div class="tour-form__section">
+      <div class="tour-form__section-title">Datos principales</div>
+      <div class="row y-gap-15">
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="name" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Operador</mat-label>
+            <input matInput formControlName="operatorName" [matAutocomplete]="operatorAuto" />
+          </mat-form-field>
+          <mat-autocomplete #operatorAuto="matAutocomplete">
+            @for (option of filteredOperators(form.get('operatorName')?.value ?? null); track option) {
+              <mat-option [value]="option">{{ option }}</mat-option>
+            }
+          </mat-autocomplete>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Duracion minima</mat-label>
+            <input matInput formControlName="minimumDuration" placeholder="Ej. 2 horas" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Categorias</mat-label>
+            <mat-select formControlName="categories" multiple>
+              @for (category of categoryOptions; track category) {
+                <mat-option [value]="category">{{ category }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-12">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Descripcion corta</mat-label>
+            <textarea matInput formControlName="shortDescription" rows="2"></textarea>
+          </mat-form-field>
+        </div>
+        <div class="col-12">
+          <div class="tour-form__section-title">Descripcion completa</div>
+          <angular-editor
+            id="tour-description-editor"
+            formControlName="description"
+            [config]="editorConfig">
+          </angular-editor>
+        </div>
+        <div class="col-md-8">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Booking link</mat-label>
+            <input matInput formControlName="bookingLink" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-4">
+          <div class="tour-form__rating">
+            <div class="tour-form__section-title">Rating</div>
+            <div class="tour-form__rating-stars">
+              @for (star of ratingOptions; track star) {
+                <button
+                  class="tour-form__star"
+                  type="button"
+                  [class.--active]="(ratingValue ?? 0) >= star"
+                  (click)="setRating(star)">
+                  <mat-icon>{{ (ratingValue ?? 0) >= star ? 'star' : 'star_border' }}</mat-icon>
+                </button>
+              }
+              <button mat-button type="button" class="tour-form__rating-clear" (click)="clearRating()">
+                Limpiar
+              </button>
+            </div>
+            <div class="tour-form__rating-value text-13 text-light-1">
+              {{ ratingValue ? (ratingValue | number:'1.1-1') : 'Sin rating (se asigna 4.0 al guardar)' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tour-form__section">
+      <div class="tour-form__section-title">Geolocalizacion</div>
+      <div class="row y-gap-15" formGroupName="geoCode">
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Latitud</mat-label>
+            <input matInput formControlName="latitude" type="number" step="0.000001" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Longitud</mat-label>
+            <input matInput formControlName="longitude" type="number" step="0.000001" />
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
+    <div class="tour-form__section">
+      <div class="tour-form__section-title">Precios (MXN)</div>
+      <div class="row y-gap-15">
+        <div class="col-md-4" formGroupName="originalPrice">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Precio lista (MXN)</mat-label>
+            <input matInput formControlName="amount" type="number" step="0.01" readonly />
+          </mat-form-field>
+        </div>
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Tipo de descuento</mat-label>
+            <mat-select formControlName="discountType">
+              @for (option of discountTypeOptions; track option.id) {
+                <mat-option [value]="option.id">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Descuento</mat-label>
+            <input matInput formControlName="discountValue" type="number" step="0.01" />
+            <span matSuffix>{{ discountTypeValue === 'percentage' ? '%' : 'MXN' }}</span>
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="row y-gap-15" formGroupName="price">
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Precio final (MXN)</mat-label>
+            <input matInput formControlName="amount" type="number" step="0.01" readonly />
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="tour-form__price-actions">
+        <button mat-button type="button" (click)="showPricingDetails = !showPricingDetails">
+          {{ showPricingDetails ? 'Ocultar calculo' : 'Ver calculo' }}
+        </button>
+      </div>
+      @if (showPricingDetails) {
+        <div class="tour-form__calc">
+          <div class="row y-gap-15">
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Precio USD (fuente)</mat-label>
+                <input matInput formControlName="priceUsd" type="number" step="0.01" />
+              </mat-form-field>
+            </div>
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Tipo de cambio</mat-label>
+                <input matInput formControlName="exchangeRate" type="number" step="0.0001" />
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="tour-form__hint text-13 text-light-1">
+            El precio lista y el precio final se calculan automaticamente a partir del USD y el descuento.
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="tour-form__section">
+      <div class="tour-form__section-title">Imagenes (elige destacada)</div>
+      <div class="tour-form__inline-list">
+        <div class="tour-form__inline-header">
+          <div class="tour-form__inline-title">URLs</div>
+          <button mat-stroked-button color="primary" type="button" (click)="addPicture()">Agregar imagen</button>
+        </div>
+        <div class="tour-form__inline-items">
+          @for (pictureCtrl of pictures.controls; track pictureCtrl; let idx = $index) {
+            <div class="tour-form__inline-item">
+              <div class="tour-form__image-preview">
+                @if (pictureCtrl.value && !isImageBroken(pictureCtrl.value)) {
+                  <img [src]="pictureCtrl.value" alt="preview" (error)="markImageBroken(pictureCtrl.value)" />
+                } @else {
+                  <div class="tour-form__image-placeholder">Sin imagen</div>
+                }
+              </div>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>URL</mat-label>
+                <input matInput [formControl]="pictureCtrl" (input)="onImageUrlInput($any($event.target).value)" />
+              </mat-form-field>
+              <button
+                mat-icon-button
+                type="button"
+                [color]="isFeaturedImage(pictureCtrl.value) ? 'primary' : undefined"
+                (click)="setFeaturedImage(pictureCtrl.value)">
+                <mat-icon>{{ isFeaturedImage(pictureCtrl.value) ? 'star' : 'star_border' }}</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" type="button" (click)="removePicture(idx)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="tour-form__section">
+      <div class="tour-form__section-title">Disponibilidad</div>
+      <div class="tour-form__days-grid">
+        @for (dayCtrl of availableDays.controls; track dayCtrl) {
+          <div class="tour-form__day" [formGroup]="dayCtrl">
+            <mat-checkbox formControlName="enabled">{{ dayCtrl.get('label')?.value }}</mat-checkbox>
+          </div>
+        }
+      </div>
+      <div class="tour-form__section-title mt-15">Horarios (aplican a todos los dias activos)</div>
+      <div class="tour-form__inline-list">
+        <div class="tour-form__inline-header">
+          <div class="tour-form__inline-title">Horarios</div>
+          <button mat-stroked-button color="primary" type="button" (click)="addAvailableTime()">Agregar horario</button>
+        </div>
+        <div class="tour-form__inline-items">
+          @for (timeCtrl of availableTimes.controls; track timeCtrl; let timeIndex = $index) {
+            <div class="tour-form__inline-item">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Horario</mat-label>
+                <input matInput [matTimepicker]="timePicker" [formControl]="timeCtrl" />
+                <mat-timepicker #timePicker></mat-timepicker>
+                <mat-timepicker-toggle matSuffix [for]="timePicker"></mat-timepicker-toggle>
+              </mat-form-field>
+              <button mat-icon-button color="warn" type="button" (click)="removeAvailableTime(timeIndex)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="tour-form__section">
+      <div class="tour-form__section-title">Idiomas disponibles</div>
+      <div class="tour-form__languages" [formGroup]="languagesForm">
+        @for (language of languageOptions; track language.key) {
+          <mat-checkbox [formControlName]="language.key">{{ language.label }}</mat-checkbox>
+        }
+      </div>
+    </div>
+
+    <div class="tour-form__section">
+      <div class="tour-form__section-title">Incluye</div>
+      <div class="tour-form__inline-list">
+        <div class="tour-form__inline-header">
+          <div class="tour-form__inline-title">Elementos incluidos</div>
+          <button mat-stroked-button color="primary" type="button" (click)="addInclude()">Agregar item</button>
+        </div>
+        <div class="tour-form__inline-items">
+          @for (includeCtrl of includes.controls; track includeCtrl; let idx = $index) {
+            <div class="tour-form__inline-item">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Incluye</mat-label>
+                <input matInput [formControl]="includeCtrl" [matAutocomplete]="includeAuto" />
+              </mat-form-field>
+              <mat-autocomplete #includeAuto="matAutocomplete">
+                @for (option of filteredIncludes(includeCtrl.value ?? null); track option) {
+                  <mat-option [value]="option">{{ option }}</mat-option>
+                }
+              </mat-autocomplete>
+              <button mat-icon-button color="warn" type="button" (click)="removeInclude(idx)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="tour-form__section">
+      <div class="tour-form__section-title">No incluye</div>
+      <div class="tour-form__inline-list">
+        <div class="tour-form__inline-header">
+          <div class="tour-form__inline-title">Elementos excluidos</div>
+          <button mat-stroked-button color="primary" type="button" (click)="addExclude()">Agregar item</button>
+        </div>
+        <div class="tour-form__inline-items">
+          @for (excludeCtrl of excludes.controls; track excludeCtrl; let idx = $index) {
+            <div class="tour-form__inline-item">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>No incluye</mat-label>
+                <input matInput [formControl]="excludeCtrl" [matAutocomplete]="excludeAuto" />
+              </mat-form-field>
+              <mat-autocomplete #excludeAuto="matAutocomplete">
+                @for (option of filteredExcludes(excludeCtrl.value ?? null); track option) {
+                  <mat-option [value]="option">{{ option }}</mat-option>
+                }
+              </mat-autocomplete>
+              <button mat-icon-button color="warn" type="button" (click)="removeExclude(idx)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="tour-form__actions">
+      <button mat-flat-button color="primary" type="button" (click)="saveTour()">
+        {{ isEditing ? 'Actualizar tour' : 'Guardar tour' }}
+      </button>
+    </div>
+  </form>
+</div>

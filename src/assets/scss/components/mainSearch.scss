@@ -41,6 +41,24 @@
       }
     }
   }
+
+  .button-grid.tours {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) 200px auto;
+
+    > * + * {
+      border-left: 1px solid var(--color-border);
+    }
+
+    @include media-below(lg) {
+      grid-template-columns: 1fr;
+
+      > * + * {
+        border-left: 0;
+        border-top: 1px solid var(--color-border);
+      }
+    }
+  }
   
   .content-item {}
 

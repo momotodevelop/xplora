@@ -1,0 +1,128 @@
+<section class="layout-pt-md layout-pb-md bg-blue-2" [ngStyle]="{'min-height': 'calc(100vh - ' + headerHeight + 'px)'}">
+  <div class="container">
+    <div class="row y-gap-30 items-center justify-between">
+      <div class="col-lg-6">
+        <div class="text-30 sm:text-24 fw-600">Servicio al cliente</div>
+        <p class="text-15 text-light-1 mt-10">
+          Encuentra tu reservacion usando tu clave de confirmacion y el correo con el que reservaste.
+        </p>
+        <div class="text-14 text-dark-1 mt-15">
+          Si ya iniciaste sesion, mostraremos tus reservaciones para que selecciones la que necesita ayuda.
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="bg-white rounded-4 shadow-4 px-30 py-30">
+          @if(isLoggedIn && userEmail){
+            <div class="text-20 fw-500">Tu sesion esta activa</div>
+            <div class="text-14 text-light-1 mt-10">
+              Buscamos reservaciones asociadas a <b>{{ userEmail }}</b>.
+            </div>
+            <div class="text-13 text-light-1 mt-10">
+              Selecciona la reservacion con la que necesitas asistencia.
+            </div>
+          } @else {
+            <div class="text-20 fw-500">Ingresar clave de confirmacion</div>
+            <div class="text-14 text-light-1 mt-10">
+              Escribe el correo con el que reservaste y tu clave de confirmacion.
+            </div>
+            <form class="row y-gap-20 pt-20" (ngSubmit)="searchBooking()">
+              <div class="col-12">
+                <div class="form-input">
+                  <input type="email" required [formControl]="emailControl" autocomplete="email">
+                  <label class="lh-1 text-16 text-light-1">Correo electronico</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-input">
+                  <input type="text" required maxlength="6" [formControl]="confirmationControl" autocomplete="one-time-code">
+                  <label class="lh-1 text-16 text-light-1">Clave de confirmacion</label>
+                </div>
+                <div class="text-12 text-light-1 mt-5">Son los ultimos 6 caracteres del ID de tu reservacion.</div>
+              </div>
+              <div class="col-12">
+                <button class="button -dark-1 bg-blue-1 text-white w-100 h-50" [disabled]="!canSearch">
+                  @if(loading){
+                    Buscando...
+                  } @else {
+                    Buscar reservacion
+                  }
+                </button>
+              </div>
+              @if(searchError){
+                <div class="col-12">
+                  <div class="text-14 text-red-1">{{ searchError }}</div>
+                </div>
+              }
+            </form>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="layout-pt-md layout-pb-lg">
+  <div class="container">
+    @if(loading){
+      <div class="text-15 text-light-1">Consultando reservaciones...</div>
+    }
+
+    @if(hasSearched && !loading){
+      @if(bookings.length > 0){
+        <div class="row y-gap-20">
+          @for(booking of bookings; track booking.bookingID){
+            <div class="col-12">
+              <div class="booking-card rounded-8 px-24 py-20 bg-white" [ngClass]="{'-selected': selectedBooking?.bookingID === booking.bookingID}">
+                <div class="d-flex justify-between items-center flex-wrap">
+                  <div>
+                    <div class="text-13 text-light-1">Clave de confirmacion</div>
+                    <div class="text-20 fw-600 text-blue-1">{{ booking.bookingID?.slice(-6) | uppercase }}</div>
+                  </div>
+                  <div class="text-14 fw-500" [ngClass]="getBookingStatusClass(booking.status)">
+                    {{ getBookingStatusLabel(booking.status) }}
+                  </div>
+                </div>
+                <div class="mt-10 text-16 fw-500">{{ getBookingTitle(booking) }}</div>
+                <div class="text-14 text-light-1 mt-5">{{ getBookingTypeLabel(booking) }}</div>
+                <div class="d-flex justify-between items-center flex-wrap mt-15">
+                  <div class="text-13 text-light-1">
+                    Reservada:
+                    @if(booking.created){
+                      {{ booking.created!.toDate() | date:'mediumDate' | titlecase }}
+                    } @else {
+                      --
+                    }
+                  </div>
+                  <button class="button -outline-blue-1 text-blue-1 h-40 px-20" (click)="selectBooking(booking)">
+                    @if(selectedBooking?.bookingID === booking.bookingID){
+                      Seleccionada
+                    } @else {
+                      Seleccionar
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if(selectedBooking){
+          <div class="mt-30 border-light rounded-8 px-24 py-20 bg-light-2">
+            <div class="text-15 fw-500">Reservacion seleccionada</div>
+            <div class="text-14 text-light-1 mt-5">
+              Clave: <span class="text-blue-1 fw-500">{{ selectedBooking.bookingID?.slice(-6) | uppercase }}</span>.
+              Usa esta clave cuando contactes a nuestro equipo.
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="border-light rounded-8 px-24 py-20 bg-white">
+          <div class="text-15 fw-500">Sin resultados</div>
+          <div class="text-14 text-light-1 mt-5">
+            {{ searchError || 'No encontramos reservaciones con la informacion proporcionada.' }}
+          </div>
+        </div>
+      }
+    }
+  </div>
+</section>

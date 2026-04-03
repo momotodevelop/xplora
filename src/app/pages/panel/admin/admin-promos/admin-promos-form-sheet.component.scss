@@ -1,0 +1,17 @@
+.sheet-header {
+  height: 56px;
+  border-bottom: 1px solid #dddddd;
+  padding: 8px 16px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sheet-body {
+  max-height: calc(80vh - 120px);
+  min-height: calc(80vh - 120px);
+  overflow: auto;
+  padding: 16px;
+  background: #fff;
+}

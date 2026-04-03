@@ -8,6 +8,7 @@ import { faClock, faCreditCard } from '@fortawesome/free-solid-svg-icons';
 import { faCcAmex, faCcDinersClub, faCcDiscover, faCcJcb, faCcMastercard, faCcVisa } from '@fortawesome/free-brands-svg-icons'
 import { Timestamp } from 'firebase/firestore';
 import { PaymentResponseData } from '../../../../types/installments.clip.type';
+import { map } from 'rxjs';
 interface StoredCardPaymentDataFirebase extends StoredCardPaymentData {
   createdAt: Timestamp
 }
@@ -37,12 +38,15 @@ export class CardTransactionListComponent implements OnInit {
 
   }
   async ngOnInit() {
-    const payments = (await this.cards.getPaymentsByBooking(this.bookingId));
-    this.savedPayments = payments.map(payment=>{
-      return {
-        ...payment,
-        createdAt: payment.createdAt as Timestamp
-      }
+    this.cards.getPaymentsByBooking(this.bookingId).pipe(
+      map(payments =>
+        payments.map(payment => ({
+          ...payment,
+          createdAt: (payment.createdAt as Timestamp)
+        }))
+      )
+    ).subscribe(payments=>{
+      this.savedPayments = payments;
     });
     this.paymentPending = this.total-this.payed;
     this.cards.getGatewayPaymentsByBooking(this.bookingId).subscribe(payments=>{

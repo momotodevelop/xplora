@@ -1,0 +1,2 @@
+<div #stripe_element></div>
+<button class="button -md -blue-1 bg-dark-3 text-white w-100 mt-20" [disabled]="!readyToPay" (click)="confirmPayment()">Pagar {{total_due|currency:'MXN'}}</button>

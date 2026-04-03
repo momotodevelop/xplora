@@ -1,0 +1,125 @@
+@if(madePaymentMode){
+    @if(retryCardType === 'XPLORA') {
+        <app-xplora-card-element (paymentCompleted)="onPaymentCompleted($event)" [booking]="booking"></app-xplora-card-element>
+    }@else if(retryCardType === 'CLIP') {
+        <app-clip-card-element [booking]="booking"></app-clip-card-element>
+    }@else{
+        <app-xplora-card-element (paymentCompleted)="onPaymentCompleted($event)" [booking]="booking"></app-xplora-card-element>
+    }
+}@else{
+    <p><b>Tu pago fue rechazado.</b> Para mantener tu reservación, <b>elige otra forma de pago</b> y complétala cuanto antes para asegurar tarifa y disponibilidad.</p>
+    <!-- Opción 1: Reintentar pago en línea -->
+    <div class="row mt-10">
+        <div class="col-12 option-card" [ngClass]="getCardClasses('RETRY')" (click)="setSelectedOption('RETRY')">
+            <div>
+                <div class="form-radio d-flex items-center">
+                    <div class="radio">
+                        <input [attr.disabled]="true" type="radio" [formControl]="selectedOption" value="RETRY" />
+                        <div class="radio__mark">
+                            <div class="radio__icon"></div>
+                        </div>
+
+                    </div>
+                    <h6 class="ml-5">Reintentar pago en línea</h6>
+                </div>
+            </div>
+            <p class="text-dark-1">Reintenta el pago de tu reservación en línea utilizando tu tarjeta de crédito o débito.</p>
+            <p class="text-dark-1 fw-500">
+                Total a pagar: {{ getDiscountedAmount(0) | currency: 'MXN' }}
+            </p>
+            <!-- Nota (solo se muestra si está seleccionada) -->
+            @if(disabledCardPayment){
+                <div class="d-flex items-center justify-start bg-error-1 pl-15 pr-10 py-15 rounded-8">
+                    <fa-icon class="text-error-2" [icon]="infoIcon"></fa-icon>
+                    <div style="line-height: 1.5;" class="text-error-2 ml-10">
+                        Por motivos de seguridad, este método de pago ha sido desactivado. Por favor, selecciona otro método para completar tu reservación.
+                    </div>
+                </div>
+            }
+            @if(selectedOption.value === 'RETRY') {
+                <div class="d-flex items-center justify-start bg-info-1 pl-15 pr-10 py-15 rounded-8">
+                    <fa-icon class="text-info-2" [icon]="infoIcon"></fa-icon>
+                    <div style="line-height: 1.5;" class="text-info-2 ml-10">
+                        Asegúrate de que los datos de tu tarjeta sean correctos y que cuentes con saldo suficiente para completar la transacción.
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="col-12 option-card" [ngClass]="getCardClasses('SPEI')" (click)="setSelectedOption('SPEI')">
+            <div>
+                <div class="form-radio d-flex items-center">
+                    <div class="radio">
+                        <input type="radio" [formControl]="selectedOption" value="SPEI" />
+                        <div class="radio__mark">
+                            <div class="radio__icon"></div>
+                        </div>
+                    </div>
+                    <h6 class="ml-5">Transferencia interbancaria (SPEI)</h6>
+                </div>
+            </div>
+            <p class="text-dark-1">
+                Realiza el pago de tu reservación de forma rápida y segura directamente desde la aplicación de tu banco, sin salir de casa.
+            </p>
+            <!-- Con descuento -->
+            <p class="text-dark-1 fw-500">Recibe un 15% de descuento al pagar con esta opción.</p>
+            <p class="text-success fw-500">
+                Total a pagar: {{ getDiscountedAmount(15) | currency: 'MXN' }}
+            </p>
+            <!-- Nota -->
+            @if(selectedOption.value === 'SPEI') {
+                <div class="d-flex items-center justify-start bg-success-1 pl-15 pr-10 py-15 rounded-8">
+                    <fa-icon class="text-success-2" [icon]="planeConfirmIcon"></fa-icon>
+                    <div style="line-height: 1.5;" class="text-success-2 ml-10">
+                        Los pagos se confirman automáticamente, ideal si necesitas tu confirmación de manera inmediata.
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="col-12 option-card" [ngClass]="getCardClasses('CASH')" (click)="setSelectedOption('CASH')">
+            <div>
+                <div class="form-radio d-flex items-center">
+                    <div class="radio">
+                        <input type="radio" [formControl]="selectedOption" value="CASH" />
+                        <div class="radio__mark">
+                            <div class="radio__icon"></div>
+                        </div>
+                    </div>
+                    <h6 class="ml-5">Pago en sucursal</h6>
+                </div>
+            </div>
+            <p class="text-dark-1">
+                Completa tu pago de forma rápida y segura en más de 1,500 establecimientos autorizados.
+            </p>
+            <!-- Con descuento -->
+            <p class="text-dark-1 fw-500">Recibe un 10% de descuento al pagar con esta opción.</p>
+            <p class="text-success fw-500">
+                Total a pagar: {{ getDiscountedAmount(10) | currency: 'MXN' }}
+            </p>
+            <!-- Nota -->
+            @if(selectedOption.value === 'CASH') {
+                <div class="d-flex items-center justify-start bg-info-1 pl-15 pr-10 py-15 rounded-8">
+                    <fa-icon class="text-info-2" [icon]="cardIcon"></fa-icon>
+                    <div style="line-height: 1.5;" class="text-info-2 ml-10">
+                        Podrás utilizar tu tarjeta de crédito o débito de forma presencial para completar tu transacción.
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <button [disabled]="!selectedOption.valid" (click)="updatePaymentMethod()" mat-raised-button style="margin-top: 16px;" color="primary" class="w-100" >
+        @switch(selectedOption.value){
+            @case ('RETRY') {
+                Reintentar pago
+            }
+            @case ('CASH') {
+                Pagar en sucursal
+            }
+            @case ('SPEI') {
+                Pagar con SPEI
+            }
+            @default {
+                Selecciona una opción para continuar
+            }
+        }
+    </button>
+}

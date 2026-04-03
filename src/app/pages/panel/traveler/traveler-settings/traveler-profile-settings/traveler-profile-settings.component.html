@@ -1,0 +1,54 @@
+@if(user){
+    <div>
+        <div class="row y-gap-30 items-center">
+            <div class="col-auto">
+                <div class="d-flex ratio ratio-1:1 w-200">
+                    <img [src]="user.photoURL" alt="imagen" class="img-ratio rounded-4">
+                    <!-- <div class="d-flex justify-end px-10 py-10 h-100 w-1/1 absolute">
+                        <div class="size-40 bg-white rounded-4">
+                            <i class="icon-trash text-16"></i>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+            <div class="col-auto">
+                <h4 class="text-16 fw-500">Tu avatar</h4>
+                <div class="text-14 mt-5">PNG o JPG no más grande de 800px de ancho y alto.</div>
+                <div class="d-inline-block mt-15">
+                    <input #fileInput type="file" hidden id="avatarInput" (change)="onFileSelected($event)" accept=".jpg,.jpeg,.png">
+                    <button (click)="fileInput.click()" class="button h-50 px-24 -dark-1 bg-blue-1 text-white">
+                        <i class="icon-upload-file text-20 mr-10"></i>
+                        Examinar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-top-light mt-30 mb-30"></div>
+
+        <form [formGroup]="userDataForm">
+            <div class="col-xl-9">
+                <div class="row x-gap-20 y-gap-20">
+                    <div class="col-12">
+                        <div class="form-input">
+                            <input type="text" formControlName="name" required>
+                            <label class="lh-1 text-16 text-light-1">Nombre</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-input">
+                            <input type="text" formControlName="lastName" required>
+                            <label class="lh-1 text-16 text-light-1">Apellido</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="d-inline-block pt-30">
+            <button [disabled]="userDataForm.invalid" (click)="updateTravelerData()" class="button h-50 px-24 -dark-1 bg-blue-1 text-white">  
+                Guardar <div class="icon-arrow-top-right ml-15"></div>
+            </button>
+        </div>
+    </div>
+}

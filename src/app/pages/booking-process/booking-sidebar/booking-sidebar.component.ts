@@ -16,6 +16,10 @@ import { UppercaseDirective } from '../../../uppercase.directive';
 import { AmadeusAirlinesService } from '../../../services/amadeus-airlines.service';
 import { BrandfetchService } from '../../../services/brandfetch.service';
 import { FlightAdditionalServiceItem, FlightFirebaseBooking } from '../../../types/booking.types';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 
 export interface Charge{
   amount: number,
@@ -26,7 +30,7 @@ export interface Charge{
 
 @Component({
     selector: 'app-booking-sidebar',
-    imports: [CommonModule, DurationPipe, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, UppercaseDirective, CurrencyPipe],
+    imports: [MatButtonModule, CommonModule, DurationPipe, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, UppercaseDirective, CurrencyPipe, FontAwesomeModule, MatTooltipModule],
     templateUrl: './booking-sidebar.component.html',
     providers: [CurrencyPipe],
     styleUrl: './booking-sidebar.component.scss'
@@ -49,6 +53,7 @@ export class BookingSidebarComponent implements OnInit{
   inboundAirlineCode?:string;
   outboundAirlineBrand?:string;
   inboundAirlineBrand?:string;
+  infoIcon = faCircleInfo;
   constructor(private promos: XploraPromosService, private _sb: MatSnackBar, public bookingHandler:BookingHandlerService, private currencyPipe: CurrencyPipe, private airlines: AmadeusAirlinesService, private brandfetch: BrandfetchService){
     
   }
@@ -81,7 +86,7 @@ export class BookingSidebarComponent implements OnInit{
           ]
           this.outboundAirlineCode = booking.flightDetails.flights.outbound!.offer.validatingAirlineCodes[0];
         }
-        if(booking.flightDetails.round&&booking.flightDetails.flights.inbound!==undefined){
+        if(booking.flightDetails.round&&booking.flightDetails.flights.inbound){
           this.dates.inbound = [
             new Date(this.booking.flightDetails.flights.inbound!.offer!.itineraries[0].segments[0].departure.at),
             new Date(_.last(booking.flightDetails.flights.inbound.offer!.itineraries[0].segments)!.arrival.at)
@@ -100,44 +105,91 @@ export class BookingSidebarComponent implements OnInit{
         }
         if (this.booking.flightDetails?.aditionalServices) {
           const aditional = this.booking.flightDetails.aditionalServices;
+          const outboundSegments = booking.flightDetails.flights.outbound?.offer?.itineraries?.[0]?.segments ?? [];
+          const inboundSegments = booking.flightDetails.round && booking.flightDetails.flights.inbound
+            ? booking.flightDetails.flights.inbound.offer?.itineraries?.[0]?.segments ?? []
+            : [];
+          const outboundSegmentCount = outboundSegments.length || 1;
+          const inboundSegmentCount = inboundSegments.length || 0;
+          const outboundDurationFactor = this.segmentDurationFactor(outboundSegments);
+          const inboundDurationFactor = this.segmentDurationFactor(inboundSegments);
 
           const getActives = (additionals: {outbound: FlightAdditionalServiceItem[], inbound:FlightAdditionalServiceItem[]}) => {
-            const outbound = additionals.outbound.filter(item => item.value>0).length;
-            const inbound = additionals.inbound.filter(item => item.value>0).length;
+            const outbound = additionals.outbound.filter(item => (item.value ?? 0) > 0).length;
+            const inbound = additionals.inbound.filter(item => (item.value ?? 0) > 0).length;
             return outbound + inbound;
           };
           const getPieces = (additionals: {outbound: FlightAdditionalServiceItem[], inbound:FlightAdditionalServiceItem[]})=>{
-            const outboundPieces = additionals.outbound.reduce((total, item) => total + item.value, 0);
-            const inboundPieces = additionals.inbound.reduce((total, item) => total + item.value, 0);
+            const outboundPieces = additionals.outbound.reduce((total, item) => total + (item.value ?? 0), 0);
+            const inboundPieces = additionals.inbound.reduce((total, item) => total + (item.value ?? 0), 0);
             return outboundPieces + inboundPieces;
           }
+          const getChargeableCarryOnPieces = (additionals: {outbound: FlightAdditionalServiceItem[], inbound:FlightAdditionalServiceItem[]})=>{
+            const outboundPieces = additionals.outbound.reduce((total, item) => total + Math.max(0, (item.value ?? 0) - 1), 0);
+            const inboundPieces = additionals.inbound.reduce((total, item) => total + Math.max(0, (item.value ?? 0) - 1), 0);
+            return { outbound: outboundPieces, inbound: inboundPieces };
+          };
+          const getDirectionalCounts = (additionals: {outbound: FlightAdditionalServiceItem[], inbound:FlightAdditionalServiceItem[]})=>{
+            const outbound = additionals.outbound.reduce((acc, item) => acc + ((item.value ?? 0) > 0 ? 1 : 0), 0);
+            const inbound = additionals.inbound.reduce((acc, item) => acc + ((item.value ?? 0) > 0 ? 1 : 0), 0);
+            return { outbound, inbound };
+          };
+          const getDirectionalPieces = (additionals: {outbound: FlightAdditionalServiceItem[], inbound:FlightAdditionalServiceItem[]})=>{
+            const outbound = additionals.outbound.reduce((acc, item) => acc + (item.value ?? 0), 0);
+            const inbound = additionals.inbound.reduce((acc, item) => acc + (item.value ?? 0), 0);
+            return { outbound, inbound };
+          };
           
           const insuranceActives = getActives(aditional.insurance!);
           const flexpassActives = getActives(aditional.flexpass!);
           const carryonActives = getPieces(aditional.carryOn!);
           const baggageActives = getPieces(aditional.baggage!);
           if(insuranceActives>0){
+            const insuranceCounts = getDirectionalCounts(aditional.insurance!);
             this.aditionalServiceCharges.push({
               description: 'Allianz Travel Premium',
-              amount: Math.round(ExtrasPrices.insurance * insuranceActives)
+              amount: Math.round(
+                ExtrasPrices.insurance * (
+                  insuranceCounts.outbound * outboundSegmentCount +
+                  insuranceCounts.inbound * inboundSegmentCount
+                )
+              )
             });
           }
           if(flexpassActives>0){
+            const flexpassCounts = getDirectionalCounts(aditional.flexpass!);
             this.aditionalServiceCharges.push({
               description: 'FlexPass',
-              amount: Math.round(ExtrasPrices.flexpass * flexpassActives)
+              amount: Math.round(
+                ExtrasPrices.flexpass * (
+                  flexpassCounts.outbound * outboundSegmentCount +
+                  flexpassCounts.inbound * inboundSegmentCount
+                )
+              )
             });
           }
           if(carryonActives>0){
+            const carryonPieces = getChargeableCarryOnPieces(aditional.carryOn!);
             this.aditionalServiceCharges.push({
               description: 'Equipaje de mano',
-              amount: Math.round(ExtrasPrices.carryon * carryonActives)
+              amount: Math.round(
+                ExtrasPrices.carryon * (
+                  carryonPieces.outbound * outboundDurationFactor +
+                  carryonPieces.inbound * inboundDurationFactor
+                )
+              )
             });
           }
           if(baggageActives>0){
+            const baggagePieces = getDirectionalPieces(aditional.baggage!);
             this.aditionalServiceCharges.push({
               description: 'Equipaje documentado',
-              amount: Math.round(ExtrasPrices.baggage * baggageActives)
+              amount: Math.round(
+                ExtrasPrices.baggage * (
+                  baggagePieces.outbound * outboundDurationFactor +
+                  baggagePieces.inbound * inboundDurationFactor
+                )
+              )
             });
           }
         }        
@@ -171,6 +223,22 @@ export class BookingSidebarComponent implements OnInit{
       total+=charge.amount;
     });
     return total;
+  }
+  private segmentDurationHours(duration: string | undefined): number {
+    if (!duration) return 0;
+    const match = /PT(?:(\d+)H)?(?:(\d+)M)?/.exec(duration);
+    if (!match) return 0;
+    const hours = match[1] ? Number(match[1]) : 0;
+    const minutes = match[2] ? Number(match[2]) : 0;
+    return hours + minutes / 60;
+  }
+  private segmentDurationFactor(segments: { duration: string }[]): number {
+    if (!segments || segments.length === 0) return 0;
+    return segments.reduce((acc, seg) => {
+      const hours = this.segmentDurationHours(seg.duration);
+      const multiplier = hours > 6 ? 2 : 1;
+      return acc + multiplier;
+    }, 0);
   }
   flightCabinText(fare:FareDetailsBySegment):string{
     let cabinName:string;
@@ -215,7 +283,7 @@ export class BookingSidebarComponent implements OnInit{
   bookingTotalCalculator(booking:FlightFirebaseBooking):number{
     let flightTotal:number = this.priceMultiplier(booking.flightDetails.flights!.outbound!.offer.price.grandTotal);
     let discounted = 0;
-    if(booking.flightDetails.round&&booking.flightDetails.flights!.inbound !== undefined){
+    if(booking.flightDetails.round&&booking.flightDetails.flights!.inbound){
       flightTotal += this.priceMultiplier(booking.flightDetails.flights!.inbound.offer.price.grandTotal);
     }
     if(this.appliedPromo!==undefined){
@@ -253,6 +321,7 @@ export class BookingSidebarComponent implements OnInit{
     this.promoControl.disable();
     this.promos.getPromoByCode(promoCode.toUpperCase()).subscribe({
       next: promo =>{
+        console.log(promo)
         if(promo){
           this.promoControl.setValue(promo.code);
           this._sb.open('Promoción '+promo.code+' aplicada.', 'Aceptar', {duration: 1500});

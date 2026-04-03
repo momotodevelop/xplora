@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SharedDataService } from '../../services/shared-data.service';
 import { TermsTextComponent } from './terms-text/terms-text.component';
-import { Title } from '@angular/platform-browser';
+import { MetaHandlerService } from '../../services/meta-handler.service';
 
 @Component({
   selector: 'app-terms',
@@ -25,8 +25,12 @@ export class TermsComponent implements OnInit {
     { title: "Contacto", id: "contacto" }
   ];
   active?:string;
-  constructor(private shared: SharedDataService, private title: Title){
-    this.title.setTitle("Xplora Travel || Términos y Condiciones");
+  constructor(private shared: SharedDataService, private meta: MetaHandlerService){
+    this.meta.setMeta({
+      title: 'Xplora Travel || Términos y Condiciones',
+      description: 'Consulta los términos y condiciones de Xplora Travel para conocer derechos, responsabilidades y políticas aplicables a tus reservaciones.',
+      image: '/assets/img/banner-generico.jpg'
+    });
   }
   ngOnInit(): void {
     this.shared.changeHeaderType("dark");

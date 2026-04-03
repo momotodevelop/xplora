@@ -1,0 +1,73 @@
+<form [formGroup]="cardForm">
+    <div class="row">
+        <div class="col-12 col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Número de Tarjeta</mat-label>
+                <input matInput placeholder="0000 0000 0000 0000" type="tel" ccNumber #ccNumber="ccNumber" formControlName="number">
+                <mat-icon matSuffix>credit_card</mat-icon>
+                <mat-hint class="text-12">Visa, MasterCard, American Express</mat-hint>
+            </mat-form-field>
+        </div>
+        <div class="col-6 col-md-3 pr-0 px-md-0">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Expiración</mat-label>
+                <input type="tel" matInput ccExp formControlName="expiration" placeholder="MM/YY">
+                <mat-icon matSuffix>event</mat-icon>
+            </mat-form-field>
+        </div>
+        <div class="col-6 col-md-3">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>CVV</mat-label>
+                <input type="tel" matInput placeholder="000" ccCVC formControlName="cvv">
+                <mat-icon matSuffix>lock</mat-icon>
+                <mat-hint class="text-12">3 o 4 Dígitos</mat-hint>
+            </mat-form-field>
+        </div>
+        <div class="col-12">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Nombre del Titular</mat-label>
+                <input matInput placeholder="Titular" type="text" formControlName="holder">
+                <mat-icon matSuffix>account_circle</mat-icon>
+                <mat-hint class="text-12">Como aparece en la tarjeta</mat-hint>
+            </mat-form-field>
+        </div>
+    </div>
+    @if (availableInstallments && availableInstallments.length > 1) {
+        <div class="row">
+            <div class="col-12">
+                <mat-selection-list [@listAnimation]="availableInstallments.length + 1" color="primary" #installments (selectionChange)="installmentsChange($event)" [multiple]="false">
+                    <mat-divider></mat-divider>
+                    <div mat-subheader>
+                        <p class="text-14 mb-0"><strong>Pago diferido disponible</strong></p>
+                    </div>
+                    <mat-list-option [value]="1" selected>
+                        <span class="text-14" matListItemTitle><strong>Un solo pago</strong></span>
+                        <span class="text-12" matListItemLine>Un pago de {{ total | currency: 'MXN' }}</span>
+                    </mat-list-option>
+                    @for (installment of availableInstallments; track installment) {
+                        <mat-list-option [value]="installment.quantity">
+                            <span class="text-14" matListItemTitle>
+                                <strong>{{ installment.quantity }} Mensualidades</strong>
+                                <span matTooltip="Meses sin intereses" class="badge badge-pill badge-primary text-8 ml-5">MSI</span>
+                            </span>
+                            <span class="text-12" matListItemLine>
+                                {{ installment.quantity }} pagos de {{ installment.amount | currency: 'MXN' }} = {{ installment.total_amount | currency: 'MXN' }}
+                                <small>(+{{ installment.fee }}%)</small>
+                            </span>
+                        </mat-list-option>
+                    }
+                </mat-selection-list>
+            </div>
+        </div>
+    }
+</form>
+<button [disabled]="!cardForm.valid||loading" (click)="processPayment()" mat-raised-button style="margin-top: 16px;" color="primary" class="w-100" >
+    @if(loading){
+        Procesando tu pago <fa-icon [icon]="spinnerIcon" [animation]="'spin'"></fa-icon>
+    }@else{
+        Pagar {{total|currency:'MXN'}}
+    }
+</button>
+<div style="margin-top: 16px;" class="text-12 text-light-1">
+    Al hacer clic en "Pagar", aceptas los <a href="">Términos y Condiciones</a> y la <a href="">Política de Privacidad</a> de Xplora Travel.
+</div>

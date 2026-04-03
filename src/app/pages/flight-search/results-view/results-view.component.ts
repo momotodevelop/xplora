@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, ViewChild, input } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { FlightOffersAmadeusService } from '../../../services/flight-offers-amadeus.service';
 import { Dictionaries, FlightOffer } from '../../../types/flight-offer-amadeus.types';
 import { CommonModule } from '@angular/common';
@@ -20,6 +20,7 @@ import { FlightOfferComponent } from '../flight-offer/flight-offer.component';
 import { SharedDataService } from '../../../services/shared-data.service';
 import { Analytics, logEvent } from '@angular/fire/analytics';
 import { FacebookPixelService } from '../../../services/facebook-pixel.service';
+import { Promo } from '../../../services/xplora-promos.service';
 
 interface PaginationItem {
   pageNumber: number;
@@ -49,13 +50,14 @@ interface PaginatorData{
         ])
     ]
 })
-export class ResultsViewComponent implements OnInit {
+export class ResultsViewComponent implements OnInit, OnChanges {
   @Input() origin!:string;
   @Input() destination!:string;
   @Input() departure!:string;
   @Input() return:string|undefined;
   @Input() flightClass!:FlightClassType;
   @Input() round!:boolean;
+  @Input() promo?: Promo;
   @ViewChild('scrollTarget') scrollTarget!: ElementRef;
   results:FlightOffer[] = [];
   dictionaries!:Dictionaries;
@@ -65,6 +67,8 @@ export class ResultsViewComponent implements OnInit {
   loaderArray:number[]=[]
   mobileView!: boolean;
   selectionStatus:"OUTBOUND"|"INBOUND"="OUTBOUND";
+  private rawOffers: FlightOffer[] = [];
+  private rawDictionaries?: Dictionaries;
   constructor(
     private gtag: Analytics,
     private flightOffers: FlightOffersAmadeusService, 
@@ -99,11 +103,10 @@ export class ResultsViewComponent implements OnInit {
         if(status==="OUTBOUND"){
           this.flightOffers.searchFlightOffers(this.origin, this.destination, this.departure, this.flightClass).pipe(first()).subscribe({
             next: (results)=>{
-              const originalOffers:FlightOffer[]=JSON.parse(JSON.stringify(results.data));
-              let resultsToBeMutated:FlightOffer[]=JSON.parse(JSON.stringify(results.data));
               if(results.data.length>0) {
-                this.dictionaries = results.dictionaries;
-                this.flightOffersHandler.setData(this.priceMutator.applyDiscount(resultsToBeMutated, 20), results.dictionaries,  this.mobileView?12:7, {}, ['duracion', 'asc']);
+                this.rawOffers = results.data;
+                this.rawDictionaries = results.dictionaries;
+                this.updateResultsData();
               }
               this.loading=false;
               this.sharedData.setLoading(false);
@@ -115,11 +118,10 @@ export class ResultsViewComponent implements OnInit {
         }else if(status==="INBOUND"&&this.return){
           this.flightOffers.searchFlightOffers(this.destination, this.origin, this.return, this.flightClass).pipe(first()).subscribe({
             next: (results)=>{
-              const originalOffers:FlightOffer[]=JSON.parse(JSON.stringify(results.data));
-              let resultsToBeMutated:FlightOffer[]=JSON.parse(JSON.stringify(results.data));
               if(results.data.length>0) {
-                this.dictionaries = results.dictionaries;
-                this.flightOffersHandler.setData(this.priceMutator.applyDiscount(resultsToBeMutated, 20), results.dictionaries,  this.mobileView?12:7, {}, ['duracion', 'asc']);
+                this.rawOffers = results.data;
+                this.rawDictionaries = results.dictionaries;
+                this.updateResultsData();
               }
               this.sharedData.setLoading(false);
               this.loading=false;
@@ -160,6 +162,22 @@ export class ResultsViewComponent implements OnInit {
 
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['promo'] && this.rawOffers.length > 0 && this.rawDictionaries) {
+      this.updateResultsData();
+    }
+  }
+
+  private updateResultsData(): void {
+    if (!this.rawDictionaries) return;
+    const resultsToBeMutated: FlightOffer[] = JSON.parse(JSON.stringify(this.rawOffers));
+    const withBaseDiscount = this.priceMutator.applyDiscount(resultsToBeMutated, 45);
+    const withSmartFares = this.priceMutator.markSmartFares(withBaseDiscount);
+    const withPromo = this.priceMutator.applyPromoForDisplay(withSmartFares, this.promo);
+    this.dictionaries = this.rawDictionaries;
+    this.flightOffersHandler.setData(withPromo, this.rawDictionaries, this.mobileView ? 12 : 7, {}, ['precio', 'asc']);
+  }
+
   createItemsLoader(items:number){
     this.loaderArray = [];
     let iterator:number=1;
@@ -170,6 +188,7 @@ export class ResultsViewComponent implements OnInit {
   }
 
   selectFlight(flight:FlightOffer, type:"OUTBOUND"|"INBOUND"){
+    const priceValue = this.getComparableTotal(flight);
     const items = flight.itineraries[0].segments.map((segment,i)=>{
         return {
           item_id: segment.id,
@@ -183,12 +202,12 @@ export class ResultsViewComponent implements OnInit {
     })
     logEvent(this.gtag, 'add_to_cart',{
       currency: 'MXN',
-      value: parseInt(flight.price.total as string),
+      value: priceValue,
       items
     });
     this.fbp.track('AddToCart', {
       currency: 'MXN',
-      value: flight.price.total,
+      value: priceValue,
       items
     });
     this.flightOffersHandler.selectFlight(flight, this.dictionaries, type==="INBOUND", this.round);
@@ -260,5 +279,13 @@ export class ResultsViewComponent implements OnInit {
     lastFlightIndex = lastFlightIndex > totalResults ? totalResults : lastFlightIndex;
   
     return `${firstFlightIndex} – ${lastFlightIndex} de ${totalResults} vuelos`;
+  }
+
+  private getComparableTotal(offer: FlightOffer): number {
+    const promoTotal = offer?.promoPrice?.discountedTotal;
+    if (Number.isFinite(promoTotal)) return promoTotal as number;
+    const raw = offer?.price?.total ?? offer?.price?.grandTotal;
+    const total = typeof raw === 'number' ? raw : parseFloat(String(raw ?? '0'));
+    return Number.isFinite(total) ? total : 0;
   }
 }

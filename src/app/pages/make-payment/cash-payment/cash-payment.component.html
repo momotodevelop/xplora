@@ -36,7 +36,7 @@
         @if (countdownCompleted) {
         <div class="overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
             style="z-index: 200; background-color: rgba(255,255,255,0.7);">
-            <a href="https://wa.me/message/SSEJGDSJLQP5L1" target="_blank" style="opacity: 1;" mat-raised-button color="primary">Solicitar más tiempo</a>
+            <a (click)="openWhatsAppContact()" style="opacity: 1;" mat-raised-button color="primary">Solicitar más tiempo</a>
         </div>
         }
 
@@ -95,46 +95,77 @@
                 </div>
                 <div class="row">
                     <div class="col-12">
-                        <ul>
-                            <li class="only-for-canvas hidden-for-screen">
-                                ‼️ Realiza tu pago antes de: <b>{{booking.payment!.paymentLimit!.toDate()|date:'medium'}}</b>
-                            </li>
-                            <li>
-                                1️⃣ Acude a la sucursal de {{selectedOffice.name}} mas cercana.
-                            </li>
-                            @switch(selectedOffice.processor){
-                                @case('broxel-oxxo'){
-                                    <li>2️⃣ Solicita realizar un pago de servicios.</li>
+                        @if(instructionSteps.length === 0){
+                            <div class="alert alert-warning" role="alert">
+                                Esta oficina no tiene pasos de pago configurados.
+                            </div>
+                        }@else{
+                            <ul>
+                                <li class="only-for-canvas hidden-for-screen">
+                                    ‼️ Realiza tu pago antes de: <b>{{booking.payment!.paymentLimit!.toDate()|date:'medium'}}</b>
+                                </li>
+                                @for(step of instructionSteps; track $index){
+                                    <li>
+                                        <div class="d-flex gap-10">
+                                            <span>{{getStepLabel($index + 1)}}</span>
+                                            <div class="flex-grow-1">
+                                                @if(step.title){
+                                                    <div class="fw-600 mb-5">{{formatText(step.title)}}</div>
+                                                }
+                                                @for(element of step.elements; track $index){
+                                                    @switch(element.type){
+                                                        @case('text'){
+                                                            <div class="mb-5">{{formatText(element.text)}}</div>
+                                                        }
+                                                        @case('image'){
+                                                            <div class="text-center mt-10 mb-10">
+                                                                <img class="w-100" style="max-width: 320px;" [src]="element.src" [alt]="element.alt || 'Imagen paso'" />
+                                                                @if(element.caption){
+                                                                    <div class="text-12 text-light-1 mt-5">{{formatText(element.caption)}}</div>
+                                                                }
+                                                            </div>
+                                                        }
+                                                        @case('barcode'){
+                                                            @if(getElementValue(element)){
+                                                                <div class="text-center mt-20 mb-20">
+                                                                    <img class="w-100" style="max-width: 350px;" src="https://barcodeapi.org/api/128/{{getElementValue(element)}}?&dpi=400&height=20&text=none">
+                                                                    <h5>{{element.label ? formatText(element.label) : getElementValue(element)}}</h5>
+                                                                </div>
+                                                            }
+                                                        }
+                                                        @case('qr'){
+                                                            @if(getElementValue(element)){
+                                                                <div class="text-center mt-20 mb-20">
+                                                                    <img class="w-100" style="max-width: 350px;" src="https://barcodeapi.org/api/qr/{{getElementValue(element)}}?&dpi=500&height=200&text=none">
+                                                                    <h5>{{element.label ? formatText(element.label) : getElementValue(element)}}</h5>
+                                                                </div>
+                                                            }
+                                                        }
+                                                        @case('link'){
+                                                            <div class="mt-10">
+                                                                @if(element.style === 'link'){
+                                                                    <a [href]="formatText(element.url)" target="_blank" rel="noopener" class="text-primary">
+                                                                        {{formatText(element.label)}}
+                                                                    </a>
+                                                                }@else{
+                                                                    <a mat-stroked-button color="primary" [href]="formatText(element.url)" target="_blank" rel="noopener">
+                                                                        {{formatText(element.label)}}
+                                                                    </a>
+                                                                }
+                                                            </div>
+                                                        }
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                    </li>
                                 }
-                                @case('broxel-paynet'){
-                                    <li>2️⃣ Solicita realizar un <b>pago de servicios "PayNet"</b>.</li>
-                                }
-                                @case('broxel-walmart'){
-                                    <li>2️⃣ Solicita realizar un <b>pago de servicios "Broxel"</b>.</li>
-                                }
-                            }
-                            <li>
-                                3️⃣ Proporciona el siguiente codigo de barras para escaneo:
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-12 text-center mt-20 mb-20">
-                        @if(selectedOffice.showBarcode){
-                            <img class="w-100" style="max-width: 350px;" src="https://barcodeapi.org/api/128/{{selectedOffice.account}}?&dpi=400&height=20&text=none">
-                        }
-                        @if(selectedOffice.showQR){
-                            <img class="w-100" style="max-width: 350px;" src="https://barcodeapi.org/api/qr/{{selectedOffice.account}}?&dpi=500&height=200&text=none">
-                        }
-                        <h5>{{selectedOffice.account}}</h5>
-                        @if(selectedOffice.processor==='broxel-paynet'){
-                            <p class="mt-2" style="font-size: 0.85em; line-height: 1.5em;">
-                                Si el código de barras no puede ser leído, puedes dictar este código al cajero para completar tu pago.
-                            </p>
+                            </ul>
                         }
                     </div>
                     <div class="col-12">
                         <li>
-                            4️⃣ Realiza el pago de tu reservación por <b>{{booking.payment!.totalDue | currency:'MXN'}}</b>.
+                            {{getStepLabel(amountStepNumber)}} Realiza el pago de tu reservación por <b>{{booking.payment!.totalDue | currency:'MXN'}}</b>.
                             @if(paymentList.length>1){
                                 <div class="alert alert-warning mt-10" role="alert">
                                     Debido a que el total de la reservación excede el límite por transacción, el pago debe dividirse en varias partes. Te sugerimos esta distribución:
@@ -152,20 +183,20 @@
                                         }
                                     </ul>
                                     <div class="mt-10" style="font-size: 0.95em;">
-                                        <strong>Importante:</strong> Todos los pagos deben realizarse utilizando {{selectedOffice.processor==='broxel-paynet'?'la misma referencia proporcionada':'el mismo codigo de barras proporcionado'}} anteriormente.
+                                        <strong>Importante:</strong> Todos los pagos deben realizarse utilizando {{getReferenceLabel()}} anteriormente.
                                     </div>
                                 </div>
                             }
                         </li>
                         <li>
                             @if(paymentList.length > 1){
-                                5️⃣ Por favor, espera a recibir los comprobantes de cada pago realizado, ya que será necesario subir todos ellos para validar tu pago.
+                                {{getStepLabel(receiptStepNumber)}} Por favor, espera a recibir los comprobantes de cada pago realizado, ya que será necesario subir todos ellos para validar tu pago.
                             }@else{
-                                5️⃣ Espera a recibir tu comprobante de pago, ya que será necesario subirlo para validar tu pago.
+                                {{getStepLabel(receiptStepNumber)}} Espera a recibir tu comprobante de pago, ya que será necesario subirlo para validar tu pago.
                             }
                         </li>
                         <li>
-                            ✅ Una vez realizado el pago, por favor sube tu comprobante en la sección "Subir comprobante de pago" para continuar con tu reservación.
+                            {{getStepLabel(uploadStepNumber)}} Una vez realizado el pago, por favor sube tu comprobante en la sección "Subir comprobante de pago" para continuar con tu reservación.
                         </li>
                     </div> 
                 </div>

@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import { AdminSidebarComponent } from './admin-sidebar/admin-sidebar.component';
 import { map } from 'rxjs';
 import { SharedDataService } from '../../../services/shared-data.service';
+import { MetaHandlerService } from '../../../services/meta-handler.service';
 
 @Component({
   selector: 'app-admin',
@@ -12,8 +13,17 @@ import { SharedDataService } from '../../../services/shared-data.service';
   styleUrl: './admin.component.scss'
 })
 export class AdminComponent {
-  constructor(private route: ActivatedRoute, public sharedService: SharedDataService){}
+  constructor(
+    private route: ActivatedRoute,
+    public sharedService: SharedDataService,
+    private meta: MetaHandlerService
+  ){}
   ngOnInit(): void {
+    this.meta.setMeta({
+      title: 'Xplora Travel || Admin',
+      description: 'Panel administrativo de Xplora Travel para gestionar reservaciones, promociones y operaciones.',
+      image: '/assets/img/banner-generico.jpg'
+    });
     this.route.data.pipe(map(data => data["headerType"])).subscribe((type: "light"|"dark") => {
       this.sharedService.changeHeaderType(type);
     });

@@ -1,0 +1,58 @@
+<h2 mat-dialog-title>{{ isEditing ? 'Editar cuenta SPEI' : 'Nueva cuenta SPEI' }}</h2>
+
+<div mat-dialog-content class="payment-dialog__content">
+  <div class="payment-dialog__hint">
+    El monto mínimo inicia en 0 y el monto máximo puede dejarse vacío para indicar cobertura sin límite.
+  </div>
+
+  <form [formGroup]="form" class="payment-dialog__form">
+    <div class="row y-gap-15">
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Etiqueta</mat-label>
+          <input matInput formControlName="label" placeholder="Cuenta principal" />
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Banco</mat-label>
+          <input matInput formControlName="bank" placeholder="STP" />
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Beneficiario</mat-label>
+          <input matInput formControlName="holder" placeholder="Xplora Travel" />
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Cuenta / CLABE</mat-label>
+          <input matInput formControlName="account" placeholder="646180546701086200" />
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Monto mínimo</mat-label>
+          <input matInput type="number" formControlName="minAmount" />
+        </mat-form-field>
+      </div>
+      <div class="col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Monto máximo</mat-label>
+          <input matInput type="number" formControlName="maxAmount" />
+        </mat-form-field>
+      </div>
+      <div class="col-12">
+        <mat-checkbox formControlName="active">Cuenta activa</mat-checkbox>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()">Cancelar</button>
+  <button mat-flat-button color="primary" type="button" (click)="save()">
+    {{ isEditing ? 'Guardar cambios' : 'Crear cuenta' }}
+  </button>
+</div>

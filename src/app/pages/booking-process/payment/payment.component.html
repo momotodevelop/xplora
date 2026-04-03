@@ -71,13 +71,14 @@
         </mat-expansion-panel-header>
         <mat-selection-list color="primary" #paymentOfficeList (selectionChange)="paymentOfficeChange($event)" [multiple]="false" >
             @for(paymentOffice of paymentOffices; track paymentOffice){
-                <mat-list-option [disabled]="total>paymentOffice.maxAmmount" [value]="paymentOffice.id">
+                <mat-list-option [disabled]="!isOfficeAvailable(paymentOffice, total)" [value]="paymentOffice.id">
                     <div matListItemTitle style="font-weight: bolder;">{{paymentOffice.name}} <span [ngClass]="paymentOffice.fee>0?'badge-primary':'badge-success'" class="badge badge-pill badge-success">+{{paymentOffice.fee|currency:'MXN'}}</span> </div>
                     <div matListItemLine class="text-14">
-                        @if(total>paymentOffice.maxAmmount){
-                            <span>Monto maximo: {{paymentOffice.maxAmmount|currency:'MXN'}}</span>
-                        }
-                        @else{
+                        @if(isBelowOfficeMin(paymentOffice, total)){
+                            <span>Monto minimo: {{paymentOffice.minAmount|currency:'MXN'}}</span>
+                        }@else if(isAboveOfficeMax(paymentOffice, total)){
+                            <span>Monto maximo: {{paymentOffice.maxAmount|currency:'MXN'}}</span>
+                        }@else{
                             @if(paymentOffice.delayHours>0){
                                 <span>Se aplica en {{paymentOffice.delayHours}} horas</span>
                             }@else{

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, collection, collectionData, addDoc, query, where, updateDoc, doc, Timestamp } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -21,28 +21,33 @@ export interface Promo {
   providedIn: 'root'
 })
 export class XploraPromosService {
-  constructor(private firestore: Firestore) {}
+  constructor(private firestore: Firestore, private injector: Injector) {}
 
   /**
    * Obtiene una promoción por su código con filtros opcionales.
    */
   getPromoByCode(promocode: string, onlyActive: boolean = true, onlyNotExpired: boolean = true): Observable<Promo | undefined> {
-    //console.log('Buscando promoción con código:', promocode);
-    
+    console.log('Buscando promoción con código:', promocode);
+    const normalizedCode = promocode.trim().toUpperCase();
     const promosCollection = collection(this.firestore, 'promocodes');
-    let promoQuery = query(promosCollection, where('code', '==', promocode));
+    const promoQuery = query(promosCollection, where('code', '==', normalizedCode));
 
-    if (onlyActive) {
-      promoQuery = query(promoQuery, where('isActive', '==', true)); // 🔥 Usamos `promoQuery` correctamente
-    }
-
-    if (onlyNotExpired) {
-      const today = Timestamp.fromDate(new Date()); // 🔥 Firestore usa `Timestamp`
-      promoQuery = query(promoQuery, where('expiryDate', '>=', today));
-    }
-
-    return collectionData(promoQuery, { idField: 'promoID' }).pipe(
-      map((promos) => (promos.length > 0 ? promos[0] as Promo : undefined))
+    return runInInjectionContext(this.injector, () =>
+      collectionData(promoQuery, { idField: 'promoID' })
+    ).pipe(
+      map((promos) => {
+        console.log('Promociones encontradas:', promos);
+        const promo = promos.length > 0 ? promos[0] as Promo : undefined;
+        if (!promo) return undefined;
+        if (onlyActive && !promo.isActive) return undefined;
+        if (onlyNotExpired) {
+          const expiry = promo.expiryDate instanceof Timestamp
+            ? promo.expiryDate.toMillis()
+            : new Date(promo.expiryDate as Date).getTime();
+          if (Number.isNaN(expiry) || expiry < Date.now()) return undefined;
+        }
+        return promo;
+      })
     );
   }
 
@@ -72,5 +77,15 @@ export class XploraPromosService {
       console.error('Error al actualizar la promoción:', error);
       throw error;
     }
+  }
+
+  /**
+   * Obtiene todas las promociones.
+   */
+  getAllPromos(): Observable<Promo[]> {
+    const promosCollection = collection(this.firestore, 'promocodes');
+    return runInInjectionContext(this.injector, () =>
+      collectionData(promosCollection, { idField: 'promoID' })
+    ).pipe(map(promos => promos as Promo[]));
   }
 }

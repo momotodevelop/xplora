@@ -8,12 +8,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule } from '@angular/common';
 import { FirebaseBooking } from '../../../types/booking.types';
 import { CountdownConfig, CountdownEvent, CountdownModule } from 'ngx-countdown';
-
-const SPEI_PAYMENT_ACOUNT_DATA = {
-  bank: 'STP',
-  holder: 'Xplora Travel',
-  account: '646683177602715164'
-}
+import { WhatsAppUrlManagerService } from '../../../services/whatsapp-url-manager.service';
+import { SpeiAccount } from '../../../types/payment-config.types';
+import { XploraSpeiAccountsService } from '../../../services/xplora-spei-accounts.service';
 
 @Component({
   selector: 'app-spei-payment',
@@ -38,7 +35,8 @@ export class SpeiPaymentComponent implements OnInit {
   leftTime: number = 600; // Tiempo restante para el pago en segundos
   countdownDanger: boolean = false; // Indica si el temporizador está en estado peligroso
   countdownCompleted: boolean = false; // Indica si el temporizador ha completado su cuenta atrás
-  account = SPEI_PAYMENT_ACOUNT_DATA;
+  account?: SpeiAccount;
+  constructor(private wa: WhatsAppUrlManagerService, private speiAccounts: XploraSpeiAccountsService) {}
   ngOnInit(): void {
     //this.booking.contact!.name
     this.locator = this.booking.created!.seconds.toString().slice(-7) || '';
@@ -54,6 +52,44 @@ export class SpeiPaymentComponent implements OnInit {
       }
     }
 
+    this.speiAccounts.watchAccounts().subscribe(accounts => {
+      const amount = this.booking.payment?.totalDue ?? 0;
+      this.account = this.selectAccount(accounts ?? [], amount);
+    });
+
+  }
+
+  private selectAccount(accounts: SpeiAccount[], amount: number): SpeiAccount | undefined {
+    const activeAccounts = accounts.filter(account => account.active);
+    if (activeAccounts.length === 0) {
+      return undefined;
+    }
+    const amountValue = Number(amount);
+    const safeAmount = Number.isFinite(amountValue) ? amountValue : 0;
+    const minValue = (account: SpeiAccount) => {
+      const parsed = Number(account.minAmount ?? 0);
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
+    const maxValue = (account: SpeiAccount) => {
+      if (account.maxAmount === null || account.maxAmount === undefined) return Infinity;
+      const parsed = Number(account.maxAmount);
+      return Number.isFinite(parsed) ? parsed : Infinity;
+    };
+    const sorted = [...activeAccounts].sort((a, b) => minValue(a) - minValue(b));
+    const matches = sorted.filter(account => {
+      return safeAmount >= minValue(account) && safeAmount <= maxValue(account);
+    });
+    if (matches.length > 0) {
+      return matches.sort((a, b) => {
+        const maxA = maxValue(a);
+        const maxB = maxValue(b);
+        if (maxA !== maxB) return maxA - maxB;
+        return minValue(b) - minValue(a);
+      })[0];
+    }
+    const openEnded = sorted.find(account => account.maxAmount === null || account.maxAmount === undefined);
+    if (openEnded) return openEnded;
+    return sorted[sorted.length - 1];
   }
   copyToClipboard(text: string): void {
     if (navigator.clipboard) {
@@ -102,6 +138,10 @@ export class SpeiPaymentComponent implements OnInit {
         this.countdownCompleted = true; // Marca el temporizador como completado
       }
   }
+  openWhatsAppContact() {
+    this.wa.redirectToMessage('expirado', { clave: this.booking.bookingID!.slice(-6).toUpperCase() });
+  }
+
   getRemainingSeconds(target: Date): number {
     const now = Date.now();
     const targetTime = target.getTime();

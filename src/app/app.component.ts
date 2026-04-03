@@ -9,6 +9,7 @@ import { SharedDataService } from './services/shared-data.service';
 import { AsyncPipe, CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
 import { DateStringPipe } from './date-string.pipe';
 import { DurationPipe } from './duration.pipe';
+import { GoogleTagManagerService } from 'angular-google-tag-manager';
 
 @Component({
     selector: 'app-root',
@@ -28,7 +29,7 @@ export class AppComponent implements OnInit {
   title = 'Xplora Travel';
   hideNav:boolean = false;
   navHeight:number = 0;
-  constructor(public shared: SharedDataService, private cdr: ChangeDetectorRef, private router: Router){
+  constructor(public shared: SharedDataService, private cdr: ChangeDetectorRef, private router: Router, private gtmService: GoogleTagManagerService){
     this.shared.headerHeight.subscribe(height=>{
       this.navHeight = height;
       this.cdr.detectChanges();
@@ -37,6 +38,7 @@ export class AppComponent implements OnInit {
       this.hideNav = hidden;
       this.cdr.detectChanges();
     });
+    this.gtmService.addGtmToDom();
   }
   ngOnInit(): void {
     this.cdr.detectChanges();

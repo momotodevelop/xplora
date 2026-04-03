@@ -1,0 +1,200 @@
+.tour-form {
+  padding: 10px 0 40px;
+}
+
+.tour-form__load {
+  padding: 16px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.tour-form__error {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.tour-form__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tour-form__section {
+  padding: 16px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.tour-form__section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.tour-form__inline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tour-form__inline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.tour-form__inline-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.tour-form__inline-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tour-form__inline-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tour-form__languages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.tour-form__days {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tour-form__day {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f9fafb;
+}
+
+.tour-form__day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+
+.tour-form__day-times {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tour-form__days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.tour-form__image-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tour-form__image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tour-form__image-placeholder {
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: center;
+  padding: 6px;
+}
+
+.tour-form__empty {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.tour-form__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tour-form__rating {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tour-form__rating-stars {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tour-form__star {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px;
+  color: #d1d5db;
+}
+
+.tour-form__star.--active {
+  color: #f59e0b;
+}
+
+.tour-form__rating-clear {
+  margin-left: 8px;
+}
+
+.tour-form__rating-value {
+  color: #6b7280;
+}
+
+angular-editor {
+  display: block;
+}
+
+.tour-form__price-actions {
+  margin-top: 4px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.tour-form__calc {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+}
+
+.tour-form__hint {
+  margin-top: 6px;
+}

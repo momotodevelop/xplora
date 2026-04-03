@@ -86,7 +86,10 @@
 </div>
 <div style="height: 70px;border-top: 1px solid #dddddd;padding: 8px 16px;display: flex;justify-content: space-between;">
     <div>
-        <div class="text-20 fw-500 mb-0" style="height: 25px;">{{data.offer.price.grandTotal|currency:data.offer.price.currency}}</div>
+        @if(data.offer.promoPrice){
+            <div class="text-14 text-light-1" style="text-decoration: line-through;">{{data.offer.promoPrice.originalTotal|currency:data.offer.price.currency}}</div>
+        }
+        <div class="text-20 fw-500 mb-0" style="height: 25px;">{{(data.offer.promoPrice?.discountedTotal ?? data.offer.price.grandTotal)|currency:data.offer.price.currency}}</div>
         <div class="text-16 fw-200 text-light-1">T.U.A. e I.V.A. Incluido</div>
     </div>
     <div>

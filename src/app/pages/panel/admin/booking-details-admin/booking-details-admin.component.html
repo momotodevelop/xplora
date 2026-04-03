@@ -1,0 +1,376 @@
+<div class="booking-admin">
+  @if(booking){
+    <div class="d-flex justify-between items-start">
+      <div>
+        <div class="text-14 text-uppercase text-muted mb-5">Reservación
+          @switch(booking.type){
+            @case('FLIGHT'){
+              de Vuelo
+            }
+            @case('HOTEL'){
+              de Hotel
+            }
+            @case('TRANSPORTATION'){
+              de Transporte
+            }
+            @case('ACTIVITY'){
+              de Actividad
+            }
+            @case('CAR_RENTAL'){
+              de Renta de Auto
+            }
+            @case('CRUISE'){
+              de Crucero
+            }
+            @case('PACKAGE'){
+              de Paquete
+            }
+          }
+        </div>
+        <h3 class="lh-1 mb-5">#{{pnr|uppercase}} · <small>{{booking.bookingID}}</small></h3>
+      </div>
+      <div class="text-right">
+        <div class="text-14 mb-5">{{toDate(booking.created)|date:'dd MMM YYYY HH:mm'|titlecase}}</div>
+        <div class="px-12 py-6 rounded-8 bg-light">
+          Estado: <span style="font-weight: bold;">{{booking.status | bookingStatus}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="row y-gap-20 mt-10">
+      <div class="col-lg-6">
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title>Información de pago</mat-card-title>
+            <mat-card-subtitle (click)="openEditPaymentSheet()">
+              Editar
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if(booking.payment){
+              <div class="d-flex justify-between text-14 mb-6">
+                <span>Importe original</span>
+                <span>{{(booking.payment.originalAmount ?? booking.payment.totalDue) | currency:'MXN'}}</span>
+              </div>
+              <div class="d-flex justify-between text-14 mb-6">
+                <span>Método</span>
+                <span>{{booking.payment.method | paymentMethod}}</span>
+              </div>
+              <div class="d-flex justify-between text-14 mb-6">
+                <span>Tipo</span>
+                <span>{{booking.payment.type == 'NOW' ? 'Inmediato' : 'Diferido'}}</span>
+              </div>
+              <div class="d-flex justify-between text-14 mb-6">
+                <span>Estatus del pago</span>
+                <span>{{booking.payment.status | paymentStatus}}</span>
+              </div>
+              <div class="d-flex justify-between text-14">
+                <span>Promo</span>
+                <span>{{booking.payment.promo?.code || 'Sin promo'}}</span>
+              </div>
+            }@else{
+              <div class="d-flex justify-between text-14 mb-6">
+                <span>Importe original</span>
+                <span>N/D</span>
+              </div>
+              <div class="d-flex justify-between text-14 mb-6">
+                <span>Método</span>
+                <span>N/D</span>
+              </div>
+              <div class="d-flex justify-between text-14 mb-6">
+                <span>Tipo</span>
+                <span>N/D</span>
+              </div>
+              <div class="d-flex justify-between text-14 mb-6">
+                <span>Estatus del pago</span>
+                <span>N/D</span>
+              </div>
+              <div class="d-flex justify-between text-14">
+                <span>Promo</span>
+                <span>N/D</span>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-lg-6">
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title>Información de contacto</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="d-flex justify-between text-14 mb-6">
+              <span>Nombre</span>
+              @if(booking.contact){
+                <span>{{booking.contact?.name|titlecase}} {{booking.contact?.lastname|titlecase}}</span>
+              }@else{
+                <span>N/D</span>
+              }
+            </div>
+            <div class="d-flex justify-between text-14 mb-6">
+              <span>Correo</span>
+              @if(booking.contact){
+                <span>{{booking.contact?.email|titlecase}}</span>
+              }@else{
+                <span>N/D</span>
+              }
+            </div>
+            <div class="d-flex justify-between text-14 mb-6">
+              <span>Teléfono</span>
+              @if(booking.contact){
+                <span>+{{booking.contact?.country_code}} {{booking.contact?.phone}}</span>
+              }@else{
+                <span>N/D</span>
+              }
+            </div>
+            <div class="d-flex justify-between text-14">
+              <span>Estado de reservación</span>
+              <span class="fw-600">{{booking.status | bookingStatus}}</span>
+            </div>
+            <div class="d-flex justify-between text-14">
+              <span>UID</span>
+              <span class="fw-600">N/D</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <mat-card class="info-card mt-20">
+      <mat-card-header>
+        <mat-card-title>Mensajes para WhatsApp</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="row y-gap-10">
+          <div class="col-md-4 col-12">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Plantilla</mat-label>
+                <mat-select [formControl]="messageTemplateSelector">
+                    <mat-option value="booking_received">
+                      Reservación recibida
+                    </mat-option>
+                    <mat-option value="payment_pending">
+                      Pago pendiente
+                    </mat-option>
+                    <mat-option value="discount_payment_spei">
+                      Descuento SPEI
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+          </div>
+          <div class="col-md-8 col-12">
+            <textarea class="w-100 p-10 rounded-8 border" rows="8" readonly>{{generatedMessage}}</textarea>
+            <div class="d-flex justify-end mt-6">
+              <button mat-stroked-button class="mr-10" color="primary" type="button" (click)="sendWA(generatedMessage)">Enviar WA</button>
+              <button mat-stroked-button color="primary" type="button" (click)="copyToClipboard(generatedMessage)">Copiar mensaje</button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    
+    <div class="p-20 rounded-12 border mt-30">
+      <div class="fw-700 text-16 mb-10">Detalles de la reservación</div>
+      @switch(booking.type){
+        @case('FLIGHT'){
+          <div class="row y-gap-20">
+            <div class="col-lg-4">
+              <div class="text-12 text-uppercase text-muted mb-5">Ruta</div>
+              <div class="fw-700 text-18 lh-1 mb-5">
+                {{booking.flightDetails?.origin?.address?.cityName|titlecase}} →
+                {{booking.flightDetails?.destination?.address?.cityName|titlecase}}
+              </div>
+              <div class="text-14">Salida: {{toDate(booking.flightDetails?.departure)|date:'dd MMM YYYY HH:mm'|titlecase}}</div>
+              @if(booking.flightDetails?.round && booking.flightDetails?.return){
+                <div class="text-14">Regreso: {{toDate(booking.flightDetails?.return)|date:'dd MMM YYYY HH:mm'|titlecase}}</div>
+              }
+              <div class="text-14 mt-5">
+                Pasajeros:
+                {{booking.flightDetails?.passengers?.counts?.adults||0}} ADT ·
+                {{booking.flightDetails?.passengers?.counts?.childrens||0}} CHD ·
+                {{booking.flightDetails?.passengers?.counts?.infants||0}} INF
+              </div>
+            </div>
+            <div class="col-lg-8">
+              <div class="fw-700 text-14 mb-10">Itinerario</div>
+              @if(booking.flightDetails?.flights?.outbound?.offer){
+                @let outbound = booking.flightDetails?.flights?.outbound?.offer;
+                @let outboundItineraries = outbound?.itineraries || [];
+                <div class="mb-10 fw-600">Tramo de salida</div>
+                @if(outboundItineraries.length){
+                  @let outboundSegments = outboundItineraries[0]?.segments || [];
+                  @for(segment of outboundSegments; track segment.id){
+                    <div class="d-flex justify-between text-14 py-8 border-bottom">
+                      <div>
+                        <div class="fw-600">{{segment.departure.iataCode}} → {{segment.arrival.iataCode}}</div>
+                        <div class="text-13 text-muted">Vuelo {{segment.carrierCode}} {{segment.number}}</div>
+                      </div>
+                      <div class="text-right">
+                        <div>{{segment.departure.at|date:'dd MMM, HH:mm'}}</div>
+                        <div class="text-13 text-muted">{{segment.arrival.at|date:'dd MMM, HH:mm'}}</div>
+                      </div>
+                    </div>
+                  }
+                }
+              }
+              @if(booking.flightDetails?.round && booking.flightDetails?.flights?.inbound?.offer){
+                @let inbound = booking.flightDetails?.flights?.inbound?.offer;
+                @let inboundItineraries = inbound?.itineraries || [];
+                <div class="mt-20 mb-10 fw-600">Tramo de regreso</div>
+                @if(inboundItineraries.length){
+                  @let inboundSegments = inboundItineraries[0]?.segments || [];
+                  @for(segment of inboundSegments; track segment.id){
+                    <div class="d-flex justify-between text-14 py-8 border-bottom">
+                      <div>
+                        <div class="fw-600">{{segment.departure.iataCode}} → {{segment.arrival.iataCode}}</div>
+                        <div class="text-13 text-muted">Vuelo {{segment.carrierCode}} {{segment.number}}</div>
+                      </div>
+                      <div class="text-right">
+                        <div>{{segment.departure.at|date:'dd MMM, HH:mm'}}</div>
+                        <div class="text-13 text-muted">{{segment.arrival.at|date:'dd MMM, HH:mm'}}</div>
+                      </div>
+                    </div>
+                  }
+                }
+              }
+
+              @if(booking.flightDetails?.aditionalServices){
+                @let services = booking.flightDetails?.aditionalServices;
+                @let baggageOutbound = services?.baggage?.outbound || [];
+                @let baggageInbound = services?.baggage?.inbound || [];
+                @let carryOnOutbound = services?.carryOn?.outbound || [];
+                @let carryOnInbound = services?.carryOn?.inbound || [];
+                @let insuranceOutbound = services?.insurance?.outbound || [];
+                @let insuranceInbound = services?.insurance?.inbound || [];
+                @let flexpassOutbound = services?.flexpass?.outbound || [];
+                @let flexpassInbound = services?.flexpass?.inbound || [];
+                <div class="mt-20">
+                  <div class="fw-700 text-14 mb-8">Servicios adicionales</div>
+                  @if(baggageOutbound.length){
+                    <div class="text-13 fw-600">Equipaje documentado · Salida ({{baggageOutbound.length}})</div>
+                    @for(item of baggageOutbound; track $index){
+                      <div class="d-flex justify-between text-13 mb-4">
+                        <span>Pasajero {{item.targetID}}</span>
+                        <span>{{item.value}} pzs · {{item.unitPrice|currency:'MXN'}}</span>
+                      </div>
+                    }
+                  }
+                  @if(baggageInbound.length){
+                    <div class="text-13 fw-600 mt-8">Equipaje documentado · Regreso ({{baggageInbound.length}})</div>
+                    @for(item of baggageInbound; track $index){
+                      <div class="d-flex justify-between text-13 mb-4">
+                        <span>Pasajero {{item.targetID}}</span>
+                        <span>{{item.value}} pzs · {{item.unitPrice|currency:'MXN'}}</span>
+                      </div>
+                    }
+                  }
+                  @if(carryOnOutbound.length){
+                    <div class="text-13 fw-600 mt-8">Equipaje de mano · Salida ({{carryOnOutbound.length}})</div>
+                    @for(item of carryOnOutbound; track $index){
+                      <div class="d-flex justify-between text-13 mb-4">
+                        <span>Pasajero {{item.targetID}}</span>
+                        <span>{{item.value}} pzs · {{item.unitPrice|currency:'MXN'}}</span>
+                      </div>
+                    }
+                  }
+                  @if(carryOnInbound.length){
+                    <div class="text-13 fw-600 mt-8">Equipaje de mano · Regreso ({{carryOnInbound.length}})</div>
+                    @for(item of carryOnInbound; track $index){
+                      <div class="d-flex justify-between text-13 mb-4">
+                        <span>Pasajero {{item.targetID}}</span>
+                        <span>{{item.value}} pzs · {{item.unitPrice|currency:'MXN'}}</span>
+                      </div>
+                    }
+                  }
+                  @if(insuranceOutbound.length){
+                    <div class="text-13 fw-600 mt-8">Seguro · Salida ({{insuranceOutbound.length}})</div>
+                    @for(item of insuranceOutbound; track $index){
+                      <div class="d-flex justify-between text-13 mb-4">
+                        <span>Pasajero {{item.targetID}}</span>
+                        <span>{{item.unitPrice|currency:'MXN'}}</span>
+                      </div>
+                    }
+                  }
+                  @if(insuranceInbound.length){
+                    <div class="text-13 fw-600 mt-8">Seguro · Regreso ({{insuranceInbound.length}})</div>
+                    @for(item of insuranceInbound; track $index){
+                      <div class="d-flex justify-between text-13 mb-4">
+                        <span>Pasajero {{item.targetID}}</span>
+                        <span>{{item.unitPrice|currency:'MXN'}}</span>
+                      </div>
+                    }
+                  }
+                  @if(flexpassOutbound.length){
+                    <div class="text-13 fw-600 mt-8">Flex Pass · Salida ({{flexpassOutbound.length}})</div>
+                    @for(item of flexpassOutbound; track $index){
+                      <div class="d-flex justify-between text-13 mb-4">
+                        <span>Pasajero {{item.targetID}}</span>
+                        <span>{{item.unitPrice|currency:'MXN'}}</span>
+                      </div>
+                    }
+                  }
+                  @if(flexpassInbound.length){
+                    <div class="text-13 fw-600 mt-8">Flex Pass · Regreso ({{flexpassInbound.length}})</div>
+                    @for(item of flexpassInbound; track $index){
+                      <div class="d-flex justify-between text-13 mb-4">
+                        <span>Pasajero {{item.targetID}}</span>
+                        <span>{{item.unitPrice|currency:'MXN'}}</span>
+                      </div>
+                    }
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          @if(passengerControls.length){
+            <div class="mt-20">
+              <div class="fw-700 text-16 mb-10">Editar pasajeros</div>
+              <div class="row y-gap-10">
+                @for(passengerControl of passengerControls; track $index; let i = $index){
+                  <div class="col-md-6">
+                    <form [formGroup]="passengerControl" class="p-12 rounded-12 border h-100">
+                      <div class="fw-600 mb-6">Pasajero {{i + 1}}</div>
+                      <mat-form-field appearance="outline" class="w-100 mb-6">
+                        <mat-label>Nombre</mat-label>
+                        <input matInput formControlName="name" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="w-100 mb-6">
+                        <mat-label>Apellido</mat-label>
+                        <input matInput formControlName="lastname" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="w-100 mb-6">
+                        <mat-label>Tipo</mat-label>
+                        <mat-select formControlName="type">
+                          <mat-option value="ADULT">ADULT</mat-option>
+                          <mat-option value="CHILDREN">CHILDREN</mat-option>
+                          <mat-option value="INFANT">INFANT</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="w-100 mb-6">
+                        <mat-label>Género</mat-label>
+                        <input matInput formControlName="gender" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Fecha de nacimiento</mat-label>
+                        <input matInput [matDatepicker]="birthPicker" formControlName="birth" />
+                        <mat-datepicker-toggle matIconSuffix [for]="birthPicker"></mat-datepicker-toggle>
+                        <mat-datepicker #birthPicker></mat-datepicker>
+                      </mat-form-field>
+                    </form>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+        @default{
+          <div class="p-20 bg-light rounded-12 text-14">
+            Aún no hay un diseño específico para el tipo {{booking.type}}, pero los datos generales ya se muestran arriba. Este contenedor está listo para adaptarse a nuevas reservaciones.
+          </div>
+        }
+      }
+    </div>
+  }@else{
+    <div class="text-center py-40">Cargando reservación...</div>
+  }
+</div>

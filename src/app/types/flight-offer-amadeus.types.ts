@@ -24,6 +24,8 @@ export interface FlightOffer {
     pricingOptions: PricingOptions;
     validatingAirlineCodes: string[];
     travelerPricings: TravelerPricing[];
+    smartFare?: boolean;
+    promoPrice?: PromoPrice;
 }
 
 export interface Itinerary {
@@ -59,6 +61,14 @@ export interface Price {
     base: string|number;
     fees: Fee[];
     grandTotal: string|number;
+}
+export interface PromoPrice {
+    originalTotal: number;
+    discountedTotal: number;
+    discountAmount: number;
+    discountType: 'percentage' | 'fixed';
+    promoCode?: string;
+    applyTo?: 'tax' | 'total' | 'base';
 }
 export interface Fee {
     amount: string|number;

@@ -19,7 +19,9 @@ import { TimeAgoPipe } from '../../time-ago.pipe';
 import { Timestamp } from 'firebase/firestore';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faClock, faHistory } from '@fortawesome/free-solid-svg-icons';
-import { PAYMENT_OFFICES, PaymentOffice } from '../../pages/booking-process/payment/payment.component';
+import { PaymentStatusPipe } from '../../payment-status.pipe';
+import { PaymentOffice } from '../../types/payment-config.types';
+import { XploraPaymentOfficesService } from '../../services/xplora-payment-offices.service';
 
 export interface Institucion {
   [0]: string; // Código de institución
@@ -152,7 +154,8 @@ interface DisplaySavedOfflinePayment extends OfflinePaymentData {
     FormsModule,
     MatProgressSpinnerModule,
     TimeAgoPipe,
-    FontAwesomeModule
+    FontAwesomeModule,
+    PaymentStatusPipe
   ],
   templateUrl: './upload-payment-receipt.component.html',
   styleUrl: './upload-payment-receipt.component.scss'
@@ -160,7 +163,7 @@ interface DisplaySavedOfflinePayment extends OfflinePaymentData {
 export class UploadPaymentReceiptComponent implements OnInit {
   @Input() bookingID: string = 'prueba'; // ID de la reserva para la que se subirá el comprobante
   @Input() total: number = 0; // Monto total de la reserva, si es necesario mostrarlo
-  @Input() paymentMethod: 'SPEI' | 'CASH' = 'SPEI'; // Método de pago, por defecto SPEI
+  @Input() paymentMethod: 'SPEI' | 'CASH' | string = 'SPEI'; // Método de pago, por defecto SPEI
   selectedFile: File | undefined;
   uploadProgress: Observable<number | string> | null = null;
   downloadURL: string | null = null;
@@ -176,11 +179,19 @@ export class UploadPaymentReceiptComponent implements OnInit {
   timeIcon = faHistory;
   payed: number = 0;
   pending: number = 0;
-  paymentOffices:PaymentOffice[] = PAYMENT_OFFICES;
-  constructor(private storageService: StorageService, private snackBar: MatSnackBar, private bookingService: FireBookingService){}
+  paymentOffices:PaymentOffice[] = [];
+  constructor(
+    private storageService: StorageService,
+    private snackBar: MatSnackBar,
+    private bookingService: FireBookingService,
+    private paymentOfficesService: XploraPaymentOfficesService
+  ){}
 
   ngOnInit(): void {
     //console.log(this.paymentOffices[0].id);
+    this.paymentOfficesService.watchOffices().subscribe(offices => {
+      this.paymentOffices = (offices ?? []).filter(office => office.active !== false);
+    });
     this.bookingService.getOfflinePaymentsByBooking(this.bookingID).then(payments=>{
       this.savedPayments = payments as DisplaySavedOfflinePayment[];
       this.payed = this.savedPayments.filter(p => p.status === 'COMPLETED').reduce((acc, payment) => acc + (payment.amount || 0), 0);

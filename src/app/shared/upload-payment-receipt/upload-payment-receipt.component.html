@@ -102,23 +102,7 @@
                         <p class="mb-1">{{payment.amount | currency: 'MXN'}}</p>
                         <div class="d-flex w-100 justify-content-between">
                             <div>
-                                @switch(payment.status) {
-                                    @case('PENDING') {
-                                        <span class="badge bg-warning text-dark">Pendiente</span>
-                                    }
-                                    @case('COMPLETED') {
-                                        <span class="badge bg-success">Confirmado</span>
-                                    }
-                                    @case('REJECTED') {
-                                        <span class="badge bg-danger">Rechazado</span>
-                                    }
-                                    @case('CANCELED') {
-                                        <span class="badge bg-warning">Cancelado</span>
-                                    }
-                                    @case('VALIDATING') {
-                                        <span class="badge bg-info">Validando</span>
-                                    }
-                                }
+                                <span [ngClass]="payment.status | paymentStatus: true">{{payment.status | paymentStatus}}</span>
                             </div>
                             <div class="text-dark text-end">
                                 {{payment.senderBank}}

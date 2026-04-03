@@ -127,10 +127,10 @@
   &:hover {
     .activityCard {
       &__image {
-        .cardImage__content > img,
+        /*.cardImage__content > img,
         .swiper-slide {
           transform: scale(1.15);
-        }
+        }*/
       }
 
       &__title {

@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, retry } from 'rxjs';
+import { firebaseConfig } from '../../environments/environment';
 
 export interface Translation{
   translatedText: string;
@@ -15,7 +16,7 @@ export interface V2Response{
   providedIn: 'root'
 })
 export class GoogleTranslationService {
-  private apiKey = 'AIzaSyBmhMUkd_9tA7plS_f1HRynQfZg3SeYYIQ'; // ⚠️ Reemplázala con tu API Key
+  private apiKey = firebaseConfig.apiKey; // ⚠️ Reemplázala con tu API Key
   private apiV2Url = 'https://translation.googleapis.com/language/translate/v2';
   private apiV3Url = 'https://translation.googleapis.com/v3/projects/ace-sight-444308-c5/locations/global:translateText';
   constructor(private http: HttpClient) { }

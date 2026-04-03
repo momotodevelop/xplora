@@ -1,0 +1,278 @@
+<h2 mat-dialog-title>{{ isEditing ? 'Editar oficina de pago' : 'Nueva oficina de pago' }}</h2>
+
+<div mat-dialog-content class="payment-office-dialog__content">
+  <div class="payment-office-dialog__hint">
+    Configura una oficina con sus rangos, límites e instrucciones. Cada paso puede combinar texto, imágenes, códigos y enlaces.
+  </div>
+
+  <form [formGroup]="form" class="payment-office-dialog__form">
+    <div class="dialog-section">
+      <div class="dialog-section__title">Datos generales</div>
+      <div class="row y-gap-15">
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="name" placeholder="Oxxo" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-5">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Tipo de oficina</mat-label>
+            <mat-select formControlName="typeId">
+              @for (type of officeTypeOptions; track type.id) {
+                <mat-option [value]="type.id">{{ type.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3 d-flex align-items-start justify-content-end">
+          <button mat-stroked-button color="primary" type="button" (click)="openCreateOfficeTypeDialog()">
+            Nuevo tipo
+          </button>
+        </div>
+      </div>
+
+      @if(officeTypeOptions.length === 0){
+        <div class="alert alert-warning mb-15" role="alert">
+          Todavía no hay tipos de oficina. Crea uno desde aquí para poder guardar esta oficina.
+        </div>
+      }
+
+      <div class="row y-gap-15">
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Referencia / Cuenta</mat-label>
+            <input matInput formControlName="account" placeholder="06000017022550418" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Etiqueta de referencia</mat-label>
+            <input matInput formControlName="referenceLabel" placeholder="el mismo código proporcionado" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Imagen</mat-label>
+            <input matInput formControlName="img" placeholder="https://..." />
+          </mat-form-field>
+          <div class="image-actions">
+            <button mat-stroked-button type="button" color="primary" (click)="openImageLibrary(form.get('img'), 'Imagen de oficina')">
+              Biblioteca
+            </button>
+            @if(form.get('img')?.value){
+              <a mat-button color="primary" [href]="form.get('img')?.value" target="_blank" rel="noopener">
+                Ver
+              </a>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="row y-gap-15">
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Monto mínimo</mat-label>
+            <input matInput type="number" formControlName="minAmount" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Monto máximo</mat-label>
+            <input matInput type="number" formControlName="maxAmount" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Máximo por operación</mat-label>
+            <input matInput type="number" formControlName="maxPerOperation" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Comisión</mat-label>
+            <input matInput type="number" formControlName="fee" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Horas de demora</mat-label>
+            <input matInput type="number" formControlName="delayHours" />
+          </mat-form-field>
+        </div>
+        <div class="col-md-3 d-flex align-items-center">
+          <mat-checkbox formControlName="active">Oficina activa</mat-checkbox>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-section">
+      <div class="dialog-section__header">
+        <div>
+          <div class="dialog-section__title">Pasos e instrucciones</div>
+          <div class="dialog-section__description">
+            Puedes usar <code>{{ '{' }}officeName{{ '}' }}</code>, <code>{{ '{' }}account{{ '}' }}</code>, <code>{{ '{' }}codeLabel{{ '}' }}</code> y <code>{{ '{' }}amount{{ '}' }}</code> en textos y enlaces.
+          </div>
+        </div>
+        <button mat-stroked-button color="primary" type="button" (click)="addStep()">Agregar paso</button>
+      </div>
+
+      @if(stepsArray.length === 0){
+        <div class="dialog-empty-state">
+          No hay pasos cargados todavía.
+        </div>
+      }@else{
+        <div formArrayName="steps" class="steps-list">
+          @for (stepCtrl of stepsArray.controls; track $index; let stepIndex = $index) {
+            <div class="step-card" [formGroupName]="stepIndex">
+              <div class="step-card__header">
+                <div class="text-14 fw-600">Paso {{ stepIndex + 1 }}</div>
+                <button mat-icon-button color="warn" type="button" (click)="removeStep(stepIndex)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Título del paso (opcional)</mat-label>
+                <input matInput formControlName="title" placeholder="Ej. Dirígete a tu sucursal más cercana" />
+              </mat-form-field>
+
+              <div formArrayName="elements" class="step-elements">
+                @for (elementCtrl of getStepElements(stepIndex).controls; track $index; let elementIndex = $index) {
+                  <div class="step-element" [formGroupName]="elementIndex">
+                    <div class="step-element__header">
+                      <div class="text-12 fw-600 text-uppercase">{{ elementCtrl.get('type')?.value }}</div>
+                      <button mat-icon-button color="warn" type="button" (click)="removeStepElement(stepIndex, elementIndex)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+
+                    @switch(elementCtrl.get('type')?.value){
+                      @case('text'){
+                        <mat-form-field appearance="outline" class="w-100">
+                          <mat-label>Texto</mat-label>
+                          <textarea matInput rows="3" formControlName="text"></textarea>
+                        </mat-form-field>
+                      }
+                      @case('image'){
+                        <div class="row y-gap-10">
+                          <div class="col-md-6">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>URL de imagen</mat-label>
+                              <input matInput formControlName="src" placeholder="https://..." />
+                            </mat-form-field>
+                            <div class="image-actions">
+                              <button mat-stroked-button type="button" color="primary" (click)="openImageLibrary(elementCtrl.get('src'), 'Imagen del paso')">
+                                Biblioteca
+                              </button>
+                              @if(elementCtrl.get('src')?.value){
+                                <a mat-button color="primary" [href]="elementCtrl.get('src')?.value" target="_blank" rel="noopener">
+                                  Ver
+                                </a>
+                              }
+                            </div>
+                          </div>
+                          <div class="col-md-3">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Alt</mat-label>
+                              <input matInput formControlName="alt" />
+                            </mat-form-field>
+                          </div>
+                          <div class="col-md-3">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Caption</mat-label>
+                              <input matInput formControlName="caption" />
+                            </mat-form-field>
+                          </div>
+                        </div>
+                      }
+                      @case('barcode'){
+                        <div class="row y-gap-10">
+                          <div class="col-md-4 d-flex align-items-center">
+                            <mat-checkbox formControlName="useOfficeAccount">Usar referencia de oficina</mat-checkbox>
+                          </div>
+                          <div class="col-md-4">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Valor (opcional)</mat-label>
+                              <input matInput formControlName="value" />
+                            </mat-form-field>
+                          </div>
+                          <div class="col-md-4">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Etiqueta (opcional)</mat-label>
+                              <input matInput formControlName="label" />
+                            </mat-form-field>
+                          </div>
+                        </div>
+                      }
+                      @case('qr'){
+                        <div class="row y-gap-10">
+                          <div class="col-md-4 d-flex align-items-center">
+                            <mat-checkbox formControlName="useOfficeAccount">Usar referencia de oficina</mat-checkbox>
+                          </div>
+                          <div class="col-md-4">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Valor (opcional)</mat-label>
+                              <input matInput formControlName="value" />
+                            </mat-form-field>
+                          </div>
+                          <div class="col-md-4">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Etiqueta (opcional)</mat-label>
+                              <input matInput formControlName="label" />
+                            </mat-form-field>
+                          </div>
+                        </div>
+                      }
+                      @case('link'){
+                        <div class="row y-gap-10">
+                          <div class="col-md-4">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Texto del enlace</mat-label>
+                              <input matInput formControlName="label" />
+                            </mat-form-field>
+                          </div>
+                          <div class="col-md-5">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>URL</mat-label>
+                              <input matInput formControlName="url" placeholder="https://..." />
+                            </mat-form-field>
+                          </div>
+                          <div class="col-md-3">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Estilo</mat-label>
+                              <mat-select formControlName="style">
+                                @for (style of linkStyleOptions; track style) {
+                                  <mat-option [value]="style">{{ style }}</mat-option>
+                                }
+                              </mat-select>
+                            </mat-form-field>
+                          </div>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="step-element-actions">
+                <button mat-stroked-button color="primary" type="button" (click)="addStepElement(stepIndex, 'text')">Texto</button>
+                <button mat-stroked-button color="primary" type="button" (click)="addStepElement(stepIndex, 'image')">Imagen</button>
+                <button mat-stroked-button color="primary" type="button" (click)="addStepElement(stepIndex, 'barcode')">Código barras</button>
+                <button mat-stroked-button color="primary" type="button" (click)="addStepElement(stepIndex, 'qr')">Código QR</button>
+                <button mat-stroked-button color="primary" type="button" (click)="addStepElement(stepIndex, 'link')">Enlace</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()">Cancelar</button>
+  <button mat-flat-button color="primary" type="button" (click)="save()">
+    {{ isEditing ? 'Guardar cambios' : 'Crear oficina' }}
+  </button>
+</div>

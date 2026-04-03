@@ -1,8 +1,25 @@
+@if((auth.user | async)){
+    <div class="d-flex items-center justify-start bg-success-1 pl-20 pr-20 py-20 rounded-8 mb-30">
+        @if((auth.user | async)?.photoURL){
+            <img [src]="(auth.user | async)?.photoURL" alt="Avatar" class="size-40 rounded-full">
+        }@else {
+            <img src="assets/img/dashboard/icons/xplora_coin.svg" alt="logo" class="size-40">
+        }
+        <div class="text-success-2 lh-1 fw-500 ml-10">
+            <div class="fw-700 text-success-2 mb-10">Bienvenido {{(auth.user | async)?.displayName!}}</div>
+            <div class="text-15 text-success-2">Al confirmar esta reservación acumularás el 10% del total en Xplorer Points.</div>
+        </div>
+    </div>
+}
+
 @if(passengers.controls.length > 0){
     <form [formGroup]="form">
         <div formArrayName="passengers">
             @for(passenger of passengers.controls; track passenger; let i = $index){
-                <p class="text-16 fw-400">{{passengerTitles[i]}}</p>
+                <div class="d-flex items-center justify-between" [formGroupName]="i">
+                    <p class="text-18 fw-700">{{passengerTitles[i]}}</p>
+                    <!-- <mat-checkbox>Guardar Pasajero</mat-checkbox> -->
+                </div>
                 <div class="row x-gap-10 y-gap-10 pb-20" [formGroupName]="i">
                     <div class="col-md-6">
                         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">

@@ -1,0 +1,382 @@
+<section class="py-10 d-flex items-center bg-light-2">
+  <div class="container">
+    <div class="row y-gap-10 items-center justify-between">
+      <div class="col-auto">
+        <div class="row x-gap-10 y-gap-5 items-center text-14 text-light-1 breadcrumb__trail">
+          <div class="col-auto">
+            <div class="">Home</div>
+          </div>
+          <div class="col-auto">
+            <div class="">></div>
+          </div>
+          <div class="col-auto">
+            <div class="">Actividades</div>
+          </div>
+          <div class="col-auto">
+            <div class="">></div>
+          </div>
+          <div class="col-auto breadcrumb__trail-name">
+            <div class="text-dark-1 breadcrumb__trail-text">{{activity?.name | titlecase}}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-auto">
+        <a href="/actividades" class="text-14 text-blue-1 underline">Todas las actividades</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="activity-hero">
+  @if (activity?.pictures?.length) {
+    <ngx-slick-carousel [config]="sliderConfig" class="activity-hero__slider">
+      @for (picture of activity?.pictures ?? []; track picture) {
+        <div ngxSlickItem class="activity-hero__slide">
+          <img [src]="picture" [alt]="activity?.name" class="activity-hero__image" />
+        </div>
+      }
+    </ngx-slick-carousel>
+  } @else {
+    <div class="activity-hero__placeholder">Sin imagen disponible</div>
+  }
+</section>
+
+<section class="pt-40">
+  <div class="container">
+    <div class="row y-gap-30">
+      <div class="col-lg-8">
+        <div class="row justify-between items-end">
+          <div class="col-auto">
+            <h1 class="text-26 fw-600">{{activity?.name | titlecase}}</h1>
+
+            <div class="row x-gap-10 y-gap-20 items-center pt-10">
+              <div class="col-auto">
+                <div class="row x-gap-10 items-center">
+                  <div class="col-auto">
+                    @if (activity?.categories?.length) {
+                      <div class="activity-availability__chips">
+                        @for (category of activity?.categories ?? []; track category) {
+                          <span class="activity-availability__chip">{{ category }}</span>
+                        }
+                      </div>
+                    } @else {
+                      <div class="text-15 text-light-1">Categorías por confirmar.</div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-auto">
+            <div class="row x-gap-10 y-gap-10 mt-10">
+              <div class="col-auto">
+                <button class="button px-15 py-10 -blue-1">
+                  <i class="icon-share mr-10"></i>
+                  Compartir
+                </button>
+              </div>
+
+              <div class="col-auto">
+                <button class="button px-15 py-10 -blue-1 bg-light-2">
+                  <i class="icon-heart mr-10"></i>
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-top-light mt-40 mb-40"></div>
+
+        <h3 class="text-22 fw-500 mt-30">Resumen del tour</h3>
+
+        <div class="row y-gap-30 justify-between pt-20">
+          <div class="col-md-auto col-6">
+            <div class="d-flex">
+              <i class="icon-clock text-22 text-blue-1 mr-10"></i>
+              <div class="text-15 lh-15">
+                Duración:<br> {{activity?.minimumDuration?.length ? activity?.minimumDuration : 'Más de 2 Horas'}}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-auto col-6">
+            <div class="d-flex">
+              <i class="icon-user-2 text-22 text-blue-1 mr-10"></i>
+              <div class="text-15 lh-15">
+                Operador:<br> {{activity?.operatorName || 'Por definir'}}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-auto col-6">
+            <div class="d-flex">
+              <i class="icon-star text-22 text-blue-1 mr-10"></i>
+              <div class="text-15 lh-15">
+                Rating:<br> {{activity?.rating || '4.0'}}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-top-light mt-40 mb-40"></div>
+
+        <div class="row x-gap-40 y-gap-40">
+          <div class="col-12">
+            <h3 class="text-22 fw-500">Descripcion</h3>
+            @if (activity?.description) {
+              <div class="text-dark-1 text-15 mt-20" [innerHTML]="activity?.description"></div>
+            } @else {
+              <p class="text-dark-1 text-15 mt-20">
+                {{activity?.shortDescription || 'Descripcion no disponible.'}}
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="border-top-light mt-40 mb-40"></div>
+
+        <div class="row x-gap-40 y-gap-40">
+          <div class="col-12">
+            <h3 class="text-22 fw-500">Disponibilidad</h3>
+            @if (enabledDays.length) {
+              <div class="activity-availability mt-20">
+                <div class="activity-availability__days">
+                  @for (day of enabledDays; track day.key) {
+                    <div class="activity-availability__day">
+                      <span>{{ day.label }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="activity-availability__times">
+                  <div class="text-15 fw-500 mb-10">Horarios</div>
+                  @if (availabilityTimes.length) {
+                    <div class="activity-availability__chips">
+                      @for (time of availabilityTimes; track time) {
+                        <span class="activity-availability__chip">{{ time }}</span>
+                      }
+                    </div>
+                  } @else {
+                    <div class="text-14 text-light-1">Horarios por confirmar.</div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="text-14 text-light-1 mt-10">Disponibilidad por confirmar.</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="d-flex justify-end">
+          <div class="w-360 lg:w-full d-flex flex-column items-center">
+            <div class="px-30 py-30 rounded-4 border-light bg-white shadow-4">
+              <div class="text-14 text-light-1">
+                Desde
+                <span class="text-20 fw-500 text-dark-1 ml-5">
+                  @if (activity?.originalPrice) {
+                    <span style="text-decoration: line-through; margin-right: 6px;">
+                      {{activity?.originalPrice?.amount | currency:activity?.originalPrice?.currencyCode}}
+                    </span>
+                  }
+                  {{activity?.price?.amount | currency:activity?.price?.currencyCode}}
+                </span>
+              </div>
+
+              <div class="activity-booking__controls">
+                <div class="activity-booking__field">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Fecha de la actividad</mat-label>
+                    <input
+                      matInput
+                      [matDatepicker]="tourDatePicker"
+                      [(ngModel)]="selectedDate"
+                      [min]="minSelectableDate"
+                      [matDatepickerFilter]="dateFilter" />
+                    <mat-datepicker-toggle matSuffix [for]="tourDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #tourDatePicker></mat-datepicker>
+                  </mat-form-field>
+                </div>
+                <div class="activity-booking__field">
+                  <label class="text-14 text-dark-1 fw-500">Personas</label>
+                  <div class="activity-booking__pax">
+                    <div class="activity-booking__pax-row">
+                      <span>Adultos</span>
+                      <div class="activity-booking__counter">
+                        <button type="button" (click)="updatePax('adults', -1)">-</button>
+                        <span>{{ pax.adults }}</span>
+                        <button type="button" (click)="updatePax('adults', 1)">+</button>
+                      </div>
+                    </div>
+                    <div class="activity-booking__pax-row">
+                      <span>Niños</span>
+                      <div class="activity-booking__counter">
+                        <button type="button" (click)="updatePax('children', -1)">-</button>
+                        <span>{{ pax.children }}</span>
+                        <button type="button" (click)="updatePax('children', 1)">+</button>
+                      </div>
+                    </div>
+                    <div class="activity-booking__pax-row">
+                      <span>Infantes</span>
+                      <div class="activity-booking__counter">
+                        <button type="button" (click)="updatePax('infants', -1)">-</button>
+                        <span>{{ pax.infants }}</span>
+                        <button type="button" (click)="updatePax('infants', 1)">+</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row y-gap-20 pt-20">
+                <div class="col-12">
+                  <a class="button -dark-1 py-15 px-35 h-60 col-12 rounded-4 bg-blue-1 text-white" [href]="activity?.bookingLink" target="_blank" rel="noopener">
+                    Reservar ahora
+                  </a>
+                </div>
+              </div>
+
+              <div class="d-flex items-center pt-20">
+                <div class="size-40 flex-center bg-light-2 rounded-full">
+                  <i class="icon-heart text-16 text-green-2"></i>
+                </div>
+                <div class="text-14 lh-16 ml-10">Experiencia recomendada por viajeros</div>
+              </div>
+            </div>
+
+            <div class="px-30">
+              <div class="text-14 text-light-1 mt-30">Puedes cancelar esta reservación hasta 24 horas antes para un reembolso completo.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pt-40">
+  <div class="container">
+    <div class="pt-40 border-top-light">
+      <div class="row x-gap-40 y-gap-40">
+        <div class="col-auto">
+          <h3 class="text-22 fw-500">Información importante</h3>
+        </div>
+      </div>
+
+      <div class="row x-gap-40 y-gap-40 justify-between pt-20">
+        <div class="col-lg-4 col-md-6">
+          <div class="fw-500 mb-10">Incluye</div>
+          <ul class="list-disc">
+            @if (activity?.includes?.length) {
+              @for (item of activity?.includes ?? []; track item) {
+                <li>{{ item }}</li>
+              }
+            } @else {
+              <li>No especificado</li>
+            }
+          </ul>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+          <div class="fw-500 mb-10">No incluye</div>
+          <ul class="list-disc">
+            @if (activity?.excludes?.length) {
+              @for (item of activity?.excludes ?? []; track item) {
+                <li>{{ item }}</li>
+              }
+            } @else {
+              <li>No especificado</li>
+            }
+          </ul>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="fw-500 mb-10">Idiomas disponibles</div>
+          @if (activity?.languages?.length) {
+            <div class="activity-availability__chips">
+              @for (lang of activity?.languages ?? []; track lang) {
+                <span class="activity-availability__chip">{{ lang }}</span>
+              }
+            </div>
+          } @else {
+            <div class="text-14 text-light-1">No especificado</div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container mt-40 mb-40">
+  <div class="border-top-light"></div>
+</div>
+
+<section class="mb-40">
+  <div class="container">
+    <h3 class="text-22 fw-500 mb-20">Ubicación de la actividad</h3>
+
+    @if (mapLatitude !== null && mapLongitude !== null) {
+      <div class="activity-map">
+        @if (isBrowser && mapCenter) {
+          <div class="activity-map__frame rounded-4">
+            <google-map
+              class="activity-map__map"
+              [height]="'100%'"
+              [width]="'100%'"
+              [center]="mapCenter!"
+              [zoom]="mapZoom"
+              [options]="mapOptions">
+              <map-marker
+                [position]="mapCenter!"
+                [title]="activity?.name || 'Ubicación de la actividad'">
+              </map-marker>
+            </google-map>
+          </div>
+        } @else {
+          <img
+            class="activity-map__image rounded-4"
+            [src]="gMaps.getStaticMapUrl(mapLatitude, mapLongitude, 14, 640, 360)"
+            [alt]="activity?.name || 'Mapa de la actividad'" />
+        }
+      </div>
+      <div class="text-14 text-light-1 mt-10">
+        {{mapLatitude}}, {{mapLongitude}}
+      </div>
+      @if (addressLoading) {
+        <div class="text-14 text-light-1 mt-5">Cargando dirección...</div>
+      } @else if (address) {
+        <div class="text-14 text-dark-1 mt-5">{{ address }}</div>
+      } @else {
+        <div class="text-14 text-light-1 mt-5">Dirección por confirmar.</div>
+      }
+
+      <div class="activity-weather mt-20">
+        <div class="text-16 fw-500 mb-10">Pronóstico 5 días</div>
+        @if (weatherLoading) {
+          <div class="text-14 text-light-1">Cargando pronóstico...</div>
+        } @else if (weatherForecast.length) {
+          <div class="activity-weather__grid">
+            @for (day of weatherForecast; track day.key) {
+              <div class="activity-weather__card">
+                <div class="activity-weather__date">{{ day.date | date:'EEE d MMM' }}</div>
+                @if (day.iconUrl) {
+                  <img class="activity-weather__icon" [src]="day.iconUrl" [alt]="day.description" />
+                }
+                <div class="activity-weather__desc">{{ day.description }}</div>
+                <div class="activity-weather__temps">
+                  <span>Max {{ day.maxLabel }}</span>
+                  <span>Min {{ day.minLabel }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-14 text-light-1">Pronóstico no disponible.</div>
+        }
+      </div>
+    } @else {
+      <div class="text-14 text-light-1">Ubicación por confirmar.</div>
+    }
+  </div>
+</section>

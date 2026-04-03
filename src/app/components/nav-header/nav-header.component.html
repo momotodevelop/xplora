@@ -147,13 +147,15 @@
               @if(!user){
                 <a (click)="login()" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">Iniciar Sesión / Registrarse</a>
               }@else{
-                <a (click)="logout()" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">{{user.displayName ?? 'Bienvenido'}}</a>
+                <a (click)="login()" class="button px-30 fw-400 text-14 border-white -outline-white h-50 text-white ml-20">{{user.displayName ?? 'Bienvenido'}}</a>
               }
             </div>
   
             <div class="d-none xl:d-flex x-gap-20 items-center pl-30 text-white" data-x="header-mobile-icons" data-x-toggle="text-white">
               @if(!user){
                 <div><a (click)="login()" class="d-flex items-center icon-user text-inherit text-22"></a></div>
+              }@else{
+                <div><img (click)="login()" [src]="profileAvatar" class="rounded-full h-40 w-40" alt="User Photo"></div>
               }
               @if(!booking){
                 <div><button class="d-flex items-center icon-menu text-inherit text-20" data-x-click="html, header, header-logo, header-mobile-icons, mobile-menu"></button></div>

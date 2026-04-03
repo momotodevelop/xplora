@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { Meta, Title } from '@angular/platform-browser';
 import { SearchComponent } from './search/search.component';
 import { BookingBenefitsComponent } from './booking-benefits/booking-benefits.component';
 import { TestimonialsComponent } from './testimonials/testimonials.component';

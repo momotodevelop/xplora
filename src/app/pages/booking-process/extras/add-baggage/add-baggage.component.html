@@ -2,15 +2,24 @@
     <div class="text-20 fw-500 mb-0 d-inline-block">Equipaje documentado adicional</div>
     <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
 </div>
-<div style="max-height: calc(80vh - 120px); min-height: calc(80vh - 120px); overflow: auto;">
+<div class="scrollable-content">
+    <div class="row px-15 x-gap-0 m-0">
+        <div class="col-12">
+            <img src="/assets/img/tamanos-maleta/documentada.jpg" style="width: 80%; margin: auto; display: block;">
+        </div>
+        <div class="col-12">
+            <div class="text-14 lh-16 text-light-1 text-center mt-10">
+                76 cm x 52 cm x 30 cm - Hasta <b>25 Kgs</b>
+            </div>
+        </div>
+    </div>
     <mat-tab-group>
-
         <mat-tab [label]="data.flights[0].departure.iataCode+' - '+data.flights[0].arrival.iataCode">
             @for (passenger of data.passengers; track passenger; let i = $index) {
-                <div class="row y-gap-10 justify-between items-center p-3">
+                <div class="row y-gap-10 justify-between items-center m-0">
                     <div class="col-auto">
                         <div class="text-15 fw-500">{{passenger.name}}</div>
-                        <div class="text-14 lh-12 text-light-1 mt-5">{{price|currency:'MXN'}}/Pieza adicional</div>
+                        <div class="text-14 lh-12 text-light-1 mt-5">{{outboundPrice|currency:'MXN'}}/Pieza adicional</div>
                     </div>
                     <div class="col-auto">
                         <div class="d-flex items-center">
@@ -31,24 +40,24 @@
         @if(data.flights.length>1){
             <mat-tab [label]="data.flights[1].departure.iataCode+' - '+data.flights[1].arrival.iataCode">
                 @for (passenger of data.passengers; track passenger; let i = $index) {
-                    <div class="row y-gap-10 justify-between items-center p-3">
+                    <div class="row y-gap-10 justify-between items-center m-0">
                         <div class="col-auto">
                             <div class="text-15 fw-500">{{passenger.name}}</div>
-                            <div class="text-14 lh-12 text-light-1 mt-5">{{passenger.type}} - {{price|currency:'MXN'}}</div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="d-flex items-center">
-                                <button class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
-                                    <i class="icon-minus text-12"></i>
-                                </button>
-                                <div class="flex-center size-20 ml-10 mr-10">
-                                    <div class="text-15">{{extraBaggage.inbound[i].value}}</div>
-                                </div>
-                                <button class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
-                                    <i class="icon-plus text-12"></i>
-                                </button>
+                        <div class="text-14 lh-12 text-light-1 mt-5">{{inboundPrice|currency:'MXN'}}/Pieza adicional</div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex items-center">
+                            <button [disabled]="extraBaggage.inbound[i].value!<1" (click)="removePiece('INBOUND', i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
+                                <i class="icon-minus text-12"></i>
+                            </button>
+                            <div class="flex-center size-20 ml-10 mr-10">
+                                <div class="text-15">{{extraBaggage.inbound[i].value}}</div>
                             </div>
+                            <button [disabled]="extraBaggage.inbound[i].value!>4" (click)="addPiece('INBOUND', i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
+                                <i class="icon-plus text-12"></i>
+                            </button>
                         </div>
+                    </div>
                     </div>
                 }
             </mat-tab>

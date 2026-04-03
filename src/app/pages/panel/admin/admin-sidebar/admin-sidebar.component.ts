@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './admin-sidebar.component.scss'
 })
 export class AdminSidebarComponent {
-  @Input() active:"dashboard"|"lite-vouchers"|"bookings"="dashboard";
+  @Input() active:"dashboard"|"lite-vouchers"|"bookings"|"promos"|"tours"="dashboard";
   constructor(private auth: FireAuthService){}
   logout(){
     this.auth.logout();

@@ -5,7 +5,7 @@ import { Dictionaries, FlightOfferSearchResponse } from '../types/flight-offer-a
 import { AmadeusAuthService } from './amadeus-auth.service';
 import { environment } from '../../environments/environment';
 import { FlightClassType } from '../pages/flight-search/search-topbar/search-topbar.component';
-export const PRICE_MUTATOR_FLIGHTS: number = -50;
+export const PRICE_MUTATOR_FLIGHTS: number = 0;
 
 @Injectable({
   providedIn: 'root'

@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>{{ isEditing ? 'Editar tipo de oficina' : 'Nuevo tipo de oficina' }}</h2>
+
+<div mat-dialog-content class="payment-dialog__content payment-dialog__content--compact">
+  <div class="payment-dialog__hint">
+    Define el nombre visible y la clase de Font Awesome que identificará este tipo de oficina.
+  </div>
+
+  <form [formGroup]="form" class="payment-dialog__form">
+    <div class="row y-gap-15">
+      <div class="col-12">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="name" placeholder="Tienda de conveniencia" />
+        </mat-form-field>
+      </div>
+      <div class="col-12">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Icono (Font Awesome)</mat-label>
+          <input matInput formControlName="icon" placeholder="fa-solid fa-store" />
+        </mat-form-field>
+      </div>
+      @if(form.get('icon')?.value){
+        <div class="col-12">
+          <div class="icon-preview">
+            <i [class]="form.get('icon')?.value"></i>
+            <span>{{ form.get('icon')?.value }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()">Cancelar</button>
+  <button mat-flat-button color="primary" type="button" (click)="save()">
+    {{ isEditing ? 'Guardar cambios' : 'Crear tipo' }}
+  </button>
+</div>

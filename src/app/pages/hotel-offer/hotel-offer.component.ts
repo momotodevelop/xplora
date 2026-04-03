@@ -16,7 +16,6 @@ import { LiteApiService } from '../../services/lite-api.service';
 import { HotelDetails, HotelDetailsResponse, HotelFullRate, HotelFullRatesResponse, HotelReview, HotelReviewsResponse, Occupancy } from '../../types/lite-api.types';
 import { GoogleTranslationService } from '../../services/google-translation.service';
 import { VisitCounterService } from '../../services/visit-counter.service';
-import { Title } from '@angular/platform-browser';
 import { Analytics, logEvent } from '@angular/fire/analytics';
 import { MetaHandlerService } from '../../services/meta-handler.service';
 import { FacebookPixelService } from '../../services/facebook-pixel.service';

@@ -1,16 +1,28 @@
 .masthead.-type-1 {
   position: relative;
-  padding-top: 330px;
-  padding-bottom: 210px;
+  padding-top: 260px;
+  padding-bottom: 220px;
   
   @include media-below(lg) {
-    padding-top: 260px;
-    padding-bottom: 180px;
+    padding-top: 200px;
+    padding-bottom: 160px;
   }
   
   @include media-below(sm) {
-    padding-top: 160px;
-    padding-bottom: 20px;
+    padding-top: 100px;
+    padding-bottom: 60px;
+  }
+
+  .xplorai{
+    max-height: 100px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    @include media-below(lg) {
+      max-height: 60px;
+    }
+    @include media-below(sm) {
+      max-height: 50px;
+    }
   }
 
   .masthead {

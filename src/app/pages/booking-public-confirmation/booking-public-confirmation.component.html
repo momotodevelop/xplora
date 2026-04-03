@@ -11,6 +11,8 @@
                             <fa-icon class="text-30 text-white" [icon]="iconPending"></fa-icon>
                         }@else if(booking.status==="CANCELED"){
                             <fa-icon class="text-30 text-white" [icon]="iconCanceled"></fa-icon>
+                        }@else if(booking.status==="VALIDATING"){
+                            <fa-icon class="text-30 text-white" [icon]="iconPending"></fa-icon>
                         }
                     </div>
                     <h1 class="fw-600">
@@ -24,10 +26,20 @@
                             @case("CANCELED"){
                                 Tu reservación ha sido cancelada.
                             }
+                            @case("VALIDATING"){
+                                Tu reservación está en proceso de validación.
+                            }
                         }
                         
                     </h1>
-                    <p class="text-dark-1">{{booking.contact!.name|titlecase}}, te hemos enviado los detalles de tu reservación al correo: <b>{{booking.contact!.email}}</b></p>
+                    @if(booking.status === 'CANCELED'){
+                        <p class="text-dark-1">{{booking.contact!.name|titlecase}}, lamentamos que tu reservación haya sido cancelada. Si necesitas asistencia, por favor contáctanos a través de <a (click)="openContactWhatsApp()" class="text-blue-1 fw-500">WhatsApp</a>.</p>
+                    }@else{
+                        <p class="text-dark-1">{{booking.contact!.name|titlecase}}, te hemos enviado los detalles de tu reservación al correo: <b>{{booking.contact!.email}}</b></p>
+                    }
+                    @if(booking.status==='VALIDATING'){
+                        <div class="text-dark-1">Estamos realizando una validación adicional por motivos de seguridad en el pago. Te notificaremos por correo electrónico una vez que se haya completado este proceso.</div>
+                    }
                 </div>
             </div>
         </div>
@@ -51,6 +63,9 @@
                                     }
                                     @case("PENDING"){
                                         Pendiente
+                                    }
+                                    @case("VALIDATING"){
+                                        En Validación
                                     }
                                     @case("CANCELED"){
                                         Cancelada
@@ -119,31 +134,33 @@
                         }
                     </div>
                 </div>
-                <div class="d-flex items-center justify-between bg-warning-1 mt-30 pl-30 py-30 pr-30 rounded-8">
-                    <div class="row y-gap-20">
-                        <div class="col-12 col-md-9">
-                            <h5 class="alert-heading text-warning-2"><fa-icon [icon]="iconPending"></fa-icon> Reservación Pendiente</h5>
-                            <div class="text-warning-2 lh-1 fw-500" style="text-align: justify;">
-                                @if(pendingAmount>0&&booking.status==='PENDING'){
-                                @switch(booking.payment!.method){
-                                    @case('CASH') {
-                                        El pago en efectivo se encuentra pendiente. Completa tu pago ahora y asegura tu tarifa antes de que caduque la reservación.
-                                    }
-                                    @case('SPEI') {
-                                        Tu pago por transferencia SPEI está pendiente. Realízalo cuanto antes para garantizar la disponibilidad y el precio de tu reservación.
-                                    }
-                                    @case('CARD') {
-                                        El cargo a tu tarjeta aún no se ha completado. Intenta nuevamente o utiliza otro método de pago para confirmar tu reservación.
+                @if(booking.status==='PENDING'){
+                    <div class="d-flex items-center justify-between bg-warning-1 mt-30 pl-30 py-30 pr-30 rounded-8">
+                        <div class="row y-gap-20">
+                            <div class="col-12 col-md-9">
+                                <h5 class="alert-heading text-warning-2"><fa-icon [icon]="iconPending"></fa-icon> Reservación Pendiente</h5>
+                                <div class="text-warning-2 lh-1 fw-500" style="text-align: justify;">
+                                    @if(pendingAmount>0){
+                                    @switch(booking.payment!.method){
+                                        @case('CASH') {
+                                            El pago en efectivo se encuentra pendiente. Completa tu pago ahora y asegura tu tarifa antes de que caduque la reservación.
+                                        }
+                                        @case('SPEI') {
+                                            Tu pago por transferencia SPEI está pendiente. Realízalo cuanto antes para garantizar la disponibilidad y el precio de tu reservación.
+                                        }
+                                        @case('CARD') {
+                                            El cargo a tu tarjeta aún no se ha completado. Intenta nuevamente o utiliza otro método de pago para confirmar tu reservación.
+                                        }
                                     }
                                 }
-                            }
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-3 d-flex align-items">
+                                <button class="button w-100 -md -dark-1 bg-yellow-1 text-dark-1">Pagar Ahora</button>
                             </div>
                         </div>
-                        <div class="col-12 col-md-3 d-flex align-items">
-                            <button class="button w-100 -md -dark-1 bg-yellow-1 text-dark-1">Pagar Ahora</button>
-                        </div>
                     </div>
-                </div>
+                }             
                 <div class="border-light rounded-8 px-50 py-40 mt-30">
                     <h4 class="text-20 fw-500 mb-30">Información de pago</h4>
                     <div class="row y-gap-10">

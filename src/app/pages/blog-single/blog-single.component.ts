@@ -4,7 +4,7 @@ import { WordpressService } from '../../services/wordpress.service';
 import { SharedDataService } from '../../services/shared-data.service';
 import { PostDetail } from '../../types/wordpress.types';
 import { DatePipe } from '@angular/common';
-import { Title } from '@angular/platform-browser';
+import { MetaHandlerService } from '../../services/meta-handler.service';
 import { ScrollRevealDirective } from '../../scroll-reveal.directive';
 
 @Component({
@@ -19,21 +19,34 @@ export class BlogSingleComponent implements OnInit{
     private wp: WordpressService, 
     private shared: SharedDataService,
     private date: DatePipe,
-    private title: Title
+    private meta: MetaHandlerService
   ){}
   post?: PostDetail;
   ngOnInit(): void {
-    this.title.setTitle("Xplora Travel || Blog");
+    this.meta.setMeta({
+      title: 'Xplora Travel || Blog',
+      description: 'Lee artículos, guías y recomendaciones de viaje en el blog de Xplora Travel.',
+      image: '/assets/img/blog/1.png'
+    });
     this.shared.changeHeaderType("dark");
     this.route.params.subscribe(params => {
       const id = params['id'];
       this.wp.getPostDetail(id).subscribe(post=>{
-        this.title.setTitle(`Xplora Travel || ${post.title}`);
+        const cleanExcerpt = this.stripHtml(post.excerpt || '').slice(0, 180);
+        this.meta.setMeta({
+          title: `Xplora Travel || ${post.title}`,
+          description: cleanExcerpt || 'Descubre este artículo del blog de Xplora Travel con ideas y recomendaciones para tu próximo viaje.',
+          image: post.featuredMediaUrl
+        });
         this.post = {
           ...post,
           date: this.date.transform(post.date, 'longDate') || ''
         };
       });
     });
+  }
+
+  private stripHtml(value: string): string {
+    return value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
   }
 }

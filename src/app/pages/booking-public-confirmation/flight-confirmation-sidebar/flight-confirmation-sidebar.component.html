@@ -209,21 +209,53 @@
             }
         </div>
         <div class="border-top-light mt-30 mb-20"></div>
-        <div class="row y-gap-20 justify-between items-center">
+        <div class="row justify-between items-center">
             <div class="col-auto">
-                <div class="text-15">Tu viaje esta protegido:</div>
-                @if(insuranceAdded){
-                    <div class="fw-500">Allianz Travel Premium.</div>
-                }@else{
-                    <div class="fw-500">Seguro agregado sin costo.</div>
-                }
+                <div class="text-18 fw-500">Beneficios incluidos en tu reservación</div>
+            </div>
+        </div>
+        <div class="row justify-start items-center flex-nowrap">
+            <div class="col-auto d-flex">
+                <mat-icon style="width: 40px; height: 40px; font-size: 40px; color: #004aad;">health_and_safety</mat-icon>
             </div>
             <div class="col-auto">
-                @if(insuranceAdded){
-                    <div class="text-15">Has adquirido la protección más completa.</div>
-                }@else{
-                    <div class="text-15">Allianz Travel Basico</div>
-                }
+                <div class="text-15">Seguro de viajero incluido</div>
+                <div class="text-14 text-light-1">
+                    <ul>
+                        <li>Asistencia médica en viaje.</li>
+                        <li>Cancelación de viaje.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-start items-center flex-nowrap mt-10">
+            <div class="col-auto d-flex">
+                <mat-icon style="width: 40px; height: 40px; font-size: 40px; color: #004aad;">luggage</mat-icon>
+            </div>
+            <div class="col-auto">
+                <div class="text-15">Equipaje de mano incluido</div>
+                <div class="text-14 text-light-1">
+                    <ul>
+                        <li>1 pieza de hasta 10 kg p/pasajero.</li>
+                        <li>
+                            Tamaño clásico de maleta de mano <fa-icon matTooltip="55 x 40 x 25 cm" [icon]="infoIcon"></fa-icon>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-start items-center flex-nowrap mt-10">
+            <div class="col-auto d-flex">
+                <mat-icon style="width: 40px; height: 40px; font-size: 40px; color: #004aad;">textsms</mat-icon>
+            </div>
+            <div class="col-auto">
+                <div class="text-15">Atención especializada 24/7</div>
+                <div class="text-14 text-light-1">
+                    <ul>
+                        <li>Atención prioritaria por WhatsApp</li>
+                        <li>Asistencia continua durante tu viaje</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

@@ -15,7 +15,6 @@ import { HotelListResult, HotelMinRate, HotelsListResponse } from '../../types/l
 import { MatDialog } from '@angular/material/dialog';
 import { HotelBottomSheetInputData, HotelSearchBottomsheetComponent } from '../../shared/hotel-search-bottomsheet/hotel-search-bottomsheet.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Title } from '@angular/platform-browser';
 import { MetaHandlerService } from '../../services/meta-handler.service';
 export interface HotelSearchParams{
   placeId: string,
@@ -101,6 +100,7 @@ export class HotelSearchComponent implements OnInit {
         this.meta.setMeta({
           title: `Xplora Travel || Hoteles en ${this.destination.displayName}`,
           description: `Explora y compara hoteles disponibles en ${this.destination.displayName}. Encuentra las mejores opciones de alojamiento, tarifas y servicios para tus fechas de viaje con Xplora Travel.`,
+          image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fhotels.jpg?alt=media&token=7360a482-31e9-405f-abe5-59ab0e2bdf7c"
         });
         this.loadHotels();
 

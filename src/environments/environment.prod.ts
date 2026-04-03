@@ -1,23 +1,28 @@
 export const environment = {
     production: true,
+    googleMapsApiKey: 'AIzaSyACnz8YIv3S3clzmz2YLv-n0FEOjwKl78c',
     amadeusClientId: '3cbgI56VEolTgwl4e8G5oqaAAozJLW1y',
     amadeusClientSecret: 'WsBj5jGZLqVxfUxR',
     amadeusApiUrl: 'https://api.amadeus.com',
     mpPublicKey: "APP_USR-f654f0cd-f9a1-438e-bed1-0238f164bbd3"
 };  
 export const firebaseConfig = {
-    apiKey: "AIzaSyB85miz-WytOAUnzXi1zWtw96fD_v2bfn4",
-    authDomain: "xploramxv2.firebaseapp.com",
-    projectId: "xploramxv2",
-    storageBucket: "xploramxv2.firebasestorage.app",
-    messagingSenderId: "1079047158992",
-    appId: "1:1079047158992:web:f946cb0bdb10834d51b2d5",
-    measurementId: "G-K9888RBTMQ"
+    apiKey: "AIzaSyDegTPokfFX77Y95ohytq6gLluoON8TEw4",
+    authDomain: "travelocity-mx.firebaseapp.com",
+    projectId: "travelocity-mx",
+    storageBucket: "travelocity-mx.firebasestorage.app",
+    messagingSenderId: "1045941010845",
+    appId: "1:1045941010845:web:5f491f493755ca5fceaf74",
+    measurementId: "G-0E8B9P747P"
 };
 export const clipConfig = {
     test: false,
-    apiKey: "3ee49837-e828-407c-ae28-a25c7edc5478",
-    secretKey: "1484fb52-8291-47dd-a66b-a112a7d7072f",
-    token: "M2VlNDk4MzctZTgyOC00MDdjLWFlMjgtYTI1YzdlZGM1NDc4OjE0ODRmYjUyLTgyOTEtNDdkZC1hNjZiLWExMTJhN2Q3MDcyZg=="
+    apiKey: "99642be9-8c15-4667-bbdf-16619999c09f",
+    secretKey: "3326996a-557f-46fa-b3ae-1878055ef2ef",
+    token: "Basic OTk2NDJiZTktOGMxNS00NjY3LWJiZGYtMTY2MTk5OTljMDlmOjMzMjY5OTZhLTU1N2YtNDZmYS1iM2FlLTE4NzgwNTVlZjJlZg=="
 }
+export const TestMode = false;
+export const PayPalClientId = "AdEMpqpGvdC-8lA4dDLseIdROWw9o9gVzVCKyBhVPF5Gj0JHkD-syhwM90ungzLLhr9mEAl3tvOl1duo";
 export const LiteApiKey = "prod_69fc1f97-7d9a-42cd-993f-4210d578c1f6";
+export const StripePK = "pk_live_51ShaFtJRGhstivPsj421xqSODZ7jUG7IiQCIO3E2tFQYFKmqoH9keFGvbID9b2eZmRRfv53FSbMyk16ULv1oFaJA004Cpl6ewM";
+export const copomexToken = "c6804b61-1ee0-41ca-b6e5-fc44e3d606d9";

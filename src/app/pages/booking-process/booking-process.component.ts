@@ -26,15 +26,16 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faSpinner, faChevronRight, faMoneyBill, faBank } from '@fortawesome/free-solid-svg-icons';
 import { GoogleMap } from '@angular/google-maps';
 import { FireBookingService } from '../../services/fire-booking.service';
-import { FlightFirebaseBooking } from '../../types/booking.types';
+import { FlightFirebaseBooking, PaymentMethod } from '../../types/booking.types';
 import { BookingCreationLoaderComponent, Line, Step, StepTextElement } from '../../shared/booking-creation-loader/booking-creation-loader.component';
 import { trigger, style, animate, transition, group, query } from '@angular/animations';
 import { MatDialog } from '@angular/material/dialog';
 import { faCcVisa, faCcAmex, faCcDiscover, faCcJcb, faCcMastercard, faCcDinersClub } from '@fortawesome/free-brands-svg-icons';
-import { Title } from '@angular/platform-browser';
 import { Analytics, logEvent } from '@angular/fire/analytics';
 import { MetaHandlerService } from '../../services/meta-handler.service';
 import { FacebookPixelService } from '../../services/facebook-pixel.service';
+import { GoogleTagManagerService } from 'angular-google-tag-manager';
+import { sha256 } from 'js-sha256';
 
 declare const MercadoPago: any;
 declare const ClipSDK: any;
@@ -103,7 +104,8 @@ export class BookingProcessComponent implements OnInit {
     private datePipe: DatePipe,
     private meta: MetaHandlerService,
     private gtag: Analytics,
-    private fbp: FacebookPixelService
+    private fbp: FacebookPixelService,
+    private GoogleTagService: GoogleTagManagerService
   ){}
   confirmationLoader:boolean=false;
   confirmationLoaderSteps:Step[]=[];
@@ -119,7 +121,7 @@ export class BookingProcessComponent implements OnInit {
   spinnerIcon=faSpinner;
   nextIcon=faChevronRight;
   loadingProcess:boolean = false;
-  paymentMethod:"CARD"|"CASH"|"SPEI"="CARD";
+  paymentMethod:PaymentMethod="CARD";
   passengersStepIcon = 'passengersStepIcon';
   steps = [
     { title: 'Pasajeros', content: 'passengers' },
@@ -133,10 +135,12 @@ export class BookingProcessComponent implements OnInit {
   @ViewChild('extras') extras!: ExtrasComponent;
   @ViewChild('stepperContainer') container!: ElementRef;
   ngOnInit():void {
+    const baseDescription = 'Completa tu reservación de vuelo en Xplora Travel. Ingresa los datos de los pasajeros, selecciona asientos, agrega servicios adicionales y realiza el pago de forma segura y sencilla.';
+    const baseImage = 'https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3';
     this.meta.setMeta({
       title: "Xplora Travel || Completar Reservación",
-      description: "Completa tu reservación de vuelo en Xplora Travel. Ingresa los datos de los pasajeros, selecciona asientos, agrega servicios adicionales y realiza el pago de forma segura y sencilla.",
-      image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3"
+      description: baseDescription,
+      image: baseImage
     })
     //this.sharedService.changeHeaderType("dark");
     this.sharedService.setBookingMode(true);
@@ -157,11 +161,15 @@ export class BookingProcessComponent implements OnInit {
           }
         }
         this.meta.setMeta({
-          title: "Xplora Travel || Completar Reservación || Pasajeros"
+          title: "Xplora Travel || Completar Reservación || Pasajeros",
+          description: baseDescription,
+          image: baseImage
         });
         if(booking.flightDetails?.passengers.details!==undefined){
           this.meta.setMeta({
-            title: "Xplora Travel || Completar Reservación || Datos de Contacto"
+            title: "Xplora Travel || Completar Reservación || Datos de Contacto",
+            description: baseDescription,
+            image: baseImage
           });
           if(booking.flightDetails?.passengers.details.length===passengersTotal){
             this.activeStep=1;
@@ -169,7 +177,7 @@ export class BookingProcessComponent implements OnInit {
               if(booking.contact.email!==undefined&&booking.contact.phone!==undefined&&booking.contact.name!==undefined&&booking.contact.lastname!==undefined){
                 this.activeStep=2;
                 if(booking.flightDetails?.seatMaps!==undefined){
-                  this.activeStep=4;
+                  this.activeStep = booking.flightDetails?.aditionalServices!==undefined ? 4 : 3;
                 }
               }
             }
@@ -179,19 +187,25 @@ export class BookingProcessComponent implements OnInit {
         }
         if(booking.contact!==undefined){
           this.meta.setMeta({
-            title: "Xplora Travel || Completar Reservación || Asientos"
+            title: "Xplora Travel || Completar Reservación || Asientos",
+            description: baseDescription,
+            image: baseImage
           });
           actualStep="SEATS";
         }
         if(booking.flightDetails?.seatMaps!==undefined){
           this.meta.setMeta({
-            title: "Xplora Travel || Completar Reservación || Realizar Pago"
+            title: "Xplora Travel || Completar Reservación || Realizar Pago",
+            description: baseDescription,
+            image: baseImage
           });
-          actualStep="PAYMENT";
+          actualStep = booking.flightDetails?.aditionalServices!==undefined ? "PAYMENT" : "EXTRAS";
         }
         if(booking.flightDetails?.aditionalServices!==undefined){
           this.meta.setMeta({
-            title: "Xplora Travel || Completar Reservación || Realizar Pago"
+            title: "Xplora Travel || Completar Reservación || Realizar Pago",
+            description: baseDescription,
+            image: baseImage
           });
           actualStep="PAYMENT";
         }
@@ -240,7 +254,7 @@ export class BookingProcessComponent implements OnInit {
       }
     })
   }
-  changePaymentMethod(method:"CARD"|"CASH"|"SPEI"){
+  changePaymentMethod(method:PaymentMethod){
     this.booking!.created?.toDate().getTime();
     this.paymentMethod = method;  
   }
@@ -269,7 +283,7 @@ export class BookingProcessComponent implements OnInit {
         quantity: 1
       })
     }
-    logEvent(this.gtag, 'begin_checkout',
+    logEvent(this.gtag, 'Purchase',
       {
         currency: 'MXN',
         value: paymentInfo.amount,
@@ -280,7 +294,19 @@ export class BookingProcessComponent implements OnInit {
       value: paymentInfo.amount,
       currency: 'MXN'
     });
+    this.GoogleTagService.getDataLayer().push({
+      event: 'Purchase',
+      transaction_id: this.bookingID,
+      value: paymentInfo.amount,
+      currency: 'MXN',
+      user_data: {
+        sha256_email_address: sha256(this.booking!.contact!.email),
+        sha256_phone_number: sha256(this.booking!.contact!.phone)
+      },
+      items
+    });
   }
+
   createBookingLoaderSteps(paymentInfo:PaymentProceesData):Step[]{
     const datesLine:StepTextElement[] = [
       {type: 'text', text: this.datePipe.transform(this.booking!.flightDetails!.departure.toDate(), 'mediumDate')!},
@@ -654,7 +680,7 @@ export class BookingProcessComponent implements OnInit {
             }
           }).then(updated=>{
             this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
-            this.activeStep=4;
+            this.activeStep = (updated as FlightFirebaseBooking).flightDetails?.aditionalServices!==undefined ? 4 : 3;
           }).catch(err=>{
             retry(3);
             //console.log(err);
@@ -678,7 +704,7 @@ export class BookingProcessComponent implements OnInit {
       }
     }).then(updated=>{
       this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
-      this.activeStep=4;
+      this.activeStep = (updated as FlightFirebaseBooking).flightDetails?.aditionalServices!==undefined ? 4 : 3;
       this.sharedService.setLoading(false);
     }).catch(err=>{ 
       //console.log(err);

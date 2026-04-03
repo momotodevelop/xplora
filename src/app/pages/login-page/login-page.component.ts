@@ -11,7 +11,7 @@ import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-s
 import { PhoneLoginBottomSheetComponent } from '../../shared/phone-login-bottom-sheet/phone-login-bottom-sheet.component';
 import { LoginComponent } from '../../shared/login/login.component';
 import { CommonModule } from '@angular/common';
-import { Title } from '@angular/platform-browser';
+import { MetaHandlerService } from '../../services/meta-handler.service';
 
 @Component({
     selector: 'app-login',
@@ -24,37 +24,43 @@ export class LoginPageComponent implements OnInit {
   anonIcon=faUserSecret;
   googleIcon=faGoogle;
   createNewAccount:boolean = false;
-  loading:boolean = false;
+  loading:boolean = true;
   constructor(
     public auth: FireAuthService,
     private route: ActivatedRoute,
     private sharedService: SharedDataService,
     private sb: MatSnackBar,
     private bs: MatBottomSheet,
-    private title: Title
+    private meta: MetaHandlerService
   ){
+    console.log(this.loading)
     this.auth.loading.subscribe(loading=>{
-      this.loading = loading;
-      //console.log(loading);
+      //this.loading = loading;
+      console.log(loading);
     });
   }
 
   ngOnInit(): void {
-    this.title.setTitle("Xplora Travel || Iniciar Sesión");
+    this.meta.setMeta({
+      title: 'Xplora Travel || Iniciar Sesión',
+      description: 'Inicia sesión o crea tu cuenta para gestionar tus reservaciones, pagos y beneficios en Xplora Travel.',
+      image: '/assets/img/banner-generico.jpg'
+    });
     this.route.data.pipe(
       map(data => data["headerType"])
     ).subscribe((type: "light"|"dark") => {
       //console.log(type);
       //this.headerType = type;
-      this.sharedService.changeHeaderType(type);
+      this.sharedService.changeHeaderType("dark");
     });
     this.auth.user.subscribe(user=>{
       //console.log(user);
+      this.loading = false;
     });
     //console.log("Init Login Page");
     this.auth.loading.subscribe(loading=>{
-      this.loading = loading;
-      //console.log(loading);
+      //this.loading = loading;
+      console.log(loading);
     });
   }
   googleLogin(){

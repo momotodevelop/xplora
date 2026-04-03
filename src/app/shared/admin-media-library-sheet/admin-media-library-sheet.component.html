@@ -1,0 +1,55 @@
+<bottom-sheet-header [title]="data.title || 'Biblioteca de Imagenes'" (close)="close()" />
+
+<div class="admin-media-sheet">
+  <div class="admin-media-sheet__actions">
+    <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
+    <button mat-stroked-button color="primary" type="button" (click)="fileInput.click()">
+      Subir imagen
+    </button>
+  </div>
+
+  @if(uploading && uploadProgress !== null){
+    <mat-progress-bar mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+  }
+
+  @if(loading){
+    <div class="admin-media-sheet__empty">
+      Cargando biblioteca...
+    </div>
+  }@else if(mediaItems.length === 0){
+    <div class="admin-media-sheet__empty">
+      No hay imagenes cargadas todavia.
+    </div>
+  }@else{
+    <div class="admin-media-grid">
+      @for(item of mediaItems; track item.fullPath) {
+        <div class="admin-media-card" [class.admin-media-card--selected]="isSelected(item)">
+          <button class="admin-media-card__select" type="button" (click)="selectMedia(item)">
+            <img [src]="item.url" [alt]="item.name" />
+          </button>
+          <div class="admin-media-card__content">
+            <div class="admin-media-card__name">{{ item.name }}</div>
+            @if(item.updatedAt){
+              <div class="admin-media-card__meta">{{ item.updatedAt | date:'short' }}</div>
+            }
+          </div>
+          <div class="admin-media-card__actions">
+            <button mat-stroked-button color="primary" type="button" (click)="selectMedia(item)">
+              Usar imagen
+            </button>
+            @if(data.allowDelete !== false){
+              <button
+                mat-icon-button
+                color="warn"
+                type="button"
+                [disabled]="!canDelete(item)"
+                (click)="deleteMedia(item)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

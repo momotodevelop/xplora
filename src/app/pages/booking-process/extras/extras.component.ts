@@ -4,17 +4,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { DepartureArrival, FlightOffer } from '../../../types/flight-offer-amadeus.types';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
-import { XploraFlightBooking } from '../../../types/xplora-api.types';
 import * as _ from 'lodash';
-import { AddCarryOnComponent, ExtraBaggageData } from './add-carry-on/add-carry-on.component';
+import { AddCarryOnComponent } from './add-carry-on/add-carry-on.component';
 import { AddFlexPassComponent } from './add-flex-pass/add-flex-pass.component';
 import { AddPremiumInsuranceComponent } from './add-insurance/add-insurance.component';
 import { AddBaggageComponent } from './add-baggage/add-baggage.component';
 import { CommonModule } from '@angular/common';
 import { XploraApiService } from '../../../services/xplora-api.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faChevronRight, faSpinner, faSync, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
-import { AdditionalServiceItem, FlightAdditionalServiceItem, FlightAdditionalServices, FlightFirebaseBooking } from '../../../types/booking.types';
+import { faArrowUp, faBolt, faChair, faChevronRight, faCrown, faExchangeAlt, faFloppyDisk, faMapMarkerAlt, faPlusCircle, faRulerCombined, faShieldAlt, faSpinner, faSuitcase, faSuitcaseRolling, faSync, faTag, faWallet, faWeightHanging, faWineBottle } from '@fortawesome/free-solid-svg-icons';
+import { FlightAdditionalServiceItem, FlightAdditionalServices, FlightFirebaseBooking } from '../../../types/booking.types';
 import { FireBookingService } from '../../../services/fire-booking.service';
 
 export const ExtrasPrices = {
@@ -36,7 +35,11 @@ export interface ExtraServiceBottomSheetData{
   }[];
   passengers: {name: string, type: "Adulto"|"Menor"}[];
   saved: ExtraServiceData,
-  price: number
+  price: number,
+  outboundSegmentCount: number,
+  inboundSegmentCount: number,
+  outboundDurationFactor: number,
+  inboundDurationFactor: number
 }
 
 @Component({
@@ -65,8 +68,23 @@ export class ExtrasComponent implements OnInit {
   spinnerIcon=faSpinner;
   updateIcon=faSync;
   saveIcon=faFloppyDisk;
+  insuranceShieldIcon=faShieldAlt;
+  carryOnIcon=faSuitcase;
+  carryOnWeightIcon=faWeightHanging;
+  carryOnSizeIcon=faRulerCombined;
+  carryOnDealIcon=faTag;
+  baggageWeightIcon=faWeightHanging;
+  baggageSizeIcon=faRulerCombined;
+  baggageCarryIcon=faSuitcaseRolling;
+  baggageDealIcon=faTag;
+  flexpassExchangeIcon=faExchangeAlt;
+  flexpassFastIcon=faBolt;
+  flexpassSeatIcon=faChair;
+  flexpassCreditIcon=faWallet;
+  premiumIcon=faCrown;
   loading:boolean=false;
   additionalServices?:FlightAdditionalServices;
+  private initializingAdditionalServices = false;
   ngOnInit(){
     this.bookingHandler.booking.subscribe(booking=>{
       if(booking!==undefined){
@@ -74,10 +92,117 @@ export class ExtrasComponent implements OnInit {
         if(booking.flightDetails.aditionalServices){
           this.isUpdate=true;
           const aditionalServices = booking.flightDetails.aditionalServices;
-          this.additionalServices = aditionalServices ?? [];
+          this.additionalServices = aditionalServices;
+          this.updateExtrasTotal();
+        } else {
+          this.ensureAdditionalServices();
           this.updateExtrasTotal();
         }
       }
+    });
+  }
+  private buildServiceItems(type: "INSURANCE"|"FLEXPASS"|"CARRYON"|"BAGGAGE", unitPrice:number) {
+    const passengers = this.booking?.flightDetails?.passengers.details?.filter(passenger => passenger.type !== "INFANT") ?? [];
+    const buildItems = (scope: "OUTBOUND"|"INBOUND") => passengers.map(passenger => {
+      const isCarryOn = type === "CARRYON";
+      return {
+        scope,
+        targetID: passenger.id,
+        context: 'FLIGHT' as const,
+        type,
+        unitPrice,
+        active: isCarryOn,
+        value: isCarryOn ? 1 : 0
+      };
+    });
+    return {
+      outbound: buildItems("OUTBOUND"),
+      inbound: this.booking?.flightDetails?.round ? buildItems("INBOUND") : []
+    };
+  }
+  private segmentDurationHours(duration: string | undefined): number {
+    if (!duration) return 0;
+    const match = /PT(?:(\d+)H)?(?:(\d+)M)?/.exec(duration);
+    if (!match) return 0;
+    const hours = match[1] ? Number(match[1]) : 0;
+    const minutes = match[2] ? Number(match[2]) : 0;
+    return hours + minutes / 60;
+  }
+  private segmentDurationFactor(segments: { duration: string }[]): number {
+    if (!segments || segments.length === 0) return 0;
+    return segments.reduce((acc, seg) => {
+      const hours = this.segmentDurationHours(seg.duration);
+      const multiplier = hours > 6 ? 2 : 1;
+      return acc + multiplier;
+    }, 0);
+  }
+  private segmentCount(segments: { duration: string }[]): number {
+    return segments?.length || 0;
+  }
+  private ensureAdditionalServices() {
+    if (!this.booking?.flightDetails?.passengers.details) return;
+    if (this.additionalServices) return;
+    if (this.initializingAdditionalServices) return;
+    this.initializingAdditionalServices = true;
+    this.additionalServices = {
+      insurance: this.buildServiceItems("INSURANCE", ExtrasPrices.insurance),
+      flexpass: this.buildServiceItems("FLEXPASS", ExtrasPrices.flexpass),
+      carryOn: this.buildServiceItems("CARRYON", ExtrasPrices.carryon),
+      baggage: this.buildServiceItems("BAGGAGE", ExtrasPrices.baggage)
+    };
+    const bookingUpdate: FlightFirebaseBooking = {
+      ...this.booking!,
+      flightDetails: {
+        ...this.booking!.flightDetails,
+        aditionalServices: this.additionalServices
+      }
+    };
+    this.booking = bookingUpdate;
+    this.bookingHandler.setBookingInfo(bookingUpdate);
+    this.fireBooking.nestedUpdateBooking(this.booking!.bookingID!, {
+      "flightDetails.aditionalServices": this.additionalServices
+    }).then(ok=>{
+      this.bookingHandler.setBookingInfo(ok as FlightFirebaseBooking);
+      this.initializingAdditionalServices = false;
+    }).catch(()=>{
+      this.initializingAdditionalServices = false;
+    });
+  }
+  private ensureCarryOnMinimum() {
+    if (!this.additionalServices?.carryOn) return;
+    const normalize = (items: FlightAdditionalServiceItem[]) => {
+      items.forEach(item => {
+        if ((item.value ?? 0) < 1) {
+          item.value = 1;
+        }
+        item.active = true;
+      });
+    };
+    normalize(this.additionalServices.carryOn.outbound);
+    normalize(this.additionalServices.carryOn.inbound);
+  }
+  private syncAdditionalService(
+    key: "insurance" | "flexpass" | "carryOn" | "baggage",
+    value: ExtraServiceData
+  ) {
+    if (!this.booking || !this.additionalServices) return;
+    this.additionalServices = {
+      ...this.additionalServices,
+      [key]: value
+    };
+    const bookingUpdate: FlightFirebaseBooking = {
+      ...this.booking,
+      flightDetails: {
+        ...this.booking.flightDetails,
+        aditionalServices: this.additionalServices
+      }
+    };
+    this.booking = bookingUpdate;
+    this.bookingHandler.setBookingInfo(bookingUpdate);
+    this.fireBooking.nestedUpdateBooking(this.booking.bookingID!, {
+      [`flightDetails.aditionalServices.${key}`]: value
+    }).then(ok=>{
+      this.bookingHandler.setBookingInfo(ok as FlightFirebaseBooking);
     });
   }
   get insuranceActive() {
@@ -107,10 +232,15 @@ export class ExtrasComponent implements OnInit {
   }
 
   openInsurance(){
+    this.ensureAdditionalServices();
     const flights:FlightOffer[] = [this.booking!.flightDetails.flights!.outbound!.offer]
     if(this.booking!.flightDetails.round){
       flights.push(this.booking!.flightDetails.flights!.inbound!.offer)
     }
+    const outboundSegments = this.booking!.flightDetails.flights!.outbound!.offer.itineraries?.[0]?.segments ?? [];
+    const inboundSegments = this.booking!.flightDetails.round && this.booking!.flightDetails.flights!.inbound
+      ? this.booking!.flightDetails.flights!.inbound!.offer.itineraries?.[0]?.segments ?? []
+      : [];
     const passengers = this.booking!.flightDetails.passengers.details!.filter(passenger=>passenger.type!=="INFANT");
     const data:ExtraServiceBottomSheetData = {
       passengers: passengers.map(passenger=>{
@@ -126,25 +256,29 @@ export class ExtrasComponent implements OnInit {
         }
       }),
       saved: this.insuranceActive!,
-      price: ExtrasPrices.insurance
+      price: ExtrasPrices.insurance,
+      outboundSegmentCount: this.segmentCount(outboundSegments) || 1,
+      inboundSegmentCount: this.segmentCount(inboundSegments),
+      outboundDurationFactor: this.segmentDurationFactor(outboundSegments) || 1,
+      inboundDurationFactor: this.segmentDurationFactor(inboundSegments)
     }
-    this.dialog.open(AddPremiumInsuranceComponent, {panelClass: 'custom-bottom-sheet', data}).afterDismissed().subscribe(value=>{
+    this.dialog.open(AddPremiumInsuranceComponent, {panelClass: 'custom-bottom-sheet-full-height', data}).afterDismissed().subscribe(value=>{
       if(value!==undefined){
-        this.additionalServices!.insurance = value;
-          this.updateExtrasTotal();
-          this.fireBooking.nestedUpdateBooking(this.booking!.bookingID!, {
-            "flightDetails.aditionalServices.insurance": value
-          }).then(ok=>{
-            this.bookingHandler.setBookingInfo(ok as FlightFirebaseBooking);
-          });
+        this.syncAdditionalService("insurance", value);
+        this.updateExtrasTotal();
       }
     })
   }
   openFlexPass(){
+    this.ensureAdditionalServices();
     const flights:FlightOffer[] = [this.booking!.flightDetails.flights!.outbound!.offer]
     if(this.booking!.flightDetails.round){
       flights.push(this.booking!.flightDetails.flights!.inbound!.offer)
     }
+    const outboundSegments = this.booking!.flightDetails.flights!.outbound!.offer.itineraries?.[0]?.segments ?? [];
+    const inboundSegments = this.booking!.flightDetails.round && this.booking!.flightDetails.flights!.inbound
+      ? this.booking!.flightDetails.flights!.inbound!.offer.itineraries?.[0]?.segments ?? []
+      : [];
     const passengers = this.booking!.flightDetails.passengers.details!.filter(passenger=>passenger.type!=="INFANT");
     const data:ExtraServiceBottomSheetData = {
       passengers: passengers.map(passenger=>{
@@ -160,25 +294,30 @@ export class ExtrasComponent implements OnInit {
         }
       }),
       saved: this.flexpass!,
-      price: ExtrasPrices.flexpass
+      price: ExtrasPrices.flexpass,
+      outboundSegmentCount: this.segmentCount(outboundSegments) || 1,
+      inboundSegmentCount: this.segmentCount(inboundSegments),
+      outboundDurationFactor: this.segmentDurationFactor(outboundSegments) || 1,
+      inboundDurationFactor: this.segmentDurationFactor(inboundSegments)
     }
-    this.dialog.open(AddFlexPassComponent, {panelClass: 'custom-bottom-sheet', data}).afterDismissed().subscribe(value=>{
+    this.dialog.open(AddFlexPassComponent, {panelClass: 'custom-bottom-sheet-full-height', data}).afterDismissed().subscribe(value=>{
       if(value!==undefined){
-        this.additionalServices!.flexpass = value;
+        this.syncAdditionalService("flexpass", value);
         this.updateExtrasTotal();
-        this.fireBooking.nestedUpdateBooking(this.booking!.bookingID!, {
-          "flightDetails.aditionalServices.flexpass": value
-        }).then(ok=>{
-          this.bookingHandler.setBookingInfo(ok as FlightFirebaseBooking);
-        });
       }
     })
   }
   openCarryOn(){
+    this.ensureAdditionalServices();
+    this.ensureCarryOnMinimum();
     const flights:FlightOffer[] = [this.booking!.flightDetails.flights!.outbound!.offer]
     if(this.booking!.flightDetails.round){
       flights.push(this.booking!.flightDetails.flights!.inbound!.offer)
     }
+    const outboundSegments = this.booking!.flightDetails.flights!.outbound!.offer.itineraries?.[0]?.segments ?? [];
+    const inboundSegments = this.booking!.flightDetails.round && this.booking!.flightDetails.flights!.inbound
+      ? this.booking!.flightDetails.flights!.inbound!.offer.itineraries?.[0]?.segments ?? []
+      : [];
     const passengers = this.booking!.flightDetails.passengers.details!.filter(passenger=>passenger.type!=="INFANT");
     const data:ExtraServiceBottomSheetData = {
       passengers: passengers.map(passenger=>{
@@ -194,25 +333,29 @@ export class ExtrasComponent implements OnInit {
         }
       }),
       saved: this.carryOn!,
-      price: ExtrasPrices.carryon
+      price: ExtrasPrices.carryon,
+      outboundSegmentCount: this.segmentCount(outboundSegments) || 1,
+      inboundSegmentCount: this.segmentCount(inboundSegments),
+      outboundDurationFactor: this.segmentDurationFactor(outboundSegments) || 1,
+      inboundDurationFactor: this.segmentDurationFactor(inboundSegments)
     }
-    this.dialog.open(AddCarryOnComponent, {panelClass: 'custom-bottom-sheet', data}).afterDismissed().subscribe(value=>{
+    this.dialog.open(AddCarryOnComponent, {panelClass: 'custom-bottom-sheet-full-height', data}).afterDismissed().subscribe(value=>{
       if(value!==undefined){
-        this.additionalServices!.carryOn = value;
+        this.syncAdditionalService("carryOn", value);
         this.updateExtrasTotal();
-        this.fireBooking.nestedUpdateBooking(this.booking!.bookingID!, {
-          "flightDetails.aditionalServices.carryOn": value
-        }).then(ok=>{
-          this.bookingHandler.setBookingInfo(ok as FlightFirebaseBooking);
-        });
       }
     })
   }
   openBaggage(){
+    this.ensureAdditionalServices();
     const flights:FlightOffer[] = [this.booking!.flightDetails.flights!.outbound!.offer]
     if(this.booking!.flightDetails.round){
       flights.push(this.booking!.flightDetails.flights!.inbound!.offer)
     }
+    const outboundSegments = this.booking!.flightDetails.flights!.outbound!.offer.itineraries?.[0]?.segments ?? [];
+    const inboundSegments = this.booking!.flightDetails.round && this.booking!.flightDetails.flights!.inbound
+      ? this.booking!.flightDetails.flights!.inbound!.offer.itineraries?.[0]?.segments ?? []
+      : [];
     const passengers = this.booking!.flightDetails.passengers.details!.filter(passenger=>passenger.type!=="INFANT");
     const data:ExtraServiceBottomSheetData = {
       passengers: passengers.map(passenger=>{
@@ -228,60 +371,73 @@ export class ExtrasComponent implements OnInit {
         }
       }),
       saved: this.additionalServices!.baggage!,
-      price: ExtrasPrices.baggage
+      price: ExtrasPrices.baggage,
+      outboundSegmentCount: this.segmentCount(outboundSegments) || 1,
+      inboundSegmentCount: this.segmentCount(inboundSegments),
+      outboundDurationFactor: this.segmentDurationFactor(outboundSegments) || 1,
+      inboundDurationFactor: this.segmentDurationFactor(inboundSegments)
     }
-    this.dialog.open(AddBaggageComponent, {panelClass: 'custom-bottom-sheet', data}).afterDismissed().subscribe(value=>{
+    this.dialog.open(AddBaggageComponent, {panelClass: 'custom-bottom-sheet-full-height', data}).afterDismissed().subscribe(value=>{
       if(value!==undefined){
-        this.additionalServices!.baggage = value;
+        this.syncAdditionalService("baggage", value);
         this.updateExtrasTotal();
-        this.fireBooking.nestedUpdateBooking(this.booking!.bookingID!, {
-          "flightDetails.aditionalServices.baggage": value
-        }).then(ok=>{
-          this.bookingHandler.setBookingInfo(ok as FlightFirebaseBooking);
-        });
       }
     })
   }
   updateExtrasTotal() {
     let total = 0;
-  
+
     const aditional = this.additionalServices;
-    if (!aditional) return;
-  
-    const sumServices = (items?: FlightAdditionalServiceItem[]) => {
-      return items?.reduce((acc, item) => acc + (item.value*item.unitPrice), 0) || 0;
-    };
-  
-    // Seguro
+    if (!aditional || !this.booking?.flightDetails?.flights?.outbound?.offer) return;
+
+    const outboundOffer = this.booking.flightDetails.flights.outbound.offer;
+    const inboundOffer = this.booking.flightDetails.round && this.booking.flightDetails.flights.inbound
+      ? this.booking.flightDetails.flights.inbound.offer
+      : undefined;
+
+    const outboundSegments = outboundOffer.itineraries?.[0]?.segments ?? [];
+    const inboundSegments = inboundOffer?.itineraries?.[0]?.segments ?? [];
+
+    const outboundSegmentCount = outboundSegments.length || 1;
+    const inboundSegmentCount = inboundSegments.length || 0;
+
+    const outboundDurationFactor = this.segmentDurationFactor(outboundSegments);
+    const inboundDurationFactor = this.segmentDurationFactor(inboundSegments);
+
+    const sumValues = (items?: FlightAdditionalServiceItem[]) =>
+      items?.reduce((acc, item) => acc + (item.value ?? 0), 0) || 0;
+    const sumChargeableCarryOn = (items?: FlightAdditionalServiceItem[]) =>
+      items?.reduce((acc, item) => acc + Math.max(0, (item.value ?? 0) - 1), 0) || 0;
+
+    // Seguro (por segmento)
     const insuranceTotal =
-      sumServices(aditional.insurance!.outbound) +
-      sumServices(aditional.insurance!.inbound);
+      sumValues(aditional.insurance!.outbound) * ExtrasPrices.insurance * outboundSegmentCount +
+      sumValues(aditional.insurance!.inbound) * ExtrasPrices.insurance * inboundSegmentCount;
     this.insuranceTotal = insuranceTotal;
     total += insuranceTotal;
-  
-    // Flexpass
+
+    // Flexpass (por segmento)
     const flexpassTotal =
-      sumServices(aditional.flexpass!.outbound) +
-      sumServices(aditional.flexpass!.inbound);
+      sumValues(aditional.flexpass!.outbound) * ExtrasPrices.flexpass * outboundSegmentCount +
+      sumValues(aditional.flexpass!.inbound) * ExtrasPrices.flexpass * inboundSegmentCount;
     this.flexpassTotal = flexpassTotal;
     total += flexpassTotal;
-  
-    // Equipaje de mano
+
+    // Equipaje de mano (por duración de segmento)
     const carryOnTotal =
-      sumServices(aditional.carryOn!.outbound) +
-      sumServices(aditional.carryOn!.inbound);
+      sumChargeableCarryOn(aditional.carryOn!.outbound) * ExtrasPrices.carryon * outboundDurationFactor +
+      sumChargeableCarryOn(aditional.carryOn!.inbound) * ExtrasPrices.carryon * inboundDurationFactor;
     this.carryOnTotal = carryOnTotal;
     total += carryOnTotal;
-  
-    // Equipaje documentado
+
+    // Equipaje documentado (por duración de segmento)
     const baggageTotal =
-      sumServices(aditional.baggage!.outbound) +
-      sumServices(aditional.baggage!.inbound);
+      sumValues(aditional.baggage!.outbound) * ExtrasPrices.baggage * outboundDurationFactor +
+      sumValues(aditional.baggage!.inbound) * ExtrasPrices.baggage * inboundDurationFactor;
     this.baggageTotal = baggageTotal;
     total += baggageTotal;
-    // Asignación total y activación de cambios
+
     this.total = total;
-    //this.hasChanges = true;
   }  
   saveExtras(){
     const aditionalServices = {
@@ -300,4 +456,5 @@ export class ExtrasComponent implements OnInit {
       this.bookingHandler.setBookingInfo(ok as FlightFirebaseBooking);
     });
   }
+
 }

@@ -23,7 +23,7 @@ export interface SelectedFlights{
   inbound?: {
     offer: FlightOffer,
     dictionaries: Dictionaries
-  };
+  }|null;
 }
 export type SortOptions = ['duracion' | 'precio' | 'salida' | 'llegada', 'asc' | 'desc']
 export interface CarrierOption{
@@ -163,7 +163,7 @@ export class FlightOffersDataHandlerService {
     }
     if (filters.price) {
       filtered = filtered.filter(offer => {
-        const totalPrice = offer.price.total as number; // Asume que el precio total está directamente bajo la propiedad price
+        const totalPrice = this.getComparableTotal(offer);
         return totalPrice >= filters.price!.min && totalPrice <= filters.price!.max;
       });
     }
@@ -186,7 +186,7 @@ export class FlightOffersDataHandlerService {
           comparison = moment.duration(a.itineraries[0].duration).asSeconds() - moment.duration(b.itineraries[0].duration).asSeconds();
           break;
         case 'precio':
-          comparison = (a.price.total as number) - (b.price.total as number);
+          comparison = this.getComparableTotal(a) - this.getComparableTotal(b);
           break;
         case 'salida':
           const departureA = new Date(a.itineraries[0].segments[0].departure.at).getTime();
@@ -239,5 +239,13 @@ export class FlightOffersDataHandlerService {
     });
     
     return carrierEntries;
+  }
+
+  private getComparableTotal(offer: FlightOffer): number {
+    const promoTotal = offer?.promoPrice?.discountedTotal;
+    if (Number.isFinite(promoTotal)) return promoTotal as number;
+    const raw = offer?.price?.total ?? offer?.price?.grandTotal;
+    const total = typeof raw === 'number' ? raw : parseFloat(String(raw ?? '0'));
+    return Number.isFinite(total) ? total : 0;
   }
 }

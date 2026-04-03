@@ -12,11 +12,11 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: R
   const allowedRoles: string[] = route.data['roles'] ?? []; // 📌 Asegura que siempre sea un array
   shared.setLoading(true);
 
-  return authService.role.pipe(
+  return authService.data.pipe(
     map(userRole => {
       shared.setLoading(false);
       // ✅ Si el usuario tiene un rol permitido, permitir acceso
-      if (userRole && allowedRoles.includes(userRole)) {
+      if (userRole?.role && allowedRoles.includes(userRole?.role)) {
         return true;
       }else{
         router.navigate(['/entrar']);
@@ -24,7 +24,7 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: R
 
       // 🔄 Si el usuario está autenticado pero no tiene el rol adecuado, redirigirlo
       if (userRole) {
-        switch (userRole) {
+        switch (userRole.role) {
           case 'traveler':
             router.navigate(['/mi-cuenta']);
             break;

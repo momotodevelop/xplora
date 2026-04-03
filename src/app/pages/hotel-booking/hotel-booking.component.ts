@@ -102,7 +102,8 @@ export class HotelBookingComponent implements OnInit {
           if(b.hotelDetails){
             this.meta.setMeta({
               title: `Xplora Travel || Completar Reservación || ${b.hotelDetails.hotel.name}`,
-              description: "Reserva tu hotel con Xplora y obtén las mejores tarifas, promociones exclusivas y una experiencia de reserva sencilla y segura."
+              description: "Reserva tu hotel con Xplora y obtén las mejores tarifas, promociones exclusivas y una experiencia de reserva sencilla y segura.",
+              image: b.hotelDetails.hotel.image || '/assets/img/banner-generico.jpg'
             });
             if(b.hotelDetails.offer){
               this.charges = b.hotelDetails.offer.rates.map(rate=>{

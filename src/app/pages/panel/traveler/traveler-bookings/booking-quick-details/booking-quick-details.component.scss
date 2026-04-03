@@ -1,0 +1,16 @@
+.status-pending{
+    color: orange;
+}
+.status-confirmed{
+    color: green;
+}
+.status-canceled{
+    color: red;
+}
+.destination-label{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    display: block;
+}

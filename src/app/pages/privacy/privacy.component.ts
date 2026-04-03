@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SharedDataService } from '../../services/shared-data.service';
 import { PrivacyTextComponent } from './privacy-text/privacy-text.component';
-import { Title } from '@angular/platform-browser';
+import { MetaHandlerService } from '../../services/meta-handler.service';
 
 @Component({
   selector: 'app-privacy',
@@ -23,9 +23,13 @@ export class PrivacyComponent implements OnInit {
     { "title": "8. Contacto", "id": "contacto" }
   ];
   active?:string;
-  constructor(private shared: SharedDataService, private title: Title){}
+  constructor(private shared: SharedDataService, private meta: MetaHandlerService){}
   ngOnInit(): void {
-    this.title.setTitle("Xplora Travel || Política de Privacidad");
+    this.meta.setMeta({
+      title: 'Xplora Travel || Política de Privacidad',
+      description: 'Conoce cómo Xplora Travel protege tus datos personales, el uso de cookies y tus derechos ARCO.',
+      image: '/assets/img/banner-generico.jpg'
+    });
     this.shared.setMinimizedFooter(true);
     this.shared.changeHeaderType("dark");
   }

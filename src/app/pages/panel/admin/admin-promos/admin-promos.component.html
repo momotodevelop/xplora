@@ -1,0 +1,54 @@
+<div class="dashboard__content bg-light-2" [ngStyle]="{'min-height': 'calc(100vh - ' + headerHeight + 'px)'}">
+  <div class="row y-gap-20 justify-between items-end pb-60 lg:pb-40 md:pb-32">
+    <div class="col-auto">
+      <h1 class="text-30 lh-14 fw-600">Promociones</h1>
+      <div class="text-15 text-light-1">Crea nuevas promociones para Xplora.</div>
+    </div>
+  </div>
+
+  <div class="promo-list bg-white rounded-8 shadow-2 px-30 py-30 mt-30">
+    <div class="d-flex items-center justify-between mb-20">
+      <div class="text-18 fw-500">Promociones existentes</div>
+      <button mat-flat-button color="primary" (click)="openCreateSheet()">Nueva promoción</button>
+    </div>
+    @if(promosList.length === 0){
+      <div class="text-14 text-light-1">No hay promociones registradas.</div>
+    }@else{
+      <div class="promo-table">
+        <div class="promo-row promo-head">
+          <div>Código</div>
+          <div>Tipo</div>
+          <div>Monto</div>
+          <div>Expira</div>
+          <div>Estado</div>
+          <div></div>
+        </div>
+        @for (promo of promosList; track promo.promoID ?? promo.code) {
+          <div class="promo-row">
+            <div class="fw-500">{{promo.code}}</div>
+            <div>{{promo.discountType}}</div>
+            <div>
+              @if(promo.discountType === 'percentage'){
+                {{promo.discountAmount}}%
+              }@else{
+                {{promo.discountAmount | currency:'MXN'}}
+              }
+            </div>
+            <div>{{promoExpiryDate(promo) | date:'mediumDate'}}</div>
+            <div>
+              <span class="status" [ngClass]="promo.isActive ? 'active' : 'inactive'">
+                {{promo.isActive ? 'Activa' : 'Inactiva'}}
+              </span>
+            </div>
+            <div class="actions">
+              <button mat-stroked-button type="button" (click)="editPromo(promo)">Editar</button>
+              <button mat-button type="button" (click)="toggleActive(promo)">
+                {{promo.isActive ? 'Desactivar' : 'Activar'}}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

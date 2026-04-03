@@ -7,6 +7,7 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class MetaHandlerService {
   private isBrowser: boolean;
+  private readonly defaultImagePath = '/assets/img/banner-generico.jpg';
 
   constructor(
     private titleService: Title,
@@ -49,9 +50,10 @@ export class MetaHandlerService {
       this.updateOrCreateTag('twitter:description', options.description, 'name');
     }
 
-    if (options.image) {
-      this.updateOrCreateTag('og:image', options.image, 'property');
-      this.updateOrCreateTag('twitter:image', options.image, 'name');
+    const resolvedImage = this.resolveImageUrl(options.image || this.defaultImagePath);
+    if (resolvedImage) {
+      this.updateOrCreateTag('og:image', resolvedImage, 'property');
+      this.updateOrCreateTag('twitter:image', resolvedImage, 'name');
     }
 
     this.updateOrCreateTag(
@@ -100,5 +102,19 @@ export class MetaHandlerService {
 
   private updateOrCreateTag(nameOrProp: string, content: string, attr: 'name' | 'property') {
     this.metaService.updateTag({ [attr]: nameOrProp, content });
+  }
+
+  private resolveImageUrl(image: string): string {
+    const trimmed = image.trim();
+    if (!trimmed) {
+      return '';
+    }
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('//')) {
+      return `${window.location.protocol}${trimmed}`;
+    }
+    return new URL(trimmed, window.location.origin).toString();
   }
 }

@@ -4,8 +4,8 @@ import { clipConfig } from '../../environments/environment';
 
 import { Installment, InstallmentsResponse, PaymentResponseData } from '../types/installments.clip.type';
 import { Observable, retry } from 'rxjs';
-export const CLIP_APIKEY = "5d9be0f9-bf54-4e0b-88b5-00465d838fe4";
-export const CLIP_TEST_APIKEY = "test_93685127-d771-4a54-a75b-d5d9b6933e05";
+//export const CLIP_APIKEY = "df94cffd-40a3-422d-8baf-5f661c652a04";
+//export const CLIP_TEST_APIKEY = "test_93685127-d771-4a54-a75b-d5d9b6933e05";
 export interface CustomerData{
   first_name: string;
   last_name: string;
@@ -49,7 +49,7 @@ export class ClipSDKService {
     const headers = new HttpHeaders({
       'test': clipConfig.test.toString()
     });
-    return this.http.post<{response: PaymentResponseData, id: string}>("https://payclippayment-rjeazmttfa-uc.a.run.app", {
+    return this.http.post<{response: PaymentResponseData, id: string}>("https://createclippayment-e2fnxmc6zq-uc.a.run.app", {
       currency: "MXN",
       amount,
       payment_method: {
@@ -75,6 +75,6 @@ export class ClipSDKService {
     }, {headers}).pipe(retry(4));
   }
   getPaymentStatus(paymentId:string, bookingId: string){
-    return this.http.get<PaymentResponseData>("https://us-central1-xploramxv2.cloudfunctions.net/payclipGetPayment", {params: {id:paymentId}});
+    return this.http.get<PaymentResponseData>("https://getclippaymentdetails-e2fnxmc6zq-uc.a.run.app", {params: {id:paymentId}});
   }
 }

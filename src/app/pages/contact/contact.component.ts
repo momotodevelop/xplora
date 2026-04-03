@@ -3,6 +3,7 @@ import { SharedDataService } from '../../services/shared-data.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faFacebook, faInstagram, faWhatsapp, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import { MetaHandlerService } from '../../services/meta-handler.service';
+import { WhatsAppUrlManagerService } from '../../services/whatsapp-url-manager.service';
 
 
 @Component({
@@ -16,7 +17,7 @@ export class ContactComponent implements OnInit {
   fbIcon=faFacebook;
   igIcon=faInstagram;
   xIcon=faXTwitter;
-  constructor(private shared: SharedDataService, private meta: MetaHandlerService){}
+  constructor(private shared: SharedDataService, private meta: MetaHandlerService, private wa: WhatsAppUrlManagerService){}
   ngOnInit(): void {
     this.shared.changeHeaderType("dark");
     this.meta.setMeta({
@@ -24,5 +25,8 @@ export class ContactComponent implements OnInit {
       description: "Ponte en contacto con Xplora para resolver tus dudas, recibir soporte o conocer más sobre nuestros servicios.",
       image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fhelp.jpg?alt=media&token=13d17f4c-fcb5-4f20-b36f-93c66e1634a4"
     })
+  }
+  openContactWhatsApp(): void {
+    this.wa.redirectToMessage('contactoDirecto');
   }
 }

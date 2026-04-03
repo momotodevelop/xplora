@@ -42,24 +42,11 @@ import { Timestamp } from 'firebase/firestore';
 import { Item, logEvent } from 'firebase/analytics';
 import { Analytics } from '@angular/fire/analytics';
 import { PendingPaymentEmailData } from '../../../types/email-data.types';
+import { WhatsAppUrlManagerService } from '../../../services/whatsapp-url-manager.service';
+import { PaymentOffice } from '../../../types/payment-config.types';
+import { XploraPaymentOfficesService } from '../../../services/xplora-payment-offices.service';
 
 export type AvailablePaymentMethods = "CASH"|"CARD"|"SPEI";
-
-export interface PaymentOffice{
-  name: string,
-  id: string,
-  maxAmmount: number,
-  transactionLimit: number,
-  reference?: string,
-  account: string,
-  processor: string,
-  fee: number,
-  showBarcode: boolean,
-  showQR: boolean,
-  delayHours: number,
-  img: string,
-  type: "bank"|"convenience"|"supermarket"|"pharmacy"
-}
 
 export interface confirmationEmailData {
   pnr: string,
@@ -83,163 +70,6 @@ export interface PaymentProceesData{
   card?: PaymentDetails,
   promo?: Promo
 }
-
-export const PAYMENT_OFFICES: PaymentOffice[] = [
-  {
-    name: "Oxxo",
-    id: "oxxo",
-    account: "0600000843684832",
-    fee: 15,
-    delayHours: 72,
-    maxAmmount: 9999,
-    transactionLimit: 9999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-oxxo",
-    type: "convenience",
-    img: "assets/img/comercios/oxxo.svg"
-  },
-  {
-    name: "Circle K",
-    id: "circlek",
-    account: "5346290843684833",
-    fee: 10,
-    delayHours: 0,
-    maxAmmount: 19998,
-    transactionLimit: 9999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-paynet",
-    type: "convenience",
-    img: "assets/img/comercios/paynet.svg"
-  },
-  {
-    name: "Farm. del Ahorro",
-    id: "fahorro",
-    account: "5346290843684833",
-    fee: 10,
-    delayHours: 0,
-    maxAmmount: 19998,
-    transactionLimit: 9999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-paynet",
-    type: "pharmacy",
-    img: "assets/img/comercios/paynet.svg"
-  },
-  {
-    name: "Extra",
-    id: "extra",
-    account: "5346290843684833",
-    fee: 10,
-    delayHours: 0,
-    maxAmmount: 19998,
-    transactionLimit: 9999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-paynet",
-    type: "convenience",
-    img: "assets/img/comercios/paynet.svg"
-  },
-  {
-    name: "Farm. Guadalajara",
-    id: "fguadalajara",
-    account: "5346290843684833",
-    fee: 8,
-    delayHours: 0,
-    maxAmmount: 19998,
-    transactionLimit: 9999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-paynet",
-    type: "pharmacy",
-    img: "assets/img/comercios/paynet.svg"
-  },
-  {
-    name: "Waldo's",
-    id: "waldos",
-    account: "5346290843684833",
-    fee: 10,
-    delayHours: 0,
-    maxAmmount: 10000,
-    transactionLimit: 5000,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-paynet",
-    type: "supermarket",
-    img: "assets/img/comercios/paynet.svg"
-  },
-  {
-    name: "Kiosko",
-    id: "kiosko",
-    account: "5346290843684833",
-    fee: 11,
-    delayHours: 0,
-    maxAmmount: 9999,
-    transactionLimit: 9999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-paynet",
-    type: "supermarket",
-    img: "assets/img/comercios/paynet.svg"
-  },
-  {
-    name: "Walmart",
-    id: "walmart",
-    account: "084368483",
-    fee: 0,
-    delayHours: 48,
-    maxAmmount: 99999,
-    transactionLimit: 99999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-walmart",
-    type: "supermarket",
-    img: "assets/img/comercios/walmart.svg"
-  },
-  {
-    name: "Bodega Aurrera",
-    id: "baurrera",
-    account: "084368483",
-    fee: 0,
-    delayHours: 48,
-    maxAmmount: 99999,
-    transactionLimit: 99999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-walmart",
-    type: "supermarket",
-    img: "assets/img/comercios/baurrera.svg"
-  },
-  {
-    name: "Sam's Club",
-    id: "sams",
-    account: "084368483",
-    fee: 0,
-    delayHours: 48,
-    maxAmmount: 99999,
-    transactionLimit: 99999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-walmart",
-    type: "supermarket",
-    img: "assets/img/comercios/sams.svg"
-  },
-  {
-    name: "Walmart Express",
-    id: "walmartexpress",
-    account: "084368483",
-    fee: 0,
-    delayHours: 48,
-    maxAmmount: 99999,
-    transactionLimit: 99999,
-    showBarcode: true,
-    showQR: false,
-    processor: "broxel-walmart",
-    type: "supermarket",
-    img: "assets/img/comercios/wexpress.webp"
-  }
-];
 
 
 declare const MercadoPago: any;
@@ -308,7 +138,8 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   clipCard:any;
   user?:User;
   selectedPayment?: AvailablePaymentMethods = 'CARD';
-  paymentOffices=PAYMENT_OFFICES.sort((a,b)=>a.fee-b.fee);
+  allPaymentOffices: PaymentOffice[] = [];
+  paymentOffices: PaymentOffice[] = [];
   selectedPaymentOffice?:string;
   booking!:FlightFirebaseBooking;
   cardForm:FormGroup = new FormGroup({
@@ -339,13 +170,33 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     private fireBooking: FireBookingService,
     private auth: FireAuthService,
     private card: XploraCardServicesService,
-    private gtag: Analytics
+    private gtag: Analytics,
+    private wa: WhatsAppUrlManagerService,
+    private paymentOfficesService: XploraPaymentOfficesService
   ){
     
   }
   ngOnInit(): void {
     this.auth.user.subscribe(user=>{
       this.user = user ?? undefined;
+    });
+    this.paymentOfficesService.watchOffices().subscribe(offices => {
+      const normalized = [...(offices ?? [])]
+        .filter(office => office.active !== false)
+        .sort((a, b) => (a.fee ?? 0) - (b.fee ?? 0));
+      this.allPaymentOffices = normalized;
+      if (this.selectedPaymentOffice) {
+        const exists = normalized.some(office => office.id === this.selectedPaymentOffice);
+        if (exists) {
+          this.paymentOffices = normalized.filter(office => office.id === this.selectedPaymentOffice);
+        } else {
+          this.paymentOffices = normalized;
+          this.selectedPaymentOffice = undefined;
+          this.list?.deselectAll();
+        }
+      } else {
+        this.paymentOffices = normalized;
+      }
     });
     this.bookingHandler.promo.subscribe(promo=>{
       this.activePromo = promo;
@@ -752,7 +603,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       year: this.datePipe.transform(new Date(), "yyyy")!,
       total: this.currency.transform(booking.payment!.totalDue, "MXN")!,
       status: this.getBookingStatusText(booking.status),
-      whatsappURL: "https://wa.me/message/VV33TBRFV4Q3A1",
+      whatsappURL: this.wa.getUrlFromTemplate('contactoDirecto'),
       bookingURL: "https://xploratravel.com.mx/confirmacion/"+booking.bookingID!,
       paymentURL: "https://xploratravel.com.mx/reservar/realizar-pago/"+booking.bookingID!,
       receiptLink: "https://forms.gle/QwoGVQsU3sHwbhTz6",
@@ -877,14 +728,43 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       }
     })
   }
+  getOfficeMin(office: PaymentOffice): number {
+    const min = Number(office?.minAmount ?? 0);
+    return Number.isFinite(min) ? min : 0;
+  }
+
+  getOfficeMax(office: PaymentOffice): number | null {
+    const max = office?.maxAmount;
+    if (max === null || max === undefined) return null;
+    const parsed = Number(max);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  isOfficeAvailable(office: PaymentOffice, amount: number): boolean {
+    const min = this.getOfficeMin(office);
+    const max = this.getOfficeMax(office);
+    if (amount < min) return false;
+    if (max !== null && amount > max) return false;
+    return true;
+  }
+
+  isBelowOfficeMin(office: PaymentOffice, amount: number): boolean {
+    return amount < this.getOfficeMin(office);
+  }
+
+  isAboveOfficeMax(office: PaymentOffice, amount: number): boolean {
+    const max = this.getOfficeMax(office);
+    return max !== null && amount > max;
+  }
+
   paymentOfficeChange(event:MatSelectionListChange){
     if(event.options.length>0){
       this.selectedPaymentOffice = event.options[0].value;
-      this.paymentOffices = PAYMENT_OFFICES.filter(office => office.id === this.selectedPaymentOffice);
+      this.paymentOffices = this.allPaymentOffices.filter(office => office.id === this.selectedPaymentOffice);
     }
   }
   resetPaymentOffice(){
-    this.paymentOffices = PAYMENT_OFFICES;
+    this.paymentOffices = this.allPaymentOffices;
     this.list.deselectAll();
     this.selectedPaymentOffice = undefined;
   }

@@ -7,17 +7,18 @@ export const loginGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: 
   const authService = inject(FireAuthService);
   const router = inject(Router);
 
-  return authService.role.pipe(
+  return authService.data.pipe(
     take(1),
     map(userRole => {
-      if (!userRole) {
+      if (true) {
         return true; // ✅ Si el usuario NO está autenticado, puede ver la página de login
       }
 
       // 🔄 Si el usuario YA está autenticado, lo redirigimos a su página correspondiente
-      switch (userRole) {
+      switch (userRole!.role) {
         case 'traveler':
-          router.navigate(['/mi-cuenta']);
+          return true;
+          //router.navigate(['/mi-cuenta']);
           break;
         case 'xplorer':
           router.navigate(['/panel']);
@@ -26,7 +27,7 @@ export const loginGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: 
           router.navigate(['/admin']);
           break;
         default:
-          router.navigate(['/dashboard']);
+          //router.navigate(['/dashboard']);
       }
 
       return false; // 🚫 Bloquea el acceso a la página de login

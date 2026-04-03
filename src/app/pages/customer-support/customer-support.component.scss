@@ -1,0 +1,14 @@
+.booking-card {
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.booking-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(17, 24, 39, 0.08);
+}
+
+.booking-card.-selected {
+  border-color: var(--color-blue-1);
+  box-shadow: 0 16px 40px rgba(53, 84, 209, 0.15);
+}

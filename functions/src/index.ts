@@ -2,6 +2,19 @@ import * as functions from 'firebase-functions';
 import { join } from 'path';
 import axios from 'axios';
 import * as admin from 'firebase-admin';
+//import Stripe from 'stripe';
+//import { DateTime } from 'luxon';
+//import { onDocumentCreated } from "firebase-functions/v2/firestore";
+/*import {
+    ApiError,
+    CheckoutPaymentIntent,
+    Client,
+    Environment,
+    LogLevel,
+    OrdersCardVerificationMethod,
+    OrdersController
+} from "@paypal/paypal-server-sdk";*/
+
 
 const angularServerDistPath = join(__dirname, 'ssr-bundle');
 const fullMjsPath = join(angularServerDistPath, 'server.mjs');
@@ -21,11 +34,52 @@ export const ssrApp = functions.https.onRequest(async (request, response) => {
   }
 });
 
+export const createVerificationKyc = functions.https.onRequest(async (req, res) => {
+  const DIDIT_API_KEY = "oXR_Rak5sToZvLeTw10KkWel83brksuotxQ_elQW5-o"; // mueve a config en producción
+  const DIDIT_BASE = 'https://verification.didit.me/v2';
+  const { bookingId, amount, currency } = req.body;
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, test'
+  });
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+  const diditWorkflowId = "cf379690-cabe-4e1e-bc00-0732dd530019";
+  const diditBody: any = {
+    workflow_id: diditWorkflowId,
+    vendor_data: bookingId,
+    metadata: {
+      bookingId,
+      amount,
+      currency
+    },
+    callback:  "https://xploratravel.com.mx/reservar/realizar-pago/verificacion-tarjeta/" + bookingId,
+    language: 'es'
+  };
+  const diditResp = await axios.post(
+    `${DIDIT_BASE}/session/`,
+    diditBody,
+    {
+      headers: {
+        'X-Api-Key': DIDIT_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      timeout: 15000
+    }
+  );
+  const diditSession = diditResp.data;
+  res.status(200).json(diditSession);
+  return;
+});
+
 // ---- FUNCIÓN PAYCLIP ----
-const TOKEN = "Basic M2VlNDk4MzctZTgyOC00MDdjLWFlMjgtYTI1YzdlZGM1NDc4OjE0ODRmYjUyLTgyOTEtNDdkZC1hNjZiLWExMTJhN2Q3MDcyZg==";
-const TEST_TOKEN = "Basic dGVzdF9hM2Q5YmZkMC03Y2EyLTRmMTAtYjhmOS0xZDk2NzY1MGQ4ZGU6MzA3NDY4MGUtZTNhMS00ZGNkLWE1MWItZTU5MTQ3MjRmNjQy";
-const TEST_API_KEY = "test_a3d9bfd0-7ca2-4f10-b8f9-1d967650d8de";
-const API_KEY = "3ee49837-e828-407c-ae28-a25c7edc5478";
+const TOKEN = "Basic OTk2NDJiZTktOGMxNS00NjY3LWJiZGYtMTY2MTk5OTljMDlmOjMzMjY5OTZhLTU1N2YtNDZmYS1iM2FlLTE4NzgwNTVlZjJlZg==";
+const TEST_TOKEN = "Basic dGVzdF9iYjljOTc4MS1lM2QzLTRlYTQtYTFkMS02MTg1NTBmNmE3YWQ6N2RiNGIzNTktNzlmZC00MWJmLWI1NTMtMTQ0YTQxNjBkZjgw";
+const TEST_API_KEY = "test_bb9c9781-e3d3-4ea4-a1d1-618550f6a7ad";
+const API_KEY = "99642be9-8c15-4667-bbdf-16619999c09f";
 
 
 
@@ -33,91 +87,8 @@ if (admin.apps.length === 0) {
   admin.initializeApp();
 }
 const db = admin.firestore();
-const commentsRef = db.collection('comments');
 
-export const comments = functions.https.onRequest(async (req, res) => {
-  res.set({
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Test'
-  });
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('');
-    return;
-  }
-  try {
-    const path = req.path.toLowerCase();
-    const method = req.method;
-
-    if (path === '/create' && method === 'POST') {
-      const { name, comment, date, rate, ia } = req.body;
-      if (!name || !comment || !date || !rate || !ia) {
-        console.log(req.body);
-        res.status(400).json({ message: 'Faltan datos: name, comment, date' });
-        return;
-      }
-
-      const docRef = await commentsRef.add({
-        name,
-        comment,
-        date: new Date(date),
-        rate,
-        ia
-      });
-
-      res.status(201).json({ message: 'Comentario creado', id: docRef.id });
-      return;
-    }
-
-    if (path === '/list' && method === 'GET') {
-      const snapshot = await commentsRef.orderBy('date', 'desc').get();
-      const comments = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      res.status(200).json(comments);
-      return;
-    }
-
-    if (path === '/get' && method === 'GET') {
-      const id = req.query.id as string;
-      if (!id) {
-        res.status(400).json({ message: 'Falta el parámetro id' });
-        return;
-      }
-
-      const doc = await commentsRef.doc(id).get();
-      if (!doc.exists) {
-        res.status(404).json({ message: 'Comentario no encontrado' });
-        return;
-      }
-
-      res.status(200).json({ id: doc.id, ...doc.data() });
-      return;
-    }
-
-    if (path === '/delete' && method === 'DELETE') {
-      const id = req.query.id as string;
-      if (!id) {
-        res.status(400).json({ message: 'Falta el parámetro id' });
-        return;
-      }
-
-      await commentsRef.doc(id).delete();
-      res.status(200).json({ message: 'Comentario eliminado' });
-      return;
-    }
-
-    // Si no coincide ninguna ruta
-    res.status(404).json({ message: 'Ruta o método no válido' });
-
-  } catch (error) {
-    console.error('Error en commentsApi:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
-  }
-});
-
-export const payclipPayment = functions.https.onRequest(async (req, res) => {
+export const createClipPayment = functions.https.onRequest(async (req, res) => {
   res.set({
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -172,7 +143,7 @@ export const payclipPayment = functions.https.onRequest(async (req, res) => {
   }
 });
 
-export const payclipGetPayment = functions.https.onRequest(async (req, res) => {
+export const getClipPaymentDetails = functions.https.onRequest(async (req, res) => {
   res.set({
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -192,6 +163,8 @@ export const payclipGetPayment = functions.https.onRequest(async (req, res) => {
 
   const paymentId = req.query.id as string;
   const bearerToken = 'Bearer '+(testPayment?TEST_API_KEY:API_KEY);
+
+  console.log('Token de autorización:', bearerToken);
 
   if (!paymentId || !bearerToken) {
     res.status(400).json({ message: 'Faltan parámetros: id y/o Authorization' });

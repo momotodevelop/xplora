@@ -26,6 +26,12 @@ export class AddBaggageComponent implements OnInit {
     this.price = this.data.price;
     this.extraBaggage = this.data.saved;
   }
+  get outboundPrice(): number {
+    return this.price * (this.data.outboundDurationFactor || 1);
+  }
+  get inboundPrice(): number {
+    return this.price * (this.data.inboundDurationFactor || 0);
+  }
   ngOnInit(): void {
     if(this.data.saved){
       this.extraBaggage = this.data.saved;
@@ -52,8 +58,8 @@ export class AddBaggageComponent implements OnInit {
       item = this.extraBaggage.inbound[passengerI];
     }
     const actualValue = (item.value ?? 0)-1;
-    item.value = actualValue;
-    item.active = actualValue>0;
+    item.value = Math.max(0, actualValue);
+    item.active = item.value > 0;
     this.change();
   }
   close(){
@@ -69,6 +75,6 @@ export class AddBaggageComponent implements OnInit {
     const inboundPieces = this.extraBaggage.inbound.reduce((total, item)=>{
       return total+(item.value?item.value:0);
     },0)
-    this.total=this.data.price*(outboundPieces+inboundPieces);
+    this.total=(this.outboundPrice*outboundPieces)+(this.inboundPrice*inboundPieces);
   }
 }

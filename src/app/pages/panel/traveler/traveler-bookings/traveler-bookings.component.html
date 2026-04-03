@@ -1,0 +1,75 @@
+<div class="dashboard__main">
+    <div class="dashboard__content bg-light-2" [ngStyle]="{'min-height': 'calc(100vh - ' + headerHeight + 'px)'}">
+        <div class="row y-gap-20 justify-between items-end pb-60 lg:pb-40 md:pb-32">
+            <div class="col-auto">
+            <h1 class="text-30 lh-14 fw-600">Tus reservaciones</h1>
+            <div class="text-15 text-light-1">Aquí puedes consultar el estado y detalles de todas tus reservaciones.</div>
+            </div>
+            <div class="col-auto">
+            </div>
+        </div>
+        <mat-accordion class="bookings-accordion">
+            @for (booking of bookingList; track booking.bookingID) {
+                <mat-expansion-panel>
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            @switch (booking.type) {
+                                @case("FLIGHT") {
+                                    <mat-icon>flight</mat-icon>
+                                }
+                                @case("HOTEL") {
+                                    <mat-icon>local_hotel</mat-icon>
+                                }
+                                @case("CAR_RENTAL") {
+                                    <mat-icon>directions_car</mat-icon>
+                                }
+                            }
+                            <b class="ml-20">{{ booking.bookingID.slice(-6) | uppercase }}</b>
+                        </mat-panel-title>
+                        <mat-panel-description>
+                            <div>
+                                @if(booking.type === "FLIGHT") {
+                                    {{booking.flightDetails!.origin.iataCode}} - {{booking.flightDetails!.destination.iataCode}}
+                                } @else if (booking.type === "HOTEL") {
+                                    {{booking.hotelDetails!.hotel!.name}}
+                                }
+                            </div>
+                            <div>
+                                @switch (booking.status) {
+                                    @case("PENDING") {
+                                        <span class="status-indicator status-pending">
+                                            <span class="status-label mr-5">Pendiente</span>
+                                            <fa-icon [icon]="pendingIcon"></fa-icon>
+                                        </span>
+                                    }
+                                    @case("CONFIRMED") {
+                                        <span class="status-indicator status-confirmed">
+                                            <span class="status-label mr-5">Confirmado</span>
+                                            <fa-icon [icon]="confirmedIcon"></fa-icon>
+                                        </span>
+                                    }
+                                    @case("CANCELED") {
+                                        <span class="status-indicator status-canceled">
+                                            <span class="status-label mr-5">Cancelado</span>
+                                            <fa-icon [icon]="canceledIcon"></fa-icon>
+                                        </span>
+                                    }
+                                    @default {
+                                        <span class="status-indicator status-pending">
+                                            <span class="status-label mr-5">Pendiente</span>
+                                            <fa-icon [icon]="pendingIcon"></fa-icon>
+                                        </span>
+                                    }
+                                }
+                            </div>
+                        </mat-panel-description>
+                    </mat-expansion-panel-header>
+                    <app-booking-quick-details [booking]="booking"></app-booking-quick-details>
+                </mat-expansion-panel>
+            }
+        </mat-accordion>
+        <div>
+            <app-traveler-footer></app-traveler-footer>
+        </div>
+    </div>
+</div>

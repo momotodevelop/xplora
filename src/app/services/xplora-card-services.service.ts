@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Firestore, collection, addDoc, query, where, getDocs, doc, getDoc, Timestamp, collectionData } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, query, where, getDocs, doc, getDoc, Timestamp, collectionData, onSnapshot } from '@angular/fire/firestore';
 import { IconDefinition } from '@fortawesome/angular-fontawesome';
 import { map, Observable } from 'rxjs';
 
@@ -93,19 +93,39 @@ export class XploraCardServicesService {
    * @returns {Promise<any[]>} Lista de pagos asociados a la reservación.
    * @throws {Error} Si ocurre un error durante la operación.
    */
-  async getPaymentsByBooking(bookingId: string): Promise<StoredCardPaymentData[]> {
-    try {
+  getPaymentsByBooking(bookingId: string): Observable<StoredCardPaymentData[]> {
+    return new Observable<StoredCardPaymentData[]>((subscriber) => {
       const colRef = collection(this.firestore, this.paymentsCollection);
       const q = query(colRef, where('bookingId', '==', bookingId));
-      const querySnapshot = await getDocs(q);
 
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...(doc.data() as StoredCardPaymentData)
-      }));
-    } catch (error) {
-      console.error('Error al obtener los pagos por bookingId:', error);
-      throw error;
-    }
+      let unsubscribe: (() => void) | undefined;
+
+      try {
+        unsubscribe = onSnapshot(
+          q,
+          (querySnapshot) => {
+            const payments = querySnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...(doc.data() as StoredCardPaymentData)
+            }));
+            subscriber.next(payments);
+          },
+          (error) => {
+            console.error('Error al escuchar los pagos por bookingId:', error);
+            subscriber.error(error);
+          }
+        );
+      } catch (error) {
+        console.error('Error al configurar la suscripción a pagos:', error);
+        subscriber.error(error);
+      }
+
+      // Siempre devolver una función de limpieza, aunque unsubscribe no se haya asignado
+      return () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
+    });
   }
 }
