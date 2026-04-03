@@ -84,9 +84,6 @@
                         <h4 class="mb-10">Instrucciones para realizar tu pago:</h4>
                     </div>
                     <div class="col-4" style="display: flex;align-items: center;justify-content: end;">
-                        <button data-html2canvas-ignore class="no-print" (click)="shareFile('payment-instructions', 20, 'pdf')" mat-mini-fab color="primary">
-                            <mat-icon>share</mat-icon>
-                        </button>
                         <button data-html2canvas-ignore printSectionId="payment-instructions" [useExistingCss]="true" ngxPrint class="ml-10 no-print" mat-mini-fab color="primary">
                             <mat-icon>print</mat-icon>
                         </button>
