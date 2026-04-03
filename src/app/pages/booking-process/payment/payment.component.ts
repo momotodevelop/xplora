@@ -26,7 +26,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatListModule, MatSelectionList, MatSelectionListChange } from '@angular/material/list';
 import { ClipSDKService, PaymentDetails } from '../../../services/clip-sdk.service';
-import { CreditCardDirectivesModule, CreditCardFormatDirective, CreditCardValidators } from 'angular-cc-library';
+import { CreditCardDirectivesModule, CreditCardFormatDirective, CreditCardValidators } from '../../../shared/credit-card/credit-card-library';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Installment, Issuer } from '../../../types/installments.clip.type';

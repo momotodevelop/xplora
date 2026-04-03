@@ -4,7 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTabChangeEvent, MatTabGroup, MatTabsModule } from '@angular/material/tabs';
-import { CreditCardDirectivesModule, CreditCardFormatDirective, CreditCardValidators } from 'angular-cc-library';
+import { CreditCardDirectivesModule, CreditCardFormatDirective, CreditCardValidators } from '../../../shared/credit-card/credit-card-library';
 import { ClipSDKService } from '../../../services/clip-sdk.service';
 import { Installment } from '../../../types/installments.clip.type';
 import { MatSelectModule } from '@angular/material/select';
