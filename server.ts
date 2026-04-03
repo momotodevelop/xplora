@@ -47,11 +47,6 @@ export function app(): express.Express {
   return server;
 }
 
-// --- ¡ESTE ES EL CAMBIO CRÍTICO! ---
-// Esta parte del código asegura que el servidor Express solo se inicie y escuche en un puerto
-// si NO se está ejecutando en un entorno de Firebase Functions o Cloud Run.
-// Si está en uno de esos entornos (ej. 'FUNCTION_TARGET' o 'K_SERVICE' están definidos),
-// la llamada a 'run()' (y 'server.listen()') se omite.
 function run(): void {
   const port = process.env['PORT'] || 4000;
 
@@ -62,7 +57,8 @@ function run(): void {
   });
 }
 
-// Condición para ejecutar `run()` solo en entorno local (no en Firebase Functions/Cloud Run)
-if (!process.env['FUNCTION_TARGET'] && !process.env['K_SERVICE']) {
+// App Hosting/Cloud Run define K_SERVICE, pero ahí sí necesitamos escuchar en PORT.
+// Sólo evitamos el listen cuando este módulo es cargado desde Firebase Functions.
+if (!process.env['FUNCTION_TARGET']) {
   run();
 }
