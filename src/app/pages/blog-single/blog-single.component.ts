@@ -31,17 +31,22 @@ export class BlogSingleComponent implements OnInit{
     this.shared.changeHeaderType("dark");
     this.route.params.subscribe(params => {
       const id = params['id'];
-      this.wp.getPostDetail(id).subscribe(post=>{
-        const cleanExcerpt = this.stripHtml(post.excerpt || '').slice(0, 180);
-        this.meta.setMeta({
-          title: `Xplora Travel || ${post.title}`,
-          description: cleanExcerpt || 'Descubre este artículo del blog de Xplora Travel con ideas y recomendaciones para tu próximo viaje.',
-          image: post.featuredMediaUrl
-        });
-        this.post = {
-          ...post,
-          date: this.date.transform(post.date, 'longDate') || ''
-        };
+      this.wp.getPostDetail(id).subscribe({
+        next: post => {
+          const cleanExcerpt = this.stripHtml(post.excerpt || '').slice(0, 180);
+          this.meta.setMeta({
+            title: `Xplora Travel || ${post.title}`,
+            description: cleanExcerpt || 'Descubre este artículo del blog de Xplora Travel con ideas y recomendaciones para tu próximo viaje.',
+            image: post.featuredMediaUrl
+          });
+          this.post = {
+            ...post,
+            date: this.date.transform(post.date, 'longDate') || ''
+          };
+        },
+        error: () => {
+          this.post = undefined;
+        }
       });
     });
   }

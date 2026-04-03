@@ -28,14 +28,20 @@ export class BlogListComponent implements OnInit {
     });
     this.shared.setLoading(true);
     this.shared.changeHeaderType("dark");
-    this.wp.getSimplePostCards({}).subscribe(posts=>{
-      this.posts = posts.map(post=>{
-        return {
-          ...post,
-          date: this.date.transform(post.date, 'mediumDate') || ''
-        }
-      });
-      this.shared.setLoading(false);
+    this.wp.getSimplePostCards({}).subscribe({
+      next: posts => {
+        this.posts = posts.map(post=>{
+          return {
+            ...post,
+            date: this.date.transform(post.date, 'mediumDate') || ''
+          }
+        });
+        this.shared.setLoading(false);
+      },
+      error: () => {
+        this.posts = [];
+        this.shared.setLoading(false);
+      }
     });
   }
 }

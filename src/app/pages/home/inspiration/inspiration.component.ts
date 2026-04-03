@@ -15,14 +15,18 @@ export class InspirationComponent implements OnInit {
   constructor(private wp: WordpressService, private date: DatePipe){}
   posts: PostSimpleCard[] = []; 
   ngOnInit(): void {
-    this.wp.getSimplePostCards({page: 1, per_page: 3}).subscribe(posts=>{
-      //console.log(posts[0].date);
-      this.posts = posts.map(post=>{
-        return {
-          ...post,
-          date: this.date.transform(post.date, 'mediumDate') || ''
-        }
-      });
+    this.wp.getSimplePostCards({page: 1, per_page: 3}).subscribe({
+      next: posts => {
+        this.posts = posts.map(post=>{
+          return {
+            ...post,
+            date: this.date.transform(post.date, 'mediumDate') || ''
+          }
+        });
+      },
+      error: () => {
+        this.posts = [];
+      }
     });
   }
 }

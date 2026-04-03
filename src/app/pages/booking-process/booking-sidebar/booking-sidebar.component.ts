@@ -7,7 +7,6 @@ import { Promo, XploraPromosService } from '../../../services/xplora-promos.serv
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { String } from 'aws-sdk/clients/cloudsearch';
 import { MatInputModule } from '@angular/material/input';
 import { ExtrasPrices } from '../extras/extras.component';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
@@ -267,7 +266,7 @@ export class BookingSidebarComponent implements OnInit{
     }
     return response;
   }
-  priceMultiplier(ammount:number|String):number{
+  priceMultiplier(ammount:number|string):number{
     let ammountValue:number;
     if(typeof ammount==="string"){
       ammountValue=parseInt(ammount)

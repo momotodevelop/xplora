@@ -1,4 +1,5 @@
-import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, Inject, Input, OnChanges, PLATFORM_ID, SimpleChanges } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-privacy-text',
@@ -8,8 +9,10 @@ import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular
 })
 export class PrivacyTextComponent implements OnChanges {
   @Input() activeSection:string = '';
-  constructor(private el: ElementRef){
+  private readonly isBrowser: boolean;
 
+  constructor(private el: ElementRef<HTMLElement>, @Inject(PLATFORM_ID) platformId: Object){
+    this.isBrowser = isPlatformBrowser(platformId);
   }
   ngOnChanges(changes: SimpleChanges): void {
     if(changes){
@@ -23,8 +26,13 @@ export class PrivacyTextComponent implements OnChanges {
     }
   }
   scrollToElemento(id:string) {
-    const elemento = this.el.nativeElement.querySelector('#'+id);
-    if (elemento) {
+    if (!this.isBrowser || !id) {
+      return;
+    }
+
+    const root = this.el.nativeElement;
+    const elemento = root.ownerDocument?.getElementById(id);
+    if (elemento && root.contains(elemento)) {
       elemento.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }

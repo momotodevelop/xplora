@@ -1,12 +1,12 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { NavigationEnd, RouterOutlet, Router } from '@angular/router';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { FooterComponent } from './components/footer/footer.component';
 import { NavHeaderComponent } from './components/nav-header/nav-header.component';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
 import {} from '@angular/common/http';
 import { SharedDataService } from './services/shared-data.service';
-import { AsyncPipe, CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
+import { AsyncPipe, CommonModule, DatePipe, TitleCasePipe, isPlatformBrowser } from '@angular/common';
 import { DateStringPipe } from './date-string.pipe';
 import { DurationPipe } from './duration.pipe';
 import { GoogleTagManagerService } from 'angular-google-tag-manager';
@@ -28,19 +28,21 @@ import { GoogleTagManagerService } from 'angular-google-tag-manager';
 export class AppComponent implements OnInit {
   title = 'Xplora Travel';
   hideNav:boolean = false;
-  navHeight:number = 0;
-  constructor(public shared: SharedDataService, private cdr: ChangeDetectorRef, private router: Router, private gtmService: GoogleTagManagerService){
-    this.shared.headerHeight.subscribe(height=>{
-      this.navHeight = height;
-      this.cdr.detectChanges();
-    });
+  private readonly isBrowser: boolean;
+
+  constructor(
+    public shared: SharedDataService,
+    @Inject(PLATFORM_ID) platformId: Object,
+    private gtmService: GoogleTagManagerService
+  ){
+    this.isBrowser = isPlatformBrowser(platformId);
     this.shared.hideNav.subscribe(hidden=>{
       this.hideNav = hidden;
-      this.cdr.detectChanges();
     });
-    this.gtmService.addGtmToDom();
   }
   ngOnInit(): void {
-    this.cdr.detectChanges();
+    if (this.isBrowser) {
+      this.gtmService.addGtmToDom();
+    }
   }
 }
