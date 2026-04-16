@@ -13,7 +13,6 @@ import { SeatPendingDialog, SeatsComponent } from './seats/seats.component';
 import { SeatMap, SeatMapSavingData, SelectedSeat } from '../../types/amadeus-seat-map.types';
 import { BookingHandlerService } from '../../services/booking-handler.service';
 import { AmadeusLocation } from '../../types/amadeus-airport-response.types';
-import * as _ from 'lodash'
 import { ExtrasComponent, ExtrasPrices } from './extras/extras.component';
 import { ContactInfoComponent, ContactInfoValue } from './contact-info/contact-info.component';
 import { PaymentComponent, PaymentProceesData } from './payment/payment.component';
@@ -91,6 +90,10 @@ export type Steps = "PASSENGERS"|"SEATS"|"CONTACT"|"EXTRAS"|"PAYMENT";
     ]
 })
 export class BookingProcessComponent implements OnInit {
+  private getLastArrivalCode(segments: { arrival: { iataCode: string } }[]): string {
+    return segments[segments.length - 1]?.arrival.iataCode ?? '';
+  }
+
   constructor(
     private route: ActivatedRoute, 
     private xplora: XploraApiService, 
@@ -270,14 +273,14 @@ export class BookingProcessComponent implements OnInit {
     }
     const outboundFlight = this.booking!.flightDetails.flights.outbound!;
     const items:any[]=[{
-      item_name: outboundFlight.offer.itineraries[0].segments[0].departure.iataCode+'-'+_.last(outboundFlight.offer.itineraries[0].segments)!.arrival.iataCode,
+      item_name: outboundFlight.offer.itineraries[0].segments[0].departure.iataCode+'-'+this.getLastArrivalCode(outboundFlight.offer.itineraries[0].segments),
       item_id: outboundFlight.offer.id,
       price: outboundFlight.offer.price.total as number,
       quantity: 1
     }];
     if(this.booking!.flightDetails.flights.inbound){
       items.push({
-        item_name: this.booking!.flightDetails.flights.inbound.offer.itineraries[0].segments[0].departure.iataCode+'-'+_.last(this.booking!.flightDetails.flights.inbound.offer.itineraries[0].segments)!.arrival.iataCode,
+        item_name: this.booking!.flightDetails.flights.inbound.offer.itineraries[0].segments[0].departure.iataCode+'-'+this.getLastArrivalCode(this.booking!.flightDetails.flights.inbound.offer.itineraries[0].segments),
         item_id: this.booking!.flightDetails.flights.inbound.offer.id,
         price: this.booking!.flightDetails.flights.inbound.offer.price.total as number,
         quantity: 1

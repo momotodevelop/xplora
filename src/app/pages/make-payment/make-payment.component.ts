@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { SharedDataService } from '../../services/shared-data.service';
 import { XploraApiService } from '../../services/xplora-api.service';
@@ -13,7 +13,7 @@ import { CashPaymentComponent } from './cash-payment/cash-payment.component';
 import { CardPaymentComponent } from './card-payment/card-payment.component';
 import { CardTransactionListComponent } from './card-payment/card-transaction-list/card-transaction-list.component';
 import { MetaHandlerService } from '../../services/meta-handler.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ValidatingPaymentComponent } from './card-payment/validating-payment/validating-payment.component';
 
 @Component({
@@ -26,6 +26,7 @@ export class MakePaymentComponent implements OnInit {
   bookingID!:string;
   booking!: FlightFirebaseBooking;
   validating:boolean = false;
+  private readonly isBrowser: boolean;
   constructor(
     private route: ActivatedRoute, 
     private xplora: XploraApiService, 
@@ -33,8 +34,11 @@ export class MakePaymentComponent implements OnInit {
     public bookingHandler: BookingHandlerService,
     private promos: XploraPromosService,
     private fireBooking: FireBookingService,
-    private meta: MetaHandlerService
-  ){}
+    private meta: MetaHandlerService,
+    @Inject(PLATFORM_ID) platformId: Object
+  ){
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.meta.setMeta({
@@ -53,7 +57,13 @@ export class MakePaymentComponent implements OnInit {
     });
     this.sharedService.footerHeight.subscribe(height=>{
       console.log(height);
-    })
+    });
+
+    if (!this.isBrowser) {
+      this.sharedService.setLoading(false);
+      return;
+    }
+
     combineLatest([this.route.params,this.route.queryParams]).subscribe(([p, q]) => {
       const params:{bookingID:string} = p as {bookingID:string};
       const queryParams:{promo?:string} = q as {promo?:string};

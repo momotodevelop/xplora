@@ -1,11 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, Inject, Injector, PLATFORM_ID } from '@angular/core';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { LocationSelectionSheetComponent } from '../../../shared/location-selection-sheet/location-selection-sheet.component';
 import { PaxSelectionSheetComponent } from '../../../shared/pax-selection-sheet/pax-selection-sheet.component';
 import { TourLocationSelectionSheetComponent } from '../../../shared/tour-location-selection-sheet/tour-location-selection-sheet.component';
 import { AmadeusLocation } from '../../../types/amadeus-airport-response.types';
 import { FormGroup, FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
+import { CommonModule, DatePipe, TitleCasePipe, isPlatformBrowser } from '@angular/common';
 import { FlightDateSelectionSheetComponent } from '../../../shared/flight-date-selection-sheet/flight-date-selection-sheet.component';
 import { AmadeusAuthService } from '../../../services/amadeus-auth.service';
 import { AirportSearchService } from '../../../services/airport-search.service';
@@ -73,26 +73,40 @@ export class SearchComponent {
     infants: 0
   };
   tourPassengersTotal: number = this.tourPassengers.adults + this.tourPassengers.childrens + this.tourPassengers.infants;
+  private readonly isBrowser: boolean;
   constructor(
-    private _bottomSheet: MatBottomSheet, 
     private titlecase: TitleCasePipe, 
     private token: AmadeusAuthService, 
     private locations: AirportSearchService, 
-    private snackBar: MatSnackBar, 
     private datepipe: DatePipe, 
     private router: Router, 
     private route: ActivatedRoute,
     private shared: SharedDataService,
-    private gtag: Analytics,
-    private fbp: FacebookPixelService
+    private injector: Injector,
+    private fbp: FacebookPixelService,
+    @Inject(PLATFORM_ID) platformId: Object
   ) {
+    this.isBrowser = isPlatformBrowser(platformId);
     this.route.queryParams.subscribe(q => {
       const query = q as { promo?: string };
       this.promoCode = query.promo;
     });
   }
+
+  private getBottomSheet(): MatBottomSheet | null {
+    return this.isBrowser ? this.injector.get(MatBottomSheet) : null;
+  }
+
+  private getSnackBar(): MatSnackBar | null {
+    return this.isBrowser ? this.injector.get(MatSnackBar) : null;
+  }
+
   openLocationBottomSheet(isOrigin:boolean): void {
-    this._bottomSheet.open(LocationSelectionSheetComponent, {data: {isOrigin, suggestedDestinations: this.sugestedDestinations}, panelClass: "locationSelectionSheet"}).afterDismissed().subscribe((location:AmadeusLocation)=>{
+    const bottomSheet = this.getBottomSheet();
+    if (!bottomSheet) {
+      return;
+    }
+    bottomSheet.open(LocationSelectionSheetComponent, {data: {isOrigin, suggestedDestinations: this.sugestedDestinations}, panelClass: "locationSelectionSheet"}).afterDismissed().subscribe((location:AmadeusLocation)=>{
       if(location!==undefined){
         if(isOrigin){
           this.origin=location;
@@ -132,7 +146,11 @@ export class SearchComponent {
     });
   }
   openHotelDestination(){
-    this._bottomSheet.open(HotelLocationSelectorBottomsheetComponent, {panelClass:"locationSelectionSheet"}).afterDismissed().subscribe((result:google.maps.places.PlacePrediction)=>{
+    const bottomSheet = this.getBottomSheet();
+    if (!bottomSheet) {
+      return;
+    }
+    bottomSheet.open(HotelLocationSelectorBottomsheetComponent, {panelClass:"locationSelectionSheet"}).afterDismissed().subscribe((result:google.maps.places.PlacePrediction)=>{
       this.getPlaceData(result, ["displayName", "location"]).then(suggestion=>{
         this.hotelLocation = {
           name: suggestion.place.displayName!,
@@ -147,7 +165,11 @@ export class SearchComponent {
     return suggestion.toPlace().fetchFields({fields})
   }
   openPaxBottomSheet(){
-    this._bottomSheet.open(PaxSelectionSheetComponent, {data: [this.passengers.adults, this.passengers.childrens, this.passengers.infants]}).afterDismissed().subscribe(paxes=>{
+    const bottomSheet = this.getBottomSheet();
+    if (!bottomSheet) {
+      return;
+    }
+    bottomSheet.open(PaxSelectionSheetComponent, {data: [this.passengers.adults, this.passengers.childrens, this.passengers.infants]}).afterDismissed().subscribe(paxes=>{
       if(paxes!==undefined){
         this.passengers.adults=paxes[0];
         this.passengers.childrens=paxes[1];
@@ -157,7 +179,11 @@ export class SearchComponent {
     });
   }
   openTourPaxBottomSheet(){
-    this._bottomSheet.open(PaxSelectionSheetComponent, {data: [this.tourPassengers.adults, this.tourPassengers.childrens, this.tourPassengers.infants]}).afterDismissed().subscribe(paxes=>{
+    const bottomSheet = this.getBottomSheet();
+    if (!bottomSheet) {
+      return;
+    }
+    bottomSheet.open(PaxSelectionSheetComponent, {data: [this.tourPassengers.adults, this.tourPassengers.childrens, this.tourPassengers.infants]}).afterDismissed().subscribe(paxes=>{
       if(paxes!==undefined){
         this.tourPassengers.adults=paxes[0];
         this.tourPassengers.childrens=paxes[1];
@@ -167,7 +193,11 @@ export class SearchComponent {
     });
   }
   openTourDestinationBottomSheet(): void {
-    this._bottomSheet.open(TourLocationSelectionSheetComponent, {panelClass: "locationSelectionSheet"}).afterDismissed().subscribe((location:AmadeusLocation)=>{
+    const bottomSheet = this.getBottomSheet();
+    if (!bottomSheet) {
+      return;
+    }
+    bottomSheet.open(TourLocationSelectionSheetComponent, {panelClass: "locationSelectionSheet"}).afterDismissed().subscribe((location:AmadeusLocation)=>{
       if(location!==undefined){
         this.tourDestination=location;
         this.tourDestinationInput.setValue((location.subType==="AIRPORT"?("Aeropuerto de "+this.titlecase.transform(location.address.cityName)+" ("+location.iataCode+")"):(this.titlecase.transform(location.address.cityName)+", "+this.titlecase.transform(location.address.countryName)+" (Todos los aeropuertos)")));
@@ -178,7 +208,11 @@ export class SearchComponent {
     });
   }
   openRoomSelector(){
-    this._bottomSheet.open(HotelRoomsSelectionSheetComponent, {panelClass: 'bottomsheet-no-padding', data: this.hotelRooms}).afterDismissed().subscribe((result:number[][])=>{
+    const bottomSheet = this.getBottomSheet();
+    if (!bottomSheet) {
+      return;
+    }
+    bottomSheet.open(HotelRoomsSelectionSheetComponent, {panelClass: 'bottomsheet-no-padding', data: this.hotelRooms}).afterDismissed().subscribe((result:number[][])=>{
       if(result!==undefined){
         this.hotelRooms = result;
       }
@@ -212,14 +246,22 @@ export class SearchComponent {
     return text;
   }
   openHotelDateSelection(dates: Date[]){
-    this._bottomSheet.open(HotelDateSelectionSheetComponent, {data: {dates}}).afterDismissed().subscribe((data:{start:Date, end: Date})=>{
+    const bottomSheet = this.getBottomSheet();
+    if (!bottomSheet) {
+      return;
+    }
+    bottomSheet.open(HotelDateSelectionSheetComponent, {data: {dates}}).afterDismissed().subscribe((data:{start:Date, end: Date})=>{
       if(data!==undefined){
         this.dates = [data.start, data.end];
       }
     });
   }
   openDateSelection(round:boolean, dates: Date[]){
-    this._bottomSheet.open(FlightDateSelectionSheetComponent, {data: {round, dates}}).afterDismissed().subscribe((data:{round: boolean, start: Date, end?:Date})=>{
+    const bottomSheet = this.getBottomSheet();
+    if (!bottomSheet) {
+      return;
+    }
+    bottomSheet.open(FlightDateSelectionSheetComponent, {data: {round, dates}}).afterDismissed().subscribe((data:{round: boolean, start: Date, end?:Date})=>{
       if(data!==undefined){
         if(data.round){
           this.round = data.round;
@@ -240,8 +282,11 @@ export class SearchComponent {
         checkin: this.datepipe.transform(this.dates[0], "YYYY-MM-dd"),
         checkout: this.datepipe.transform(this.dates[1], "YYYY-MM-dd"),
         rooms: roomString
+      };
+      const analytics = this.getAnalytics();
+      if (analytics) {
+        logEvent(analytics, 'search', searchEventData);
       }
-      logEvent(this.gtag,'search', searchEventData);
       this.fbp.track('Search');
       const url:string = "resultados/hoteles/"+
       this.hotelLocation?.id+"/"+
@@ -267,7 +312,10 @@ export class SearchComponent {
       if(this.round){
         searchEventData.return_date = this.datepipe.transform(this.dates[1], "YYYY-MM-dd");
       }
-      logEvent(this.gtag,'search', searchEventData);
+      const analytics = this.getAnalytics();
+      if (analytics) {
+        logEvent(analytics, 'search', searchEventData);
+      }
       this.fbp.track('Search');
       const url:string = "/resultados/vuelos/"
       +(this.origin?.subType==="AIRPORT"?'A':'C')+this.origin?.iataCode+"/"
@@ -286,6 +334,14 @@ export class SearchComponent {
 
   searchTours(){
     if(this.tourDestination!==undefined){
+      const analytics = this.getAnalytics();
+      if (analytics) {
+        logEvent(analytics, 'search', {
+          search_term: this.tourDestination.address.cityName,
+          location: this.tourDestination
+        });
+      }
+      this.fbp.track('Search');
       const locationCode = (this.tourDestination.subType==="AIRPORT"?'A':'C') + this.tourDestination.iataCode;
       this.router.navigate(['/actividades', locationCode], {
         queryParams: {
@@ -295,7 +351,7 @@ export class SearchComponent {
         }
       });
     }else{
-      this.snackBar.open("Elige un destino para tus tours", undefined, {duration: 1500});
+      this.getSnackBar()?.open("Elige un destino para tus tours", undefined, {duration: 1500});
     }
   }
   areTravelParamsDefined(): boolean {
@@ -305,15 +361,15 @@ export class SearchComponent {
     } else {
       if (this.dates === undefined) {
         console.warn('dates es undefined.');
-        this.snackBar.open("Elige una fecha para tu vuelo", undefined, {duration: 1500});
+        this.getSnackBar()?.open("Elige una fecha para tu vuelo", undefined, {duration: 1500});
       }
       if (this.destination === undefined) {
         console.warn('destination es undefined.');
-        this.snackBar.open("Elige un destino para tu vuelo", undefined, {duration: 1500});
+        this.getSnackBar()?.open("Elige un destino para tu vuelo", undefined, {duration: 1500});
       }
       if (this.origin === undefined) {
         console.warn('origin es undefined.');
-        this.snackBar.open("Elige un origen para tu vuelo", undefined, {duration: 1500});
+        this.getSnackBar()?.open("Elige un origen para tu vuelo", undefined, {duration: 1500});
       }
       return false;
     }
@@ -325,17 +381,25 @@ export class SearchComponent {
     } else {
       if (this.dates === undefined) {
         console.warn('dates es undefined.');
-        this.snackBar.open("Elige una fecha para tu hotel", undefined, {duration: 1500});
+        this.getSnackBar()?.open("Elige una fecha para tu hotel", undefined, {duration: 1500});
       }
       if (this.hotelLocation === undefined) {
         console.warn('destination es undefined.');
-        this.snackBar.open("Elige un destino para tu hotel", undefined, {duration: 1500});
+        this.getSnackBar()?.open("Elige un destino para tu hotel", undefined, {duration: 1500});
       }
       if (this.hotelRooms === undefined) {
         console.warn('origin es undefined.');
-        this.snackBar.open("Elige habitaciones para tu hotel", undefined, {duration: 1500});
+        this.getSnackBar()?.open("Elige habitaciones para tu hotel", undefined, {duration: 1500});
       }
       return false;
     }
+  }
+
+  private getAnalytics(): Analytics | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+
+    return this.injector.get(Analytics);
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Auth, authState, signInAnonymously, signOut, User, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signInWithPhoneNumber, RecaptchaVerifier, createUserWithEmailAndPassword, signInWithCredential, PhoneAuthProvider, updateProfile, sendPasswordResetEmail, updatePassword } from '@angular/fire/auth';
-import { Firestore, doc, docData, getDoc, serverTimestamp, setDoc, updateDoc, Timestamp } from '@angular/fire/firestore';
+import { Firestore, collection, doc, docData, getDoc, getDocs, query, serverTimestamp, setDoc, updateDoc, Timestamp, where } from '@angular/fire/firestore';
 import { Storage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
 import { BehaviorSubject, EMPTY, from, map, Observable, of, switchMap, timer } from 'rxjs';
 
@@ -9,6 +9,7 @@ export type Role = "traveler"|"xplorer"|"admin"|"superadmin";
 export interface UserData {
   uid?: string;
   role: Role;
+  email?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
   name?: string;
@@ -220,5 +221,42 @@ export class FireAuthService {
 
   logout() {
     return signOut(this.auth);
+  }
+
+  async findUsersByEmail(email: string): Promise<UserData[]> {
+    const normalized = String(email ?? '').trim();
+    if (!normalized) {
+      return [];
+    }
+
+    const emailsToTry = Array.from(new Set([normalized, normalized.toLowerCase()]));
+    const results: UserData[] = [];
+
+    for (const value of emailsToTry) {
+      const q = query(collection(this.firestore, 'users'), where('email', '==', value));
+      const snapshot = await getDocs(q);
+      snapshot.docs.forEach(item => {
+        const data = { uid: item.id, ...(item.data() as UserData) };
+        if (!results.some(existing => existing.uid === data.uid)) {
+          results.push(data);
+        }
+      });
+    }
+
+    return results;
+  }
+
+  async getUserDataByUid(uid: string): Promise<UserData | null> {
+    const cleanUid = String(uid ?? '').trim();
+    if (!cleanUid) {
+      return null;
+    }
+
+    const snapshot = await getDoc(doc(this.firestore, 'users', cleanUid));
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    return { uid: snapshot.id, ...(snapshot.data() as UserData) };
   }
 }

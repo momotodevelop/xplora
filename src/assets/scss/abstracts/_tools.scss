@@ -1,5 +1,10 @@
+@use "sass:color";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
 @mixin media-above($breakpoint) {
-  $breakpoint-value: map-get($breakpoints, $breakpoint);
+  $breakpoint-value: map.get($breakpoints, $breakpoint);
 
   @media (min-width: $breakpoint-value) {
     @content;
@@ -7,7 +12,7 @@
 }
 
 @mixin media-below($breakpoint) {
-  $breakpoint-value: map-get($breakpoints, $breakpoint);
+  $breakpoint-value: map.get($breakpoints, $breakpoint);
 
   @media (max-width: ($breakpoint-value - 1)) {
     @content;
@@ -15,8 +20,8 @@
 }
 
 @mixin media-between($lower, $upper) {
-  $lower-breakpoint: map-get($breakpoints, $lower);
-  $upper-breakpoint: map-get($breakpoints, $upper);
+  $lower-breakpoint: map.get($breakpoints, $lower);
+  $upper-breakpoint: map.get($breakpoints, $upper);
 
   @media (min-width: $lower-breakpoint) and (max-width: ($upper-breakpoint - 1)) {
     @content;
@@ -24,8 +29,8 @@
 }
 
 @function color-opac($key, $opacity: 1, $map: $colors) {
-  $value: map-get($map, $key);
-  $value: rgba($value, $opacity);
+  $value: map.get($map, $key);
+  $value: color.change($value, $alpha: $opacity);
   @return $value;
 }
 
@@ -70,16 +75,16 @@ $aspect-ratios: (
 //
 @each $ratio in $aspect-ratios {
   @each $antecedent, $consequent in $ratio {
-    @if (type-of($antecedent) != number) {
+    @if (meta.type-of($antecedent) != number) {
       @error "`#{$antecedent}` needs to be a number."
     }
 
-    @if (type-of($consequent) != number) {
+    @if (meta.type-of($consequent) != number) {
       @error "`#{$consequent}` needs to be a number."
     }
 
     .ratio-#{$antecedent}\:#{$consequent}::before {
-      padding-bottom: ($consequent/$antecedent) * 100%;
+      padding-bottom: math.div($consequent, $antecedent) * 100%;
     }
   }
 }

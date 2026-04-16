@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Dictionaries, FlightOffer, Segment } from '../types/flight-offer-amadeus.types';
 import { BehaviorSubject } from 'rxjs';
-import moment from 'moment';
-import _ from 'lodash';
 import { FilterFormValue } from '../pages/flight-search/sidebar/sidebar.component';
 import { XploraFlightBooking } from '../types/xplora-api.types';
+import { parseIsoDurationMs } from '../utils/duration.utils';
 export interface FilterOptions{
   segments?: number[],
   airlines?: string[],
@@ -56,6 +55,10 @@ export class FlightOffersDataHandlerService {
   selected = this._selected.asObservable();
   flightSelectionStatus = this._flightSelectionStatus.asObservable();
   constructor() { }
+
+  private getLastSegment(segments: Segment[]): Segment {
+    return segments[segments.length - 1] as Segment;
+  }
 
   setData(offers:FlightOffer[], dictionaries:Dictionaries, pageSize:number, filters?:FilterOptions, sorting?:SortOptions){
     this._unfiltered.next(offers);
@@ -172,7 +175,7 @@ export class FlightOffersDataHandlerService {
 
   private filterByTime(offers: FlightOffer[], time: "MORNING" | "AFTERNOON" | "EVENING", isDeparture: boolean): FlightOffer[] {
     return offers.filter(offer => {
-      const targetTime = isDeparture ? offer.itineraries[0].segments[0].departure.at : (_.last(offer.itineraries[0].segments) as Segment).arrival.at ;
+      const targetTime = isDeparture ? offer.itineraries[0].segments[0].departure.at : this.getLastSegment(offer.itineraries[0].segments).arrival.at;
       return this.timeMatches(targetTime, time);
     });
   }
@@ -183,7 +186,7 @@ export class FlightOffersDataHandlerService {
 
       switch (sortOptions[0]) {
         case 'duracion':
-          comparison = moment.duration(a.itineraries[0].duration).asSeconds() - moment.duration(b.itineraries[0].duration).asSeconds();
+          comparison = (parseIsoDurationMs(a.itineraries[0].duration) - parseIsoDurationMs(b.itineraries[0].duration)) / 1000;
           break;
         case 'precio':
           comparison = this.getComparableTotal(a) - this.getComparableTotal(b);
@@ -194,8 +197,8 @@ export class FlightOffersDataHandlerService {
           comparison = departureA - departureB;
           break;
         case 'llegada':
-          const arrivalA = new Date(_.last(a.itineraries[0].segments)!.arrival.at).getTime();
-          const arrivalB = new Date(_.last(b.itineraries[0].segments)!.arrival.at).getTime();
+          const arrivalA = new Date(this.getLastSegment(a.itineraries[0].segments).arrival.at).getTime();
+          const arrivalB = new Date(this.getLastSegment(b.itineraries[0].segments).arrival.at).getTime();
           comparison = arrivalA - arrivalB;
           break;
       }

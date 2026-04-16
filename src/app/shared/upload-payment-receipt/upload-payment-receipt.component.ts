@@ -164,6 +164,9 @@ export class UploadPaymentReceiptComponent implements OnInit {
   @Input() bookingID: string = 'prueba'; // ID de la reserva para la que se subirá el comprobante
   @Input() total: number = 0; // Monto total de la reserva, si es necesario mostrarlo
   @Input() paymentMethod: 'SPEI' | 'CASH' | string = 'SPEI'; // Método de pago, por defecto SPEI
+  @Input() defaultStatus: OfflinePaymentData['status'] = 'VALIDATING';
+  @Input() title = 'Subir Comprobante de Pago';
+  @Input() helperText?: string;
   selectedFile: File | undefined;
   uploadProgress: Observable<number | string> | null = null;
   downloadURL: string | null = null;
@@ -278,7 +281,8 @@ export class UploadPaymentReceiptComponent implements OnInit {
               amount: parseInt(this.amount.value) || 0, // Usa el nuevo monto del pago o 0 si no se especifica
               method: this.paymentMethod,
               senderBank: this.senderBank.value,
-              status: 'VALIDATING',
+              paymentOffice: this.paymentOffice.value,
+              status: this.defaultStatus,
               timestamp: new Timestamp(new Date().getTime() / 1000, 0), // Timestamp de Firestore
               receptURL: this.downloadURL
             }).then(payments=>{

@@ -1,23 +1,44 @@
-.bookings-accordion{
-    flex: 1;
+.bookings-accordion{flex:1;display:flex;flex-direction:column;gap:16px}
+:host ::ng-deep .bookings-accordion .mat-expansion-panel{border:1px solid #e7ebf3;border-radius:20px}
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header,:host ::ng-deep .bookings-accordion .mat-expansion-panel-header.mat-expanded{height:auto!important}
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header{min-height:108px;padding:16px 24px}
+:host ::ng-deep .bookings-accordion .mat-content,:host ::ng-deep .bookings-accordion .mat-expansion-panel-header-title,:host ::ng-deep .bookings-accordion .mat-expansion-panel-header-description{align-items:center;margin:0}
+:host ::ng-deep .bookings-accordion .mat-content{gap:20px}
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header-title,.booking-panel__title,.booking-panel__identity{min-width:0}
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header-description{flex-basis:auto;flex-grow:0;justify-content:flex-end;margin-left:auto}
+.booking-kpi-card,.booking-filters,.booking-empty-state{background:#fff;border:1px solid #e7ebf3;border-radius:16px}
+.booking-kpi-card{display:flex;flex-direction:column;gap:4px;min-height:128px;padding:20px}
+.booking-kpi-card__label,.booking-filters__label{color:#6b7280;display:block;font-size:13px;font-weight:600;margin-bottom:8px;text-transform:uppercase}
+.booking-kpi-card__value{color:#123a72;font-size:28px;font-weight:700;line-height:1.1}
+.booking-kpi-card__help,.booking-panel__meta,.booking-panel__amounts small{color:#6b7280;font-size:12px}
+.booking-filters{padding:20px}
+.booking-panel__title,.booking-panel__description,.booking-panel__badges,.booking-panel__amounts{display:flex}
+.booking-panel__title,.booking-panel__description{align-items:center;gap:16px}
+.booking-panel__identity{display:flex;flex-direction:column;gap:4px}
+.booking-panel__icon{align-items:center;background:#eef5ff;border-radius:12px;color:#123a72;display:inline-flex;height:44px;justify-content:center;width:44px}
+.booking-panel__ref{color:#0f172a;font-size:15px;font-weight:700}
+.booking-panel__route{color:#123a72;font-size:14px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.booking-panel__meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.booking-panel__description{flex-wrap:wrap;gap:14px;justify-content:flex-end}
+.booking-panel__badges{flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.booking-panel__amounts{align-items:flex-end;flex-direction:column}
+.booking-panel__amounts strong{color:#0f172a;font-size:20px}
+:host ::ng-deep .booking-badge{border-radius:999px;display:inline-flex;font-size:12px;font-weight:700;line-height:1;padding:8px 12px}
+:host ::ng-deep .booking-badge--success{background:#e7f8ee;color:#0f8a4b}
+:host ::ng-deep .booking-badge--warning{background:#fff4d8;color:#a16207}
+:host ::ng-deep .booking-badge--danger{background:#fee2e2;color:#b91c1c}
+:host ::ng-deep .booking-badge--info{background:#e0f2fe;color:#0369a1}
+:host ::ng-deep .booking-badge--neutral{background:#eef2f7;color:#475569}
+.booking-empty-state{align-items:center;display:flex;flex-direction:column;gap:8px;padding:40px 20px;text-align:center}
+.booking-empty-state mat-icon{color:#94a3b8;font-size:40px;height:40px;width:40px}
+@media (max-width:991px){
+  :host ::ng-deep .bookings-accordion .mat-expansion-panel-header{min-height:126px;padding:16px 18px}
+  :host ::ng-deep .bookings-accordion .mat-content{align-items:flex-start;flex-direction:column;gap:12px}
+  :host ::ng-deep .bookings-accordion .mat-expansion-panel-header-description{margin-left:0;width:100%}
+  .booking-panel__description{justify-content:space-between;text-align:left;width:100%}
+  .booking-panel__badges,.booking-panel__amounts{justify-content:flex-start;align-items:flex-start}
 }
-.bookings-accordion .mat-expansion-panel-header-description {
-    justify-content: space-between;
-    align-items: center;
-}
-.status-indicator.status-pending{
-    color: orange;
-}
-.status-indicator.status-confirmed{
-    color: green;
-}
-.status-indicator.status-canceled{
-    color: red;
-}
-.status-label{
-    font-weight: bold;
-    margin-left: 5px;
-}
-.status-indicator{
-    white-space: nowrap;
+@media (max-width:767px){
+  .booking-panel__title,.booking-panel__description{align-items:flex-start;flex-direction:column;gap:10px}
+  .booking-panel__route,.booking-panel__meta{white-space:normal}
 }

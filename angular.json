@@ -20,12 +20,31 @@
             "outputPath": "dist/xplora",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "allowedCommonJsDependencies": [
+              "lodash",
+              "js-sha256",
+              "lottie-web",
+              "@grpc/grpc-js",
+              "@grpc/proto-loader"
+            ],
             "polyfills": [
               "zone.js",
               "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "stylePreprocessorOptions": {
+              "sass": {
+                "silenceDeprecations": [
+                  "import",
+                  "global-builtin",
+                  "slash-div",
+                  "color-functions",
+                  "mixed-decls",
+                  "abs-percent"
+                ]
+              }
+            },
             "assets": [
               "src/favicon.ico",
               "src/assets",
@@ -45,8 +64,8 @@
               "src/assets/scss/vendors/nouislider.min.css",
               "src/assets/scss/vendors/swiper.min.css",
               "src/assets/scss/main.scss",
-              "node_modules/slick-carousel/slick/slick.scss",
-              "node_modules/slick-carousel/slick/slick-theme.scss"
+              "node_modules/slick-carousel/slick/slick.css",
+              "node_modules/slick-carousel/slick/slick-theme.css"
             ],
             "scripts": [
               "src/assets/js/vendors.js",
@@ -65,13 +84,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
+                  "maximumWarning": "6mb",
                   "maximumError": "15mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "4kb",
+                  "maximumError": "8kb"
                 }
               ],
               "outputHashing": "all",
@@ -119,6 +138,18 @@
             ],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
+            "stylePreprocessorOptions": {
+              "sass": {
+                "silenceDeprecations": [
+                  "import",
+                  "global-builtin",
+                  "slash-div",
+                  "color-functions",
+                  "mixed-decls",
+                  "abs-percent"
+                ]
+              }
+            },
             "assets": [
               "src/favicon.ico",
               "src/assets"

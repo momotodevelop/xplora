@@ -1,5 +1,5 @@
-<div class="p-20" style="max-width: 500px;">
-    <h3 class="mb-10">Editar pago</h3>
+<div class="p-20" style="max-width: 760px;">
+    <h3 class="mb-10">Editar estado y pago</h3>
     <form [formGroup]="form" class="row y-gap-15">
         <div class="col-12">
             <mat-form-field appearance="outline" class="w-100">
@@ -31,6 +31,17 @@
                 </mat-select>
             </mat-form-field>
         </div>
+        <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Oficina / canal de pago</mat-label>
+                <mat-select formControlName="paymentOffice">
+                    <mat-option [value]="null">Sin oficina</mat-option>
+                    @for(office of paymentOffices; track office.id){
+                        <mat-option [value]="office.id">{{office.name}}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
         <div class="col-6">
             <mat-form-field appearance="outline" class="w-100">
                 <mat-label>Fecha límite de pago</mat-label>
@@ -47,8 +58,105 @@
                 <mat-timepicker-toggle [for]="paymentLimitTimePicker" matSuffix/>
             </mat-form-field>
         </div>
+        <div class="col-md-4">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Total cotizado</mat-label>
+                <input matInput formControlName="quotedTotal" type="number" />
+            </mat-form-field>
+        </div>
+        <div class="col-md-4">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Total confirmado</mat-label>
+                <input matInput formControlName="confirmedTotal" type="number" />
+            </mat-form-field>
+        </div>
+        <div class="col-md-4">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Total pagado</mat-label>
+                <input matInput formControlName="amountPaid" type="number" />
+            </mat-form-field>
+        </div>
+        <div class="col-12">
+            <div class="d-flex items-center justify-between rounded-8 bg-light-2 px-15 py-12">
+                <div>
+                    <div class="fw-600">Saldo pendiente</div>
+                    <small class="text-muted">Se calcula con total confirmado menos lo pagado.</small>
+                </div>
+                <div class="fw-700 text-16">{{getBalancePreview() | currency:'MXN'}}</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Código promocional</mat-label>
+                <input matInput formControlName="promoCode" />
+            </mat-form-field>
+        </div>
+        <div class="col-md-6 d-flex items-center justify-end x-gap-10">
+            <button mat-stroked-button color="primary" type="button" (click)="applyPromo()">
+                Aplicar promo
+            </button>
+            <button mat-stroked-button type="button" (click)="clearPromo()">
+                Quitar promo
+            </button>
+        </div>
+        @if(selectedPromo){
+            <div class="col-12">
+                <div class="rounded-8 border px-15 py-12">
+                    <div class="fw-600">{{selectedPromo.code}} · {{selectedPromo.description}}</div>
+                    <small class="text-muted">
+                        @if(selectedPromo.discountType === 'percentage'){
+                            Descuento {{selectedPromo.discountAmount}}%
+                        } @else {
+                            Descuento {{selectedPromo.discountAmount | currency:'MXN'}}
+                        }
+                    </small>
+                </div>
+            </div>
+        }
+        <div class="col-12">
+            <div class="d-flex items-center justify-between mb-10">
+                <h4 class="mb-0">Desglose de cargos</h4>
+                <div class="d-flex x-gap-10">
+                    <button mat-stroked-button type="button" (click)="addCharge()">Agregar cargo</button>
+                    <button mat-stroked-button color="primary" type="button" (click)="recalculateTotals()">Recalcular total</button>
+                </div>
+            </div>
+            <div formArrayName="charges" class="row y-gap-10">
+                @for(charge of charges.controls; track charge; let i = $index){
+                    <div class="col-12">
+                        <div [formGroupName]="i" class="rounded-12 border p-15">
+                            <div class="row y-gap-10">
+                                <div class="col-md-5">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Descripción</mat-label>
+                                        <input matInput formControlName="description" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Monto</mat-label>
+                                        <input matInput type="number" formControlName="amount" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-4 d-flex items-start justify-end">
+                                    <button mat-stroked-button color="warn" type="button" (click)="removeCharge(i)">
+                                        Eliminar
+                                    </button>
+                                </div>
+                                <div class="col-12">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Detalle adicional</mat-label>
+                                        <textarea matInput rows="2" formControlName="aditionalInfo" placeholder="Una línea por detalle"></textarea>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
         <div class="col-12 d-flex justify-end">
-            <button mat-flat-buttonm color="primary" type="button" (click)="save()" [disabled]="form.invalid">
+            <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
                 Guardar
             </button>
         </div>

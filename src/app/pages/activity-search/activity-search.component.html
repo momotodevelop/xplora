@@ -148,7 +148,7 @@
             <div class="col-xl-9 col-lg-8">
                 <div class="row y-gap-10 items-center justify-between">
                     <div class="col-auto">
-                        <div class="text-18"><span class="fw-500">{{totalResults|number}} actividades</span> en {{location?.address!.cityName ?? 'destino'|titlecase}}</div>
+                        <div class="text-18"><span class="fw-500">{{totalResults|number}} actividades</span> en {{ (location?.address?.cityName || 'destino') | titlecase }}</div>
                     </div>
 
                     <div class="col-auto">

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, Injector, OnInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { SlickCarouselModule } from 'ngx-slick-carousel';
 import { AmavComponent } from '../about/amav/amav.component';
@@ -17,6 +18,7 @@ import { SlickConfig } from '../../types/slick.types';
   styleUrl: './confianza.component.scss'
 })
 export class ConfianzaComponent implements OnInit {
+  private readonly isBrowser: boolean;
   sliderImages = [
     { src: '/assets/img/pages/confianza/2.jpg', alt: 'Xplora Travel' },
     { src: '/assets/img/pages/confianza/4.jpg', alt: 'Xplora Travel' },
@@ -42,7 +44,14 @@ export class ConfianzaComponent implements OnInit {
     accessibility: true
   };
 
-  constructor(private bs: MatBottomSheet, private shared: SharedDataService, private meta: MetaHandlerService) {}
+  constructor(
+    private shared: SharedDataService,
+    private meta: MetaHandlerService,
+    private injector: Injector,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.shared.changeHeaderType('dark');
@@ -54,18 +63,30 @@ export class ConfianzaComponent implements OnInit {
   }
 
   openTA() {
-    this.bs.open(TripadvisorComponent, { panelClass: 'bottomsheet-no-padding' });
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatBottomSheet).open(TripadvisorComponent, { panelClass: 'bottomsheet-no-padding' });
   }
 
   openRNT() {
-    this.bs.open(SecturComponent, { panelClass: 'bottomsheet-no-padding' });
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatBottomSheet).open(SecturComponent, { panelClass: 'bottomsheet-no-padding' });
   }
 
   openAMAV() {
-    this.bs.open(AmavComponent, { panelClass: 'bottomsheet-no-padding' });
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatBottomSheet).open(AmavComponent, { panelClass: 'bottomsheet-no-padding' });
   }
 
   openIATA() {
-    this.bs.open(IataComponent, { panelClass: 'bottomsheet-no-padding' });
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatBottomSheet).open(IataComponent, { panelClass: 'bottomsheet-no-padding' });
   }
 }

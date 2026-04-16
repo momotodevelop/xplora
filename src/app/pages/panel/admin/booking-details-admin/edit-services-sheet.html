@@ -1,0 +1,212 @@
+<div class="p-20" style="max-width: 960px;">
+    <h3 class="mb-10">Editar servicios e itinerario</h3>
+    <form [formGroup]="form" class="row y-gap-15">
+        <div class="col-12">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>PNR / referencia del proveedor</mat-label>
+                <input matInput formControlName="pnr" />
+            </mat-form-field>
+        </div>
+
+        @if(data.booking.type === 'FLIGHT'){
+            <div class="col-12">
+                <div class="fw-600 mb-10">Servicio principal: vuelo</div>
+            </div>
+            <div class="col-md-3">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>IATA origen</mat-label>
+                    <input matInput formControlName="flightOriginIata" />
+                </mat-form-field>
+            </div>
+            <div class="col-md-3">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Ciudad origen</mat-label>
+                    <input matInput formControlName="flightOriginCity" />
+                </mat-form-field>
+            </div>
+            <div class="col-md-3">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>IATA destino</mat-label>
+                    <input matInput formControlName="flightDestinationIata" />
+                </mat-form-field>
+            </div>
+            <div class="col-md-3">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Ciudad destino</mat-label>
+                    <input matInput formControlName="flightDestinationCity" />
+                </mat-form-field>
+            </div>
+            <div class="col-md-6">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Salida</mat-label>
+                    <input matInput [matDatepicker]="flightDeparturePicker" formControlName="flightDeparture" />
+                    <mat-datepicker-toggle matIconSuffix [for]="flightDeparturePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #flightDeparturePicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+            <div class="col-md-6">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Regreso</mat-label>
+                    <input matInput [matDatepicker]="flightReturnPicker" formControlName="flightReturn" />
+                    <mat-datepicker-toggle matIconSuffix [for]="flightReturnPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #flightReturnPicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+        }
+
+        @if(data.booking.type === 'HOTEL'){
+            <div class="col-12">
+                <div class="fw-600 mb-10">Servicio principal: hotel</div>
+            </div>
+            <div class="col-md-4">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Nombre del hotel</mat-label>
+                    <input matInput formControlName="hotelName" />
+                </mat-form-field>
+            </div>
+            <div class="col-md-4">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Ciudad</mat-label>
+                    <input matInput formControlName="hotelCity" />
+                </mat-form-field>
+            </div>
+            <div class="col-md-4">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>País</mat-label>
+                    <input matInput formControlName="hotelCountry" />
+                </mat-form-field>
+            </div>
+            <div class="col-md-6">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Check-in</mat-label>
+                    <input matInput [matDatepicker]="hotelCheckinPicker" formControlName="hotelCheckin" />
+                    <mat-datepicker-toggle matIconSuffix [for]="hotelCheckinPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #hotelCheckinPicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+            <div class="col-md-6">
+                <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Check-out</mat-label>
+                    <input matInput [matDatepicker]="hotelCheckoutPicker" formControlName="hotelCheckout" />
+                    <mat-datepicker-toggle matIconSuffix [for]="hotelCheckoutPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #hotelCheckoutPicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+        }
+
+        <div class="col-12 mt-10">
+            <div class="d-flex justify-between items-center mb-10">
+                <div class="fw-600">Servicios adicionales / vinculados</div>
+                <button mat-stroked-button type="button" (click)="addLinkedService()">Agregar servicio</button>
+            </div>
+            <div formArrayName="linkedServices" class="row y-gap-15">
+                @for(service of linkedServices.controls; track service; let i = $index){
+                    <div class="col-12">
+                        <div [formGroupName]="i" class="rounded-12 border p-15">
+                            <div class="d-flex justify-between items-center mb-10">
+                                <div class="fw-600">Servicio {{i + 1}}</div>
+                                <button mat-stroked-button color="warn" type="button" (click)="removeLinkedService(i)">Eliminar</button>
+                            </div>
+                            <div class="row y-gap-10">
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Tipo</mat-label>
+                                        <mat-select formControlName="type">
+                                            @for(type of linkedServiceTypes; track type){
+                                                <mat-option [value]="type">{{type}}</mat-option>
+                                            }
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-5">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Título</mat-label>
+                                        <input matInput formControlName="title" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-4">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Estatus</mat-label>
+                                        <input matInput formControlName="status" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Proveedor</mat-label>
+                                        <input matInput formControlName="provider" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Referencia</mat-label>
+                                        <input matInput formControlName="reference" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Origen</mat-label>
+                                        <input matInput formControlName="origin" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Destino / ubicación</mat-label>
+                                        <input matInput formControlName="destination" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Ubicación puntual</mat-label>
+                                        <input matInput formControlName="location" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-6">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Inicio</mat-label>
+                                        <input matInput [matDatepicker]="serviceStartPicker" formControlName="startDate" />
+                                        <mat-datepicker-toggle matIconSuffix [for]="serviceStartPicker"></mat-datepicker-toggle>
+                                        <mat-datepicker #serviceStartPicker></mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Fin</mat-label>
+                                        <input matInput [matDatepicker]="serviceEndPicker" formControlName="endDate" />
+                                        <mat-datepicker-toggle matIconSuffix [for]="serviceEndPicker"></mat-datepicker-toggle>
+                                        <mat-datepicker #serviceEndPicker></mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Monto</mat-label>
+                                        <input matInput type="number" formControlName="amount" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Cantidad</mat-label>
+                                        <input matInput type="number" formControlName="quantity" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-6 d-flex items-center">
+                                    <mat-checkbox formControlName="included">Incluido en el precio principal</mat-checkbox>
+                                </div>
+                                <div class="col-12">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Notas</mat-label>
+                                        <textarea matInput rows="2" formControlName="notes"></textarea>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-12 d-flex justify-end">
+            <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
+                Guardar
+            </button>
+        </div>
+    </form>
+</div>

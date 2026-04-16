@@ -77,7 +77,10 @@ export class FireBookingService {
     const bookingDoc = doc(this.firestore, 'bookings', bookingID);
     return from(getDoc(bookingDoc)).pipe(
       map(snapshot => {
-        const bookingData = snapshot.data() as FirebaseBooking;
+        const bookingData = snapshot.data() as FirebaseBooking | undefined;
+        if (!bookingData) {
+          throw new Error('BOOKING_NOT_FOUND');
+        }
         return this.applyBookingExpirationStatus(bookingData, snapshot.id, expirationHours);
       })
     );
@@ -153,11 +156,11 @@ export class FireBookingService {
         const bookings = snapshot.docs
           .map(doc =>
           {
-            return {
+            return this.applyBookingExpirationStatus({
               bookingID: doc.id,
               ...doc.data()
-            } as FirebaseBooking;
-          })
+            } as FirebaseBooking, doc.id, expirationHours);
+          });
         const lastDoc = snapshot.docs[snapshot.docs.length - 1] ?? null;
         return { bookings, lastDoc };
       })

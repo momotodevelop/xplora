@@ -1,4 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
+import { getPaymentMethodLabel } from './utils/booking-display.utils';
 
 @Pipe({
   name: 'paymentMethod',
@@ -6,15 +7,6 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class PaymentMethodPipe implements PipeTransform {
   transform(value: string | null | undefined): string {
-    const key = (value || '').toUpperCase();
-
-    const labels: Record<string, string> = {
-      CARD: 'Tarjeta',
-      CASH: 'Efectivo',
-      SPEI: 'Transferencia SPEI',
-      PAYPAL: 'PayPal'
-    };
-
-    return labels[key] ?? 'Otro';
+    return getPaymentMethodLabel(value);
   }
 }

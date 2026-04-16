@@ -69,7 +69,7 @@
     @for (item of displayedResults; track item.activity.id) {
       <div class="tour-card" [class.--saved]="item.isSaved">
         <div class="tour-card__image">
-          @if (item.activity.pictures?.length) {
+          @if (item.activity.pictures.length) {
             <img [src]="item.activity.pictures[0]" alt="tour" />
           } @else {
             <div class="tour-card__placeholder">Sin imagen</div>

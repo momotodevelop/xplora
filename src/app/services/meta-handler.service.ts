@@ -34,10 +34,6 @@ export class MetaHandlerService {
       successUrl?: string;
     };
   }) {
-    if (!this.isBrowser) {
-      return; // No hacer nada en SSR
-    }
-
     if (options.title) {
       this.titleService.setTitle(options.title);
       this.updateOrCreateTag('og:title', options.title, 'property');
@@ -56,11 +52,14 @@ export class MetaHandlerService {
       this.updateOrCreateTag('twitter:image', resolvedImage, 'name');
     }
 
-    this.updateOrCreateTag(
-      'og:url',
-      options.url || window.location.href,
-      'property'
-    );
+    const resolvedUrl = this.resolveCurrentUrl(options.url);
+    if (resolvedUrl) {
+      this.updateOrCreateTag(
+        'og:url',
+        resolvedUrl,
+        'property'
+      );
+    }
 
     this.updateOrCreateTag(
       'og:type',
@@ -112,9 +111,24 @@ export class MetaHandlerService {
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
       return trimmed;
     }
+    if (!this.isBrowser) {
+      return trimmed;
+    }
     if (trimmed.startsWith('//')) {
       return `${window.location.protocol}${trimmed}`;
     }
     return new URL(trimmed, window.location.origin).toString();
+  }
+
+  private resolveCurrentUrl(url?: string): string {
+    if (url?.trim()) {
+      return url.trim();
+    }
+
+    if (!this.isBrowser) {
+      return '';
+    }
+
+    return window.location.href;
   }
 }

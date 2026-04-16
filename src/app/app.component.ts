@@ -1,9 +1,7 @@
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, Injector, OnInit, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FooterComponent } from './components/footer/footer.component';
 import { NavHeaderComponent } from './components/nav-header/nav-header.component';
-import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
-import { MatButtonModule } from '@angular/material/button';
 import {} from '@angular/common/http';
 import { SharedDataService } from './services/shared-data.service';
 import { AsyncPipe, CommonModule, DatePipe, TitleCasePipe, isPlatformBrowser } from '@angular/common';
@@ -17,8 +15,6 @@ import { GoogleTagManagerService } from 'angular-google-tag-manager';
         RouterOutlet,
         FooterComponent,
         NavHeaderComponent,
-        MatBottomSheetModule,
-        MatButtonModule,
         CommonModule
     ],
     templateUrl: './app.component.html',
@@ -33,7 +29,7 @@ export class AppComponent implements OnInit {
   constructor(
     public shared: SharedDataService,
     @Inject(PLATFORM_ID) platformId: Object,
-    private gtmService: GoogleTagManagerService
+    private injector: Injector
   ){
     this.isBrowser = isPlatformBrowser(platformId);
     this.shared.hideNav.subscribe(hidden=>{
@@ -42,7 +38,7 @@ export class AppComponent implements OnInit {
   }
   ngOnInit(): void {
     if (this.isBrowser) {
-      this.gtmService.addGtmToDom();
+      this.injector.get(GoogleTagManagerService).addGtmToDom();
     }
   }
 }

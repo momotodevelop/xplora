@@ -1,9 +1,9 @@
-@if(booking!==undefined){
-<section class="pt-40 pb-40 bg-light-2" style="min-height: 280px; display: flex; align-items: center;">
+@if(booking!==undefined && summary){
+<section class="pt-40 pb-40 bg-light-2 confirmation-hero">
     <div class="container">
         <div class="row">
             <div class="col-12">
-                <div class="text-center" style="display: flex;flex-direction: column;align-items: center;">
+                <div class="text-center confirmation-hero__content">
                     <div class="size-80 flex-center rounded-full bg-dark-3">
                         @if(booking.status==="CONFIRMED"){
                             <fa-icon class="text-30 text-white" [icon]="iconConfirmed"></fa-icon>
@@ -15,31 +15,17 @@
                             <fa-icon class="text-30 text-white" [icon]="iconPending"></fa-icon>
                         }
                     </div>
-                    <h1 class="fw-600">
-                        @switch(booking.status){
-                            @case("CONFIRMED"){
-                                ¡Tu reservación fue confirmada exitosamente!
-                            }
-                            @case("PENDING"){
-                                Tu reservación está pendiente de confirmación.
-                            }
-                            @case("CANCELED"){
-                                Tu reservación ha sido cancelada.
-                            }
-                            @case("VALIDATING"){
-                                Tu reservación está en proceso de validación.
-                            }
-                        }
-                        
-                    </h1>
+                    <h1 class="fw-600">{{summary.headline}}</h1>
+                    <div class="confirmation-hero__badges">
+                        <span [class]="getBadgeClass(summary.lifecycleTone)">{{summary.lifecycleLabel}}</span>
+                        <span [class]="getBadgeClass(summary.paymentTone)">{{summary.paymentStatusLabel}}</span>
+                    </div>
                     @if(booking.status === 'CANCELED'){
                         <p class="text-dark-1">{{booking.contact!.name|titlecase}}, lamentamos que tu reservación haya sido cancelada. Si necesitas asistencia, por favor contáctanos a través de <a (click)="openContactWhatsApp()" class="text-blue-1 fw-500">WhatsApp</a>.</p>
                     }@else{
                         <p class="text-dark-1">{{booking.contact!.name|titlecase}}, te hemos enviado los detalles de tu reservación al correo: <b>{{booking.contact!.email}}</b></p>
                     }
-                    @if(booking.status==='VALIDATING'){
-                        <div class="text-dark-1">Estamos realizando una validación adicional por motivos de seguridad en el pago. Te notificaremos por correo electrónico una vez que se haya completado este proceso.</div>
-                    }
+                    <div class="text-dark-1 confirmation-hero__message">{{summary.publicMessage}}</div>
                 </div>
             </div>
         </div>
@@ -52,35 +38,20 @@
                     <div class="row">
                         <div class="col-lg-3 col-md-6">
                             <div class="text-15 lh-12">Localizador</div>
-                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">{{booking.created!.seconds}}</div>
+                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">{{pnr|uppercase}}</div>
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <div class="text-15 lh-12">Estatus</div>
-                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">
-                                @switch(booking.status){
-                                    @case("CONFIRMED"){
-                                        Confirmada
-                                    }
-                                    @case("PENDING"){
-                                        Pendiente
-                                    }
-                                    @case("VALIDATING"){
-                                        En Validación
-                                    }
-                                    @case("CANCELED"){
-                                        Cancelada
-                                    }
-                                }
-                            </div>
+                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">{{summary.lifecycleLabel}}</div>
                         </div>
                         <div class="col-lg-3 col-md-6">
-                            <div class="text-15 lh-12">Total</div>
-                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">{{total|currency:'MXN'}}</div>
+                            <div class="text-15 lh-12">Total confirmado</div>
+                            <div class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">{{summary.pricing.confirmedTotal|currency:'MXN'}}</div>
                         </div>
                         <div class="col-lg-3 col-md-6">
-                            <div class="text-15 lh-12">Confirmación</div>
+                            <div class="text-15 lh-12">Saldo pendiente</div>
                             <div style="white-space: nowrap;overflow: hidden;text-overflow: ellipsis;" class="text-15 lh-12 fw-500 text-blue-1 mt-10 sm:mt-0 sm:mb-10">
-                                {{pnr|uppercase}}
+                                {{summary.pricing.balance|currency:'MXN'}}
                             </div>
                             
                         </div>
@@ -104,117 +75,158 @@
                         <div class="col-12">
                             <div class="d-flex justify-between border-top-light pt-10">
                             <div class="text-15 lh-16">Servicio:</div>
-                            <div class="text-15 lh-16 fw-500 text-blue-1 text-right">Transportación Aérea</div>
+                            <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.serviceLabel}}</div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="border-light rounded-8 px-50 py-40 mt-30">
-                    <h4 class="text-20 fw-500 mb-30">Pasajeros</h4>
-                    <div class="row y-gap-10">
-                        @for(passenger of booking.flightDetails!.passengers.details; track passenger; let first =  $first){
                         <div class="col-12">
-                            <div class="d-flex justify-between" [ngClass]="{'border-top-light pt-10': !first}">
-                                    <div class="text-15 lh-16">{{passenger.name|titlecase}} {{passenger.lastname|titlecase}}</div>
-                                    <div class="text-15 lh-16 fw-500 text-blue-1 text-right">
-                                        @switch(passenger.type){
-                                            @case("ADULT"){
-                                                Adulto
-                                            }
-                                            @case("CHILDREN"){
-                                                Menor
-                                            }
-                                            @case("INFANT"){
-                                                Infante
-                                            }
-                                        }
-                                    </div>
+                            <div class="d-flex justify-between border-top-light pt-10">
+                            <div class="text-15 lh-16">Resumen del producto:</div>
+                            <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.routeLabel}}</div>
                             </div>
                         </div>
+                        @if(summary.supplierReference){
+                            <div class="col-12">
+                                <div class="d-flex justify-between border-top-light pt-10">
+                                <div class="text-15 lh-16">Referencia de proveedor:</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.supplierReference}}</div>
+                                </div>
+                            </div>
                         }
                     </div>
                 </div>
-                @if(booking.status==='PENDING'){
-                    <div class="d-flex items-center justify-between bg-warning-1 mt-30 pl-30 py-30 pr-30 rounded-8">
-                        <div class="row y-gap-20">
-                            <div class="col-12 col-md-9">
-                                <h5 class="alert-heading text-warning-2"><fa-icon [icon]="iconPending"></fa-icon> Reservación Pendiente</h5>
-                                <div class="text-warning-2 lh-1 fw-500" style="text-align: justify;">
-                                    @if(pendingAmount>0){
-                                    @switch(booking.payment!.method){
-                                        @case('CASH') {
-                                            El pago en efectivo se encuentra pendiente. Completa tu pago ahora y asegura tu tarifa antes de que caduque la reservación.
-                                        }
-                                        @case('SPEI') {
-                                            Tu pago por transferencia SPEI está pendiente. Realízalo cuanto antes para garantizar la disponibilidad y el precio de tu reservación.
-                                        }
-                                        @case('CARD') {
-                                            El cargo a tu tarjeta aún no se ha completado. Intenta nuevamente o utiliza otro método de pago para confirmar tu reservación.
-                                        }
-                                    }
-                                }
+                @if(booking.type==='FLIGHT' && booking.flightDetails?.passengers?.details?.length){
+                    <div class="border-light rounded-8 px-50 py-40 mt-30">
+                        <h4 class="text-20 fw-500 mb-30">Pasajeros</h4>
+                        <div class="row y-gap-10">
+                            @for(passenger of booking.flightDetails!.passengers.details; track passenger; let first =  $first){
+                            <div class="col-12">
+                                <div class="d-flex justify-between" [ngClass]="{'border-top-light pt-10': !first}">
+                                        <div class="text-15 lh-16">{{passenger.name|titlecase}} {{passenger.lastname|titlecase}}</div>
+                                        <div class="text-15 lh-16 fw-500 text-blue-1 text-right">
+                                            @switch(passenger.type){
+                                                @case("ADULT"){
+                                                    Adulto
+                                                }
+                                                @case("CHILDREN"){
+                                                    Menor
+                                                }
+                                                @case("INFANT"){
+                                                    Infante
+                                                }
+                                            }
+                                        </div>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-3 d-flex align-items">
-                                <button class="button w-100 -md -dark-1 bg-yellow-1 text-dark-1">Pagar Ahora</button>
+                            }
+                        </div>
+                    </div>
+                } @else if(booking.type==='HOTEL' && booking.hotelDetails){
+                    <div class="border-light rounded-8 px-50 py-40 mt-30">
+                        <h4 class="text-20 fw-500 mb-30">Tu estancia</h4>
+                        <div class="row y-gap-10">
+                            <div class="col-12">
+                                <div class="d-flex justify-between">
+                                    <div class="text-15 lh-16">Hotel</div>
+                                    <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{booking.hotelDetails.hotel.name}}</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-between border-top-light pt-10">
+                                    <div class="text-15 lh-16">Check-in</div>
+                                    <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{toDate(booking.hotelDetails.checkin)|date:'dd MMM y'|titlecase}}</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-between border-top-light pt-10">
+                                    <div class="text-15 lh-16">Check-out</div>
+                                    <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{toDate(booking.hotelDetails.checkout)|date:'dd MMM y'|titlecase}}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                }             
+                }
+
+                @if(summary.canPay || booking.status==='VALIDATING'){
+                    <div class="confirmation-callout mt-30">
+                        <div>
+                            <h5>{{summary.lifecycleLabel}}</h5>
+                            <p>{{summary.customerNextStep}}</p>
+                        </div>
+                        @if(summary.canPay){
+                            <a class="button w-100 -md -dark-1 bg-yellow-1 text-dark-1 confirmation-callout__button" [href]="getPaymentUrl()">Pagar ahora</a>
+                        }
+                    </div>
+                }
+
                 <div class="border-light rounded-8 px-50 py-40 mt-30">
-                    <h4 class="text-20 fw-500 mb-30">Información de pago</h4>
+                    <h4 class="text-20 fw-500 mb-30">Pago y transparencia</h4>
                     <div class="row y-gap-10">
                         <div class="col-12">
                             <div class="d-flex justify-between">
-                                <div class="text-15 lh-16">Metodo de pago:</div>
-                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">
-                                    @switch(booking.payment!.method) {
-                                        @case ("CASH") {
-                                            Efectivo
-                                        }
-                                        @case ("SPEI") {
-                                            Transferencia SPEI
-                                        }
-                                        @case ("CARD") {
-                                            Tarjeta de crédito/débito
-                                        }
-                                    }
-                                </div>
+                                <div class="text-15 lh-16">Método de pago:</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.paymentMethodLabel}}</div>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="d-flex justify-between border-top-light pt-10">
                                 <div class="text-15 lh-16">Estatus del pago:</div>
-                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">
-                                    @if(pendingAmount>0){
-                                        Pendiente
-                                    }@else{
-                                        Completado
-                                    }
-                                </div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.paymentStatusLabel}}</div>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="d-flex justify-between border-top-light pt-10">
-                                <div class="text-15 lh-16">Total a pagar:</div>
-                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{booking.payment!.totalDue|currency:'MXN'}}</div>
+                                <div class="text-15 lh-16">Precio cotizado inicialmente:</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.pricing.quotedTotal|currency:'MXN'}}</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-between border-top-light pt-10">
+                                <div class="text-15 lh-16">Total confirmado:</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.pricing.confirmedTotal|currency:'MXN'}}</div>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="d-flex justify-between border-top-light pt-10">
                                 <div class="text-15 lh-16">Total pagado:</div>
-                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{booking.payment!.payed|currency:'MXN'}}</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.pricing.amountPaid|currency:'MXN'}}</div>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="d-flex justify-between border-top-light pt-10">
                                 <div class="text-15 lh-16">Saldo pendiente:</div>
-                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{pendingAmount|currency:'MXN'}}</div>
+                                <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.pricing.balance|currency:'MXN'}}</div>
                             </div>
                         </div>
-                        @if(booking.status==="PENDING"&&pendingAmount>0){
+                        @if(summary.paymentDeadline){
+                            <div class="col-12">
+                                <div class="d-flex justify-between border-top-light pt-10">
+                                    <div class="text-15 lh-16">Límite de pago:</div>
+                                    <div class="text-15 lh-16 fw-500 text-blue-1 text-right">{{summary.paymentDeadline|date:'dd MMM y, HH:mm'|titlecase}}</div>
+                                </div>
+                            </div>
+                        }
+                        <div class="col-12">
+                            <div class="confirmation-transparency-note">{{summary.customerNote}}</div>
+                        </div>
+                        @if(summary.canPay){
                             <div class="col-12" style="display: flex; justify-content: flex-end;">
-                                <button class="button -md -blue-1 bg-dark-3 text-white">Completar Pago</button>
+                                <a class="button -md -blue-1 bg-dark-3 text-white" [href]="getPaymentUrl()">Completar pago</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="border-light rounded-8 px-50 py-40 mt-30">
+                    <h4 class="text-20 fw-500 mb-30">Próximos pasos</h4>
+                    <div class="confirmation-timeline">
+                        @for(item of summary.customerTimeline; track item.label){
+                            <div class="confirmation-timeline__item">
+                                <span [class]="getBadgeClass(item.tone)">{{item.label}}</span>
+                                <div class="confirmation-timeline__copy">
+                                    <strong>{{item.description}}</strong>
+                                    @if(item.date){
+                                        <small>{{item.date | date:'dd MMM y, HH:mm' | titlecase}}</small>
+                                    }
+                                </div>
                             </div>
                         }
                     </div>
@@ -224,9 +236,28 @@
                 @if(booking!==undefined){
                     @if(booking.type==='FLIGHT'){
                         <app-flight-confirmation-sidebar [booking]="toFlightBooking(booking)"></app-flight-confirmation-sidebar>
+                    } @else {
+                        <div class="border-light rounded-8 px-30 py-30">
+                            <div class="text-20 fw-500 mb-20">Resumen</div>
+                            <div class="text-15 mb-10">{{summary.routeLabel}}</div>
+                            <div class="text-14 text-light-1 mb-20">{{summary.publicMessage}}</div>
+                            <div class="text-18 fw-600">{{summary.pricing.confirmedTotal | currency:'MXN'}}</div>
+                            <div class="text-14 text-light-1">Total confirmado</div>
+                        </div>
                     }
                 }
             </div>
         </div>
     </div>
+}
+@else if(loadError){
+<section class="pt-60 pb-60 bg-light-2">
+    <div class="container">
+        <div class="border-light rounded-16 bg-white px-40 py-40 text-center">
+            <h1 class="text-28 fw-600 mb-16">No pudimos cargar tu confirmación</h1>
+            <p class="text-16 text-light-1 mb-24">{{loadError}}</p>
+            <a class="button -md -dark-1 bg-blue-1 text-white" (click)="openContactWhatsApp()">Solicitar ayuda por WhatsApp</a>
+        </div>
+    </div>
+</section>
 }

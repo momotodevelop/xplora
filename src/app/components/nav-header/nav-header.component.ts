@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, Injector, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { HeaderType, SharedDataService } from '../../services/shared-data.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { SanityService } from '../../services/sanity.service';
 import { NavigationItem } from '../../types/sanity.types';
 import { MenuItem } from '../../types/navigation.types';
@@ -24,6 +24,7 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
   headerType:HeaderType="light";
   dashboard:boolean=false;
   booking:boolean=false;
+  private readonly isBrowser: boolean;
   menuItems:MenuItem []=[
     {
       name: "Inicio",
@@ -65,11 +66,12 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
   @ViewChild('header', {read: ElementRef, static:false}) headerElement!: ElementRef;
   constructor(
     public shared: SharedDataService,
-    private auth: FireAuthService,
-    private dialog: MatDialog,
     private router: Router,
-    private bottomSheet: MatBottomSheet
-  ){}
+    private injector: Injector,
+    @Inject(PLATFORM_ID) platformId: Object
+  ){
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
   user?:User;
   hide:boolean=false;
   userData:UserData|null = null;
@@ -83,8 +85,14 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
     this.shared.headerBooking.subscribe(isBooking=>{this.booking=isBooking});
     this.shared.hideNav.subscribe(isHidden=>{
       this.hide=isHidden;
-    })
-    this.auth.user.subscribe(user=>{
+    });
+
+    if (!this.isBrowser) {
+      return;
+    }
+
+    const auth = this.injector.get(FireAuthService);
+    auth.user.subscribe(user=>{
       if(user){
         this.user=user;
         console.log("User logged in:", user);
@@ -93,21 +101,34 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
         this.user=undefined;
       }
     });
-    this.auth.data.subscribe(data=>{
+    auth.data.subscribe(data=>{
       this.userData = data;
     });
   }
   ngAfterViewInit(): void {
-    this.shared.changeHeaderHeight(this.headerElement.nativeElement.offsetHeight);
+    if (this.isBrowser && this.headerElement?.nativeElement) {
+      this.shared.changeHeaderHeight(this.headerElement.nativeElement.offsetHeight);
+    }
   }
   login(){
-    this.bottomSheet.open(BookingProcessLoginBottomsheetComponent, {panelClass: 'custom-bottom-sheet'});
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatBottomSheet).open(BookingProcessLoginBottomsheetComponent, {
+      panelClass: 'custom-bottom-sheet'
+    });
   }
   logout(){
-    this.auth.logout();
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(FireAuthService).logout();
   }
   exit(){
-    this.dialog.open(BookingProcessExitDialogComponent, {
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatDialog).open(BookingProcessExitDialogComponent, {
       disableClose: true,
       width: '350px'
     }).afterClosed().subscribe(result=>{

@@ -99,12 +99,12 @@
                         }@else{
                             <ul>
                                 <li class="only-for-canvas hidden-for-screen">
-                                    ‼️ Realiza tu pago antes de: <b>{{booking.payment!.paymentLimit!.toDate()|date:'medium'}}</b>
+                                    ‼️ Realiza tu pago antes de: <b>{{booking.payment!.paymentLimit!.toDate()|date:'long'|uppercase}}</b>
                                 </li>
                                 @for(step of instructionSteps; track $index){
                                     <li>
                                         <div class="d-flex gap-10">
-                                            <span>{{getStepLabel($index + 1)}}</span>
+                                            <span>{{getStepLabel($index + 1)}}</span>&nbsp;
                                             <div class="flex-grow-1">
                                                 @if(step.title){
                                                     <div class="fw-600 mb-5">{{formatText(step.title)}}</div>

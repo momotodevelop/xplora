@@ -44,7 +44,7 @@ export class FlightConfirmationSidebarComponent implements OnChanges {
           new Date(_.last(this.booking.flightDetails!.flights.inbound.offer!.itineraries[0].segments)!.arrival.at)
         ]
       }
-      this.grandTotal = this.booking.payment!.amount;
+      this.grandTotal = this.booking.payment?.totalDue ?? this.booking.payment?.amount ?? 0;
       if(this.booking.payment?.promo!==undefined){
         //this.discountedAmmount = this.booking.payment.originalAmount-this.booking.payment.promo.amount;
       }

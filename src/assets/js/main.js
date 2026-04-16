@@ -1004,7 +1004,7 @@ const RevealAnim = (function() {
 
   function pieChart(target, animDelay = 0) {
   
-    const counterVal = target.getAttribute('data-percent');
+    let counterVal = target.getAttribute('data-percent');
     const chartBar = target.querySelector('.js-chart-bar');
     
     if (counterVal < 0) { counterVal = 0;}
@@ -1072,7 +1072,7 @@ const RevealAnim = (function() {
   
   function counter(target, animDelay = 0) {
   
-    const counterVal = target.getAttribute('data-counter');
+    let counterVal = target.getAttribute('data-counter');
     const counterAdd = target.getAttribute('data-counter-add');
     const totalDelay = animDelay;
     let symbols = '';
@@ -1298,7 +1298,6 @@ function sectionSlider() {
       loop: loop,
       loopAdditionalSlides: 1,
       preloadImages: false,
-      lazy: true,
       width: 250,
       
       scrollbar: scrollbar,

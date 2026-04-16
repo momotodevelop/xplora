@@ -1,0 +1,150 @@
+.booking-section-card {
+    background: #fff;
+    border: 1px solid #e7ebf3;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px;
+}
+
+.booking-section-card__eyebrow {
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.booking-section-card__title {
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.booking-section-card__detail,
+.booking-section-card__hint {
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.booking-section-card__highlight {
+    color: #123a72;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.booking-summary-row {
+    align-items: center;
+    border-bottom: 1px solid #eef2f7;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding-bottom: 10px;
+}
+
+.booking-summary-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.booking-summary-row--stacked {
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+.booking-summary-row--stacked small {
+    color: #64748b;
+}
+
+.booking-summary-row__label {
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.destination-label{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    display: block;
+}
+
+.text-danger {
+    color: #b91c1c;
+}
+
+.link-disabled {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.booking-section-card__hint {
+    font-size: 13px;
+}
+
+:host ::ng-deep .booking-badge {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 8px 12px;
+}
+
+:host ::ng-deep .booking-badge--success {
+    background: #e7f8ee;
+    color: #0f8a4b;
+}
+
+:host ::ng-deep .booking-badge--warning {
+    background: #fff4d8;
+    color: #a16207;
+}
+
+:host ::ng-deep .booking-badge--danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+:host ::ng-deep .booking-badge--info {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+:host ::ng-deep .booking-badge--neutral {
+    background: #eef2f7;
+    color: #475569;
+}
+
+@media (max-width: 767px) {
+    .booking-section-card {
+        border-radius: 14px;
+        gap: 8px;
+        padding: 16px;
+    }
+
+    .booking-section-card__title {
+        font-size: 18px;
+    }
+
+    .booking-section-card__detail,
+    .booking-section-card__hint,
+    .booking-section-card__highlight {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .booking-summary-row {
+        align-items: flex-start;
+    }
+
+    .booking-summary-row strong,
+    .booking-summary-row .booking-badge {
+        text-align: right;
+    }
+}

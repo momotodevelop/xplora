@@ -1,0 +1,82 @@
+<div class="p-20" style="max-width: 840px;">
+    <div class="d-flex justify-between items-center mb-10">
+        <h3 class="mb-0">Editar pasajeros</h3>
+        @let counts = getCountsPreview();
+        <div class="text-muted text-14">
+            ADT {{counts.adults}} · CHD {{counts.childrens}} · INF {{counts.infants}}
+        </div>
+    </div>
+    <form [formGroup]="form" class="row y-gap-15">
+        <div class="col-12 d-flex x-gap-10 flex-wrap">
+            <button mat-stroked-button type="button" (click)="addPassenger('ADULT')">Agregar adulto</button>
+            <button mat-stroked-button type="button" (click)="addPassenger('CHILDREN')">Agregar menor</button>
+            <button mat-stroked-button type="button" (click)="addPassenger('INFANT')">Agregar infante</button>
+        </div>
+        <div class="col-12">
+            <div formArrayName="passengers" class="row y-gap-15">
+                @for(passenger of passengers.controls; track passenger; let i = $index){
+                    <div class="col-12">
+                        <div [formGroupName]="i" class="rounded-12 border p-15">
+                            <div class="d-flex justify-between items-center mb-10">
+                                <div class="fw-600">Pasajero {{i + 1}}</div>
+                                <button mat-stroked-button color="warn" type="button" (click)="removePassenger(i)">Eliminar</button>
+                            </div>
+                            <div class="row y-gap-10">
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Tipo</mat-label>
+                                        <mat-select formControlName="type">
+                                            <mat-option value="ADULT">Adulto</mat-option>
+                                            <mat-option value="CHILDREN">Menor</mat-option>
+                                            <mat-option value="INFANT">Infante</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Nombre</mat-label>
+                                        <input matInput formControlName="name" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Apellido</mat-label>
+                                        <input matInput formControlName="lastname" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-3">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Género</mat-label>
+                                        <mat-select formControlName="gender">
+                                            <mat-option value="MALE">Masculino</mat-option>
+                                            <mat-option value="FEMALE">Femenino</mat-option>
+                                            <mat-option value="OTHER">Otro</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
+                                <div class="col-md-4">
+                                    <mat-form-field appearance="outline" class="w-100">
+                                        <mat-label>Fecha de nacimiento</mat-label>
+                                        <input matInput [matDatepicker]="picker" formControlName="birth" />
+                                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                        <mat-datepicker #picker></mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="rounded-8 bg-light-2 px-15 py-12 text-14 text-muted">
+                El conteo de pasajeros se actualizará al guardar. Si agregaste pasajeros nuevos, revisa también el desglose de cargos y el total confirmado.
+            </div>
+        </div>
+        <div class="col-12 d-flex justify-end">
+            <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
+                Guardar
+            </button>
+        </div>
+    </form>
+</div>

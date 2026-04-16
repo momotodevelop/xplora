@@ -1,0 +1,77 @@
+<div class="p-20" style="max-width: 720px;">
+    <h3 class="mb-10">Editar cliente y contacto</h3>
+    <form [formGroup]="form" class="row y-gap-15">
+        <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Nombre</mat-label>
+                <input matInput formControlName="name" />
+            </mat-form-field>
+        </div>
+        <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Apellido</mat-label>
+                <input matInput formControlName="lastname" />
+            </mat-form-field>
+        </div>
+        <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Correo</mat-label>
+                <input matInput formControlName="email" />
+            </mat-form-field>
+        </div>
+        <div class="col-md-3">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Lada</mat-label>
+                <input matInput formControlName="country_code" />
+            </mat-form-field>
+        </div>
+        <div class="col-md-3">
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Teléfono</mat-label>
+                <input matInput formControlName="phone" />
+            </mat-form-field>
+        </div>
+        <div class="col-12">
+            <div class="rounded-12 border p-15">
+                <div class="fw-600 mb-10">Vincular con usuario existente</div>
+                <div class="row y-gap-10 items-center">
+                    <div class="col-md-6">
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Buscar usuario por email</mat-label>
+                            <input matInput formControlName="linkedUserEmail" />
+                        </mat-form-field>
+                    </div>
+                    <div class="col-md-3">
+                        <button mat-stroked-button color="primary" class="w-100" type="button" (click)="searchUsers()">
+                            Buscar
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>UID vinculado</mat-label>
+                            <input matInput formControlName="uid" />
+                        </mat-form-field>
+                    </div>
+                </div>
+                @if(foundUsers.length){
+                    <div class="mt-10 d-flex flex-column y-gap-10">
+                        @for(user of foundUsers; track user.uid){
+                            <div class="rounded-8 bg-light-2 px-12 py-10 d-flex justify-between items-center">
+                                <div>
+                                    <div class="fw-600">{{user.name || 'Usuario'}} {{user.lastName || ''}}</div>
+                                    <small class="text-muted">{{user.email || 'Sin correo'}} · {{user.uid}}</small>
+                                </div>
+                                <button mat-stroked-button type="button" (click)="selectUser(user)">Vincular</button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-12 d-flex justify-end">
+            <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
+                Guardar
+            </button>
+        </div>
+    </form>
+</div>

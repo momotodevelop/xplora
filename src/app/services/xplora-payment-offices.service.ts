@@ -26,8 +26,7 @@ export class XploraPaymentOfficesService {
   }
 
   async saveOffice(office: PaymentOffice): Promise<string> {
-    const normalized = this.normalizeOffice(office);
-    const { id, ...payload } = normalized;
+    const { id, ...payload } = this.buildOfficePayload(office);
     const now = Timestamp.fromDate(new Date());
     if (id) {
       await setDoc(doc(this.firestore, this.collectionPath, id), {
@@ -47,6 +46,11 @@ export class XploraPaymentOfficesService {
   async deleteOffice(id: string): Promise<void> {
     if (!id) return;
     await deleteDoc(doc(this.firestore, this.collectionPath, id));
+  }
+
+  private buildOfficePayload(office: PaymentOffice): PaymentOffice {
+    const normalized = this.normalizeOffice(office);
+    return this.removeUndefined(normalized);
   }
 
   private normalizeOffices(offices: Partial<PaymentOffice>[]): PaymentOffice[] {
@@ -172,5 +176,33 @@ export class XploraPaymentOfficesService {
     }
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private removeUndefined<T>(value: T): T {
+    if (value === undefined || value === null) {
+      return value;
+    }
+
+    if (value instanceof Date || value instanceof Timestamp) {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return value
+        .map(item => this.removeUndefined(item))
+        .filter(item => item !== undefined) as T;
+    }
+
+    if (typeof value !== 'object') {
+      return value;
+    }
+
+    return Object.entries(value as Record<string, unknown>).reduce((result, [key, entryValue]) => {
+      if (entryValue === undefined) {
+        return result;
+      }
+      result[key] = this.removeUndefined(entryValue);
+      return result;
+    }, {} as Record<string, unknown>) as T;
   }
 }

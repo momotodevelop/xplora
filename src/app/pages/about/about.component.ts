@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, Inject, Injector, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { TripadvisorComponent } from './tripadvisor/tripadvisor.component';
 import { SecturComponent } from './sectur/sectur.component';
@@ -330,7 +331,15 @@ export const OPINIONS: Opinion[] = [
 export class AboutComponent {
   opinions:Opinion[]=OPINIONS;
   rating:number=0;
-  constructor(private bs: MatBottomSheet, private shared: SharedDataService, private meta: MetaHandlerService){
+  private readonly isBrowser: boolean;
+
+  constructor(
+    private shared: SharedDataService,
+    private meta: MetaHandlerService,
+    private injector: Injector,
+    @Inject(PLATFORM_ID) platformId: Object
+  ){
+    this.isBrowser = isPlatformBrowser(platformId);
     this.rating = this.calcularPromedio(this.opinions);
     this.shared.changeHeaderType("dark");
     this.meta.setMeta({
@@ -348,15 +357,27 @@ export class AboutComponent {
     return Math.round(promedio * 100) / 100; // Redondear a 2 decimales
   }
   openTA(){
-    this.bs.open(TripadvisorComponent, {panelClass: 'bottomsheet-no-padding'});
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatBottomSheet).open(TripadvisorComponent, {panelClass: 'bottomsheet-no-padding'});
   }
   openRNT(){
-    this.bs.open(SecturComponent, {panelClass: 'bottomsheet-no-padding'});
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatBottomSheet).open(SecturComponent, {panelClass: 'bottomsheet-no-padding'});
   }
   openAMAV(){
-    this.bs.open(AmavComponent, {panelClass: 'bottomsheet-no-padding'});
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatBottomSheet).open(AmavComponent, {panelClass: 'bottomsheet-no-padding'});
   }
   openIATA(){
-    this.bs.open(IataComponent, {panelClass: 'bottomsheet-no-padding'});
+    if (!this.isBrowser) {
+      return;
+    }
+    this.injector.get(MatBottomSheet).open(IataComponent, {panelClass: 'bottomsheet-no-padding'});
   }
 }

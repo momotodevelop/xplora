@@ -1,43 +1,148 @@
-<div>
-    <div class="dashboard__content bg-light-2" [ngStyle]="{'min-height': 'calc(100vh - ' + headerHeight + 'px)'}">
-        <div class="row y-gap-20 justify-between items-end pb-60 lg:pb-40 md:pb-32">
-            <div class="col-auto">
-            <h1 class="text-30 lh-14 fw-600">Tus reservaciones</h1>
-            <div class="text-15 text-light-1">Aquí puedes consultar el estado y detalles de todas tus reservaciones.</div>
-            </div>
-            <div class="col-auto">
-            </div>
-        </div>
-        <mat-accordion class="bookings-accordion">
-            @for (booking of bookingList; track booking.bookingID) {
-                <mat-expansion-panel>
-                    <mat-expansion-panel-header>
-                        <mat-panel-title>
-                            @switch (booking.type) {
-                                @case("FLIGHT") {
-                                    <mat-icon>flight</mat-icon>
-                                }
-                                @case("HOTEL") {
-                                    <mat-icon>local_hotel</mat-icon>
-                                }
-                                @case("CAR_RENTAL") {
-                                    <mat-icon>directions_car</mat-icon>
-                                }
-                            }
-                            <b class="ml-20">{{ booking.bookingID!.slice(-6) | uppercase }}</b>
-                        </mat-panel-title>
-                        <mat-panel-description>
-                            <div>
-                                {{booking.payment?.method!|paymentMethod}}
-                            </div>
-                            <div>
-                                {{booking.payment?.amount|currency:'MXN'}}
-                            </div>
-                        </mat-panel-description>
-                    </mat-expansion-panel-header>
-                    <app-admin-booking-quick-details [booking]="booking"></app-admin-booking-quick-details>
-                </mat-expansion-panel>
-            }
-        </mat-accordion>
+<div class="admin-bookings-page">
+  <div class="dashboard__content bg-light-2" [ngStyle]="{'min-height': 'calc(100vh - ' + headerHeight + 'px)'}">
+    <div class="row y-gap-20 justify-between items-end pb-30 lg:pb-24 md:pb-20">
+      <div class="col-auto">
+        <h1 class="text-30 lh-14 fw-600">Reservaciones operativas</h1>
+        <div class="text-15 text-light-1">Consulta, filtra y opera reservas con una misma lectura de estado, pago y siguientes pasos.</div>
+      </div>
     </div>
+
+    @let kpis = getOperationalKpis();
+    <div class="row y-gap-16 mb-24">
+      <div class="col-xl-3 col-md-6">
+        <div class="booking-kpi-card">
+          <span class="booking-kpi-card__label">Mostrando</span>
+          <strong class="booking-kpi-card__value">{{kpis.total}}</strong>
+          <span class="booking-kpi-card__help">reservaciones filtradas</span>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="booking-kpi-card">
+          <span class="booking-kpi-card__label">Con acción pendiente</span>
+          <strong class="booking-kpi-card__value">{{kpis.pendingAction}}</strong>
+          <span class="booking-kpi-card__help">pagos o validaciones</span>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="booking-kpi-card">
+          <span class="booking-kpi-card__label">Saldo pendiente</span>
+          <strong class="booking-kpi-card__value">{{kpis.pendingBalance | currency:'MXN'}}</strong>
+          <span class="booking-kpi-card__help">sobre el conjunto mostrado</span>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="booking-kpi-card">
+          <span class="booking-kpi-card__label">Confirmadas</span>
+          <strong class="booking-kpi-card__value">{{kpis.confirmed}}</strong>
+          <span class="booking-kpi-card__help">listas para postventa</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="booking-filters mb-24">
+      <div class="row y-gap-16">
+        <div class="col-xl-4 col-md-6">
+          <label class="booking-filters__label" for="booking-search">Buscar</label>
+          <input
+            id="booking-search"
+            type="text"
+            class="form-control"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilters()"
+            placeholder="PNR, cliente, email, ruta o booking ID"
+          />
+        </div>
+        <div class="col-xl-2 col-md-6">
+          <label class="booking-filters__label" for="type-filter">Producto</label>
+          <select id="type-filter" class="form-select" [(ngModel)]="typeFilter" (ngModelChange)="applyFilters()">
+            @for(option of typeOptions; track option){
+              <option [value]="option">{{option === 'ALL' ? 'Todos' : option}}</option>
+            }
+          </select>
+        </div>
+        <div class="col-xl-2 col-md-6">
+          <label class="booking-filters__label" for="status-filter">Estado reserva</label>
+          <select id="status-filter" class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+            @for(option of statusOptions; track option){
+              <option [value]="option">{{option === 'ALL' ? 'Todos' : option}}</option>
+            }
+          </select>
+        </div>
+        <div class="col-xl-2 col-md-6">
+          <label class="booking-filters__label" for="payment-status-filter">Estado pago</label>
+          <select id="payment-status-filter" class="form-select" [(ngModel)]="paymentStatusFilter" (ngModelChange)="applyFilters()">
+            @for(option of paymentStatusOptions; track option){
+              <option [value]="option">{{option === 'ALL' ? 'Todos' : option}}</option>
+            }
+          </select>
+        </div>
+        <div class="col-xl-2 col-md-6">
+          <label class="booking-filters__label" for="payment-method-filter">Método</label>
+          <select id="payment-method-filter" class="form-select" [(ngModel)]="paymentMethodFilter" (ngModelChange)="applyFilters()">
+            @for(option of paymentMethodOptions; track option){
+              <option [value]="option">{{option === 'ALL' ? 'Todos' : option}}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+
+    @if(filteredBookingList.length){
+      <mat-accordion class="bookings-accordion">
+        @for (booking of filteredBookingList; track booking.bookingID) {
+          @let summary = getSummary(booking);
+          <mat-expansion-panel class="booking-panel">
+            <mat-expansion-panel-header class="booking-panel__header">
+              <mat-panel-title>
+                <div class="booking-panel__title">
+                  <div class="booking-panel__icon">
+                    <mat-icon>{{getBookingIcon(booking.type)}}</mat-icon>
+                  </div>
+                  <div class="booking-panel__identity">
+                    <div class="booking-panel__ref">#{{summary.shortReference}} · {{summary.typeLabel}}</div>
+                    <div class="booking-panel__route">{{summary.routeLabel}}</div>
+                    <div class="booking-panel__meta">{{summary.travelerName}} · {{booking.contact?.email || 'sin correo'}} · {{booking.created?.toDate() | date:'dd MMM y, HH:mm'}}</div>
+                  </div>
+                </div>
+              </mat-panel-title>
+              <mat-panel-description>
+                <div class="booking-panel__description">
+                  <div class="booking-panel__badges">
+                    <span [class]="getBadgeClass(summary.lifecycleTone)">{{summary.lifecycleLabel}}</span>
+                    <span [class]="getBadgeClass(summary.paymentTone)">{{summary.paymentStatusLabel}}</span>
+                  </div>
+                  <div class="booking-panel__amounts">
+                    <small>Total confirmado</small>
+                    <strong>{{summary.pricing.confirmedTotal | currency:'MXN'}}</strong>
+                    <small>
+                      @if(summary.hasOutstandingBalance){
+                        Saldo {{summary.pricing.balance | currency:'MXN'}}
+                      } @else {
+                        Sin saldo pendiente
+                      }
+                    </small>
+                  </div>
+                </div>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <app-admin-booking-quick-details [booking]="booking"></app-admin-booking-quick-details>
+          </mat-expansion-panel>
+        }
+      </mat-accordion>
+    } @else {
+      <div class="booking-empty-state">
+        <mat-icon>search_off</mat-icon>
+        <h3>No hay reservaciones que coincidan con los filtros</h3>
+        <p>Ajusta los criterios para volver a ver resultados operativos.</p>
+      </div>
+    }
+
+    @if(lastDoc){
+      <div class="d-flex justify-center mt-24">
+        <button class="button -md -dark-1 bg-blue-1 text-white" type="button" (click)="loadMoreBookings()">
+          Cargar más reservaciones
+        </button>
+      </div>
+    }
+  </div>
 </div>

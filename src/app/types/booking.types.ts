@@ -16,6 +16,25 @@ export type PaymentMethod = "CARD"|"CASH"|"SPEI"|"PAYPAL";
 export type PaymentType = "NOW"|"DELAYED";
 export type BookingStatus = "CONFIRMED"|"PENDING"|"HOLD"|"CANCELED"|"REJECTED"|"VALIDATING";
 export type BookingTypes = 'FLIGHT' | 'HOTEL' | 'TRANSPORTATION' | 'ACTIVITY' | 'CAR_RENTAL' | 'CRUISE' | 'PACKAGE' ;
+export type ReservationServiceType = BookingTypes | 'INSURANCE' | 'BAGGAGE' | 'SEAT' | 'EXTRA';
+
+export interface ReservationLinkedService {
+    id: string;
+    type: ReservationServiceType;
+    title: string;
+    status?: string;
+    provider?: string;
+    reference?: string;
+    origin?: string;
+    destination?: string;
+    location?: string;
+    startDate?: Date | Timestamp;
+    endDate?: Date | Timestamp;
+    amount?: number;
+    quantity?: number;
+    notes?: string;
+    included?: boolean;
+}
 
 export interface FlightFirebaseBooking extends FirebaseBooking{
     type: "FLIGHT";
@@ -32,6 +51,7 @@ export interface FirebaseBooking{
     contact?: ContactInfoValue;
     uid?: string;
     referer?: string;
+    linkedServices?: ReservationLinkedService[];
     payment?: {
         type: PaymentType,
         method: PaymentMethod,

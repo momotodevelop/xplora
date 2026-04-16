@@ -3,17 +3,17 @@
 }
 
 .bg-blue-1-05 { background-color: color-opac(blue-1, .05); }
-.bg-white-10 { background-color: color-opac(white, .1); }
-.bg-white-20 { background-color: color-opac(white, .2); }
-.bg-white-50 { background-color: color-opac(white, .5); }
-.bg-black-20 { background-color: color-opac(black, .2); }
+.bg-white-10 { background-color: color-opac("white", .1); }
+.bg-white-20 { background-color: color-opac("white", .2); }
+.bg-white-50 { background-color: color-opac("white", .5); }
+.bg-black-20 { background-color: color-opac("black", .2); }
 
 @each $name, $color in $colors {
   .text-#{$name} { color: var(--color-#{$name}); }
 }
 
 .text-inherit { color: inherit; }
-.text-white-50 { color: color-opac(white, .5); }
+.text-white-50 { color: color-opac("white", .5); }
 
 
 $_displays: none, inline-block, block, flex;
@@ -111,7 +111,7 @@ $_displays: none, inline-block, block, flex;
     border-bottom: 1px solid var(--color-border);
   }
   &-white {
-    border: 1px solid white;
+    border: 1px solid #fff;
   }
   &-dark-1 {
     border: 1px solid var(--color-dark-1);
@@ -123,10 +123,10 @@ $_displays: none, inline-block, block, flex;
     border: 1px solid var(--color-blue-1);
   }
   &-white-15 {
-    border: 1px solid rgba(white, .15);
+    border: 1px solid rgba(255, 255, 255, .15);
   }
   &-top-white-15 {
-    border-top: 1px solid rgba(white, .15);
+    border-top: 1px solid rgba(255, 255, 255, .15);
   }
   &-light {
     border: 1px solid var(--color-border) !important;

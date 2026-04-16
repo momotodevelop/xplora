@@ -1,0 +1,136 @@
+.confirmation-hero {
+    align-items: center;
+    display: flex;
+    min-height: 280px;
+}
+
+.confirmation-hero__content {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.confirmation-hero__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.confirmation-hero__message {
+    max-width: 780px;
+}
+
+.confirmation-callout {
+    align-items: center;
+    background: #fff7dd;
+    border: 1px solid #f4d06f;
+    border-radius: 16px;
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    padding: 24px 28px;
+}
+
+.confirmation-callout h5,
+.confirmation-callout p {
+    margin: 0;
+}
+
+.confirmation-callout h5 {
+    color: #8a5b00;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.confirmation-callout p {
+    color: #7c5a09;
+    line-height: 1.5;
+}
+
+.confirmation-callout__button {
+    max-width: 220px;
+}
+
+.confirmation-transparency-note {
+    background: #f8fafc;
+    border-radius: 12px;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 12px 14px;
+}
+
+.confirmation-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.confirmation-timeline__item {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+}
+
+.confirmation-timeline__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.confirmation-timeline__copy strong {
+    color: #0f172a;
+    font-size: 14px;
+}
+
+.confirmation-timeline__copy small {
+    color: #64748b;
+}
+
+:host ::ng-deep .booking-badge {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 8px 12px;
+}
+
+:host ::ng-deep .booking-badge--success {
+    background: #e7f8ee;
+    color: #0f8a4b;
+}
+
+:host ::ng-deep .booking-badge--warning {
+    background: #fff4d8;
+    color: #a16207;
+}
+
+:host ::ng-deep .booking-badge--danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+:host ::ng-deep .booking-badge--info {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+:host ::ng-deep .booking-badge--neutral {
+    background: #eef2f7;
+    color: #475569;
+}
+
+@media (max-width: 767px) {
+    .confirmation-callout {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .confirmation-callout__button {
+        max-width: none;
+        width: 100%;
+    }
+}

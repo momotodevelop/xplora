@@ -45,7 +45,7 @@
                 </div>
                 <div class="col-auto">
                     <div class="text-14 text-light-1">
-                        @if(activity.originalPrice){<span style="text-decoration: line-through; margin-right: 5px;">{{activity.originalPrice?.amount | currency:activity.originalPrice?.currencyCode}}</span>} <span class="text-16 fw-500 text-dark-1">{{activity.price.amount | currency:activity.price.currencyCode}} / <fa-icon [icon]="paxIcon"></fa-icon></span>
+                        @if(activity.originalPrice){<span style="text-decoration: line-through; margin-right: 5px;">{{activity.originalPrice.amount | currency:activity.originalPrice.currencyCode}}</span>} <span class="text-16 fw-500 text-dark-1">{{activity.price.amount | currency:activity.price.currencyCode}} / <fa-icon [icon]="paxIcon"></fa-icon></span>
                     </div>
                 </div>
             </div>

@@ -1,23 +1,234 @@
 .bookings-accordion{
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
-.bookings-accordion .mat-expansion-panel-header-description {
-    justify-content: space-between;
+
+:host ::ng-deep .bookings-accordion .mat-expansion-panel {
+    border: 1px solid #e7ebf3;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-spacing {
+    margin: 0;
+}
+
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header {
+    height: auto !important;
+    min-height: 92px;
+    padding: 16px 24px;
+}
+
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header.mat-expanded {
+    height: auto !important;
+}
+
+:host ::ng-deep .bookings-accordion .mat-content {
     align-items: center;
+    gap: 20px;
+    margin: 0;
 }
-.status-indicator.status-pending{
-    color: orange;
+
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header-title,
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header-description {
+    align-items: center;
+    margin: 0;
 }
-.status-indicator.status-confirmed{
-    color: green;
+
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header-title {
+    min-width: 0;
 }
-.status-indicator.status-canceled{
-    color: red;
+
+:host ::ng-deep .bookings-accordion .mat-expansion-panel-header-description {
+    flex-basis: auto;
+    flex-grow: 0;
+    justify-content: flex-end;
+    margin-left: auto;
 }
-.status-label{
-    font-weight: bold;
-    margin-left: 5px;
+
+.traveler-bookings__kpi,
+.traveler-bookings__filters {
+    background: #fff;
+    border: 1px solid #e7ebf3;
+    border-radius: 16px;
 }
-.status-indicator{
+
+.traveler-bookings__kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 110px;
+    padding: 20px;
+}
+
+.traveler-bookings__kpi span,
+.traveler-bookings__label {
+    color: #6b7280;
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.traveler-bookings__kpi strong {
+    color: #123a72;
+    font-size: 28px;
+    line-height: 1.1;
+}
+
+.traveler-bookings__filters {
+    padding: 20px;
+}
+
+.traveler-bookings__title,
+.traveler-bookings__description {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+}
+
+.traveler-bookings__title {
+    min-width: 0;
+}
+
+.traveler-bookings__identity {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.traveler-bookings__reference {
+    color: #0f172a;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.traveler-bookings__icon {
+    align-items: center;
+    background: #eef5ff;
+    border-radius: 12px;
+    color: #123a72;
+    display: inline-flex;
+    height: 40px;
+    justify-content: center;
+    width: 40px;
+}
+
+.traveler-bookings__route {
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.traveler-bookings__description {
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.traveler-bookings__amount-block {
+    align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.traveler-bookings__amount-label {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.traveler-bookings__amount {
+    color: #0f172a;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+:host ::ng-deep .booking-badge {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 8px 12px;
+}
+
+:host ::ng-deep .booking-badge--success {
+    background: #e7f8ee;
+    color: #0f8a4b;
+}
+
+:host ::ng-deep .booking-badge--warning {
+    background: #fff4d8;
+    color: #a16207;
+}
+
+:host ::ng-deep .booking-badge--danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+:host ::ng-deep .booking-badge--info {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+:host ::ng-deep .booking-badge--neutral {
+    background: #eef2f7;
+    color: #475569;
+}
+
+@media (max-width: 991px) {
+    :host ::ng-deep .bookings-accordion .mat-expansion-panel-header {
+        min-height: 110px;
+        padding: 16px 18px;
+    }
+
+    :host ::ng-deep .bookings-accordion .mat-content {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    :host ::ng-deep .bookings-accordion .mat-expansion-panel-header-description {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .traveler-bookings__description {
+        justify-content: space-between;
+        text-align: left;
+        width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    .traveler-bookings__title,
+    .traveler-bookings__description {
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .traveler-bookings__description {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .traveler-bookings__amount-block {
+        align-items: flex-start;
+    }
 }

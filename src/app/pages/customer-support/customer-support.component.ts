@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { FireAuthService, UserData } from '../../services/fire-auth.service';
@@ -36,13 +36,17 @@ export class CustomerSupportComponent implements OnInit {
   userEmail?: string;
   private lastLoadedEmail?: string;
   headerHeight = 0;
+  private readonly isBrowser: boolean;
 
   constructor(
     private auth: FireAuthService,
     private fireBookings: FireBookingService,
     private shared: SharedDataService,
-    private meta: MetaHandlerService
-  ) {}
+    private meta: MetaHandlerService,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.meta.setMeta({
@@ -51,6 +55,11 @@ export class CustomerSupportComponent implements OnInit {
       image: '/assets/img/banner-generico.jpg'
     });
     this.shared.changeHeaderType('dark');
+
+    if (!this.isBrowser) {
+      return;
+    }
+
     this.shared.headerHeight.subscribe(height => {
       this.headerHeight = height || 0;
     });

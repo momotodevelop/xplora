@@ -1,66 +1,85 @@
 <div class="dashboard__main">
     <div class="dashboard__content bg-light-2" [ngStyle]="{'min-height': 'calc(100vh - ' + headerHeight + 'px)'}">
-        <div class="row y-gap-20 justify-between items-end pb-60 lg:pb-40 md:pb-32">
+        <div class="row y-gap-20 justify-between items-end pb-30 lg:pb-24 md:pb-20">
             <div class="col-auto">
             <h1 class="text-30 lh-14 fw-600">Tus reservaciones</h1>
-            <div class="text-15 text-light-1">Aquí puedes consultar el estado y detalles de todas tus reservaciones.</div>
+            <div class="text-15 text-light-1">Consulta el estado de tu compra, tus pagos y los siguientes pasos de tu viaje.</div>
             </div>
             <div class="col-auto">
             </div>
         </div>
+
+        @let overview = getOverview();
+        <div class="row y-gap-16 mb-24">
+            <div class="col-md-4">
+                <div class="traveler-bookings__kpi">
+                    <span>Tus reservaciones</span>
+                    <strong>{{overview.total}}</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="traveler-bookings__kpi">
+                    <span>Por completar pago</span>
+                    <strong>{{overview.pending}}</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="traveler-bookings__kpi">
+                    <span>Listas para tu viaje</span>
+                    <strong>{{overview.confirmed}}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="traveler-bookings__filters mb-24">
+            <div class="row y-gap-16">
+                <div class="col-md-8">
+                    <label class="traveler-bookings__label" for="traveler-booking-search">Buscar</label>
+                    <input
+                        id="traveler-booking-search"
+                        type="text"
+                        class="form-control"
+                        [(ngModel)]="searchTerm"
+                        (ngModelChange)="applyFilters()"
+                        placeholder="Busca por referencia, ruta o destino"
+                    />
+                </div>
+                <div class="col-md-4">
+                    <label class="traveler-bookings__label" for="traveler-status-filter">Estado</label>
+                    <select id="traveler-status-filter" class="form-select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+                        @for(option of statusOptions; track option){
+                            <option [value]="option">{{getStatusFilterLabel(option)}}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <mat-accordion class="bookings-accordion">
-            @for (booking of bookingList; track booking.bookingID) {
-                <mat-expansion-panel>
-                    <mat-expansion-panel-header>
+            @for (booking of filteredBookingList; track booking.bookingID) {
+                @let summary = getSummary(booking);
+                <mat-expansion-panel class="traveler-bookings__panel">
+                    <mat-expansion-panel-header class="traveler-bookings__header">
                         <mat-panel-title>
-                            @switch (booking.type) {
-                                @case("FLIGHT") {
-                                    <mat-icon>flight</mat-icon>
-                                }
-                                @case("HOTEL") {
-                                    <mat-icon>local_hotel</mat-icon>
-                                }
-                                @case("CAR_RENTAL") {
-                                    <mat-icon>directions_car</mat-icon>
-                                }
-                            }
-                            <b class="ml-20">{{ booking.bookingID.slice(-6) | uppercase }}</b>
+                            <div class="traveler-bookings__title">
+                                <span class="traveler-bookings__icon">
+                                    <mat-icon>{{getBookingIcon(booking.type)}}</mat-icon>
+                                </span>
+                                <div class="traveler-bookings__identity">
+                                    <div class="traveler-bookings__reference">#{{ summary.shortReference }}</div>
+                                    <div class="traveler-bookings__route">{{summary.routeLabel}}</div>
+                                </div>
+                            </div>
                         </mat-panel-title>
                         <mat-panel-description>
-                            <div>
-                                @if(booking.type === "FLIGHT") {
-                                    {{booking.flightDetails!.origin.iataCode}} - {{booking.flightDetails!.destination.iataCode}}
-                                } @else if (booking.type === "HOTEL") {
-                                    {{booking.hotelDetails!.hotel!.name}}
-                                }
-                            </div>
-                            <div>
-                                @switch (booking.status) {
-                                    @case("PENDING") {
-                                        <span class="status-indicator status-pending">
-                                            <span class="status-label mr-5">Pendiente</span>
-                                            <fa-icon [icon]="pendingIcon"></fa-icon>
-                                        </span>
-                                    }
-                                    @case("CONFIRMED") {
-                                        <span class="status-indicator status-confirmed">
-                                            <span class="status-label mr-5">Confirmado</span>
-                                            <fa-icon [icon]="confirmedIcon"></fa-icon>
-                                        </span>
-                                    }
-                                    @case("CANCELED") {
-                                        <span class="status-indicator status-canceled">
-                                            <span class="status-label mr-5">Cancelado</span>
-                                            <fa-icon [icon]="canceledIcon"></fa-icon>
-                                        </span>
-                                    }
-                                    @default {
-                                        <span class="status-indicator status-pending">
-                                            <span class="status-label mr-5">Pendiente</span>
-                                            <fa-icon [icon]="pendingIcon"></fa-icon>
-                                        </span>
-                                    }
-                                }
+                            <div class="traveler-bookings__description">
+                                <span [class]="getBadgeClass(summary.lifecycleTone)">{{summary.lifecycleLabel}}</span>
+                                <div class="traveler-bookings__amount-block">
+                                    <span class="traveler-bookings__amount-label">Total confirmado</span>
+                                    <div class="traveler-bookings__amount">
+                                        {{summary.pricing.confirmedTotal | currency:'MXN'}}
+                                    </div>
+                                </div>
                             </div>
                         </mat-panel-description>
                     </mat-expansion-panel-header>

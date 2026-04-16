@@ -1,130 +1,87 @@
 <div class="row">
     <div class="col-md-4">
-        @if(booking.type==='FLIGHT'&&booking.flightDetails){
-            @if(booking.flightDetails.round){
-                <div class="row">
-                    <div class="row y-gap-20 justify-center">
-                        <div class="col-6 text-right">
-                            <div style="width: 100%; height: 65px; display: flex; justify-content: flex-end; align-items: center;">
-                                <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/' + (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments[0].carrierCode) + '.svg'" style="max-height: 65px;">
-                            </div>
-                            <div class="lh-17 fw-500">
-                                <span class="destination-label">{{booking.flightDetails.origin.address.cityName | location:booking.flightDetails.origin.id}}</span>
-                                <span class="destination-label">{{booking.flightDetails.destination.address.cityName | location:booking.flightDetails.destination.id}}</span>
-                            </div>
-                            @if(booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length === 1){
-                                <div class="text-14 lh-15 mt-5">Directo</div>
-                            }@else{
-                                <div class="text-14 lh-15 mt-5">
-                                    {{ (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length - 1) }}
-                                    Escala{{ booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length > 2 ? 's' : '' }}
-                                </div>
-                            }
-                        </div>
-                        <div class="col-6">
-                            <div style="width: 100%; height: 65px; display: flex; justify-content: flex-start; align-items: center;">
-                                <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/' + (booking.flightDetails.flights.inbound!.offer!.itineraries[0].segments[0].carrierCode) + '.svg'" style="max-height: 65px;">
-                            </div>
-                            <div class="lh-17 fw-500">
-                                <span class="destination-label">{{booking.flightDetails.destination.address.cityName | location:booking.flightDetails.destination.id}}</span>
-                                <span class="destination-label">{{booking.flightDetails.origin.address.cityName | location:booking.flightDetails.origin.id}}</span>
-                            </div>
-                            @if(booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length === 1){
-                                <div class="text-14 lh-15 mt-5">Directo</div>
-                            }@else{
-                                <div class="text-14 lh-15 mt-5">
-                                    {{ (booking.flightDetails.flights.inbound!.offer!.itineraries[0].segments.length - 1) }}
-                                    Escala{{ booking.flightDetails.flights.inbound!.offer!.itineraries[0].segments.length > 2 ? 's' : '' }}
-                                </div>
-                            }
-                        </div>
-                    </div>
+        <div class="booking-card h-100">
+            <div class="booking-card__eyebrow">{{summary.serviceLabel}}</div>
+            <div class="booking-card__title">{{summary.routeLabel}}</div>
+            @if(booking.type==='FLIGHT'&&booking.flightDetails){
+                <div class="booking-card__detail">
+                    Salida: {{toDate(booking.flightDetails.departure) | date:'dd MMM y, HH:mm' | titlecase}}
                 </div>
-            }@else{
-                <div class="row y-gap-20">
-                    <div class="col-12">
-                        <div style="width: 100%; height: 65px; display: flex; justify-content: flex-start; align-items: center;">
-                            <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/' + (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments[0].carrierCode) + '.svg'" style="max-height: 65px;">
-                        </div>
-                        <div class="lh-17 fw-500">
-                            {{booking.flightDetails.origin.address.cityName | location:booking.flightDetails.origin.id }} - {{booking.flightDetails.destination.address.cityName | location:booking.flightDetails.destination.id }}
-                        </div>
-                        @if(booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length === 1){
-                            <div class="text-14 lh-15">
-                                Directo ({{booking.flightDetails.flights.outbound!.offer!.itineraries[0].duration | duration}})
-                            </div>
-                        }@else{
-                            <div class="text-14 lh-15">
-                                {{ (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length - 1) }}
-                                Escala{{ booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments.length > 2 ? 's' : '' }}
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-        }
-    </div>
-    <div class="col-md-4">
-        @if(booking.type==='FLIGHT'&&booking.flightDetails){
-            <div>
-                <div class="d-flex items-center justify-between">
-                    <div class="text-16 fw-500 lh-18">Pasajeros</div>
-                    <div class="text-16 lh-18">
-                        {{getPassengersText(booking.flightDetails!.passengers!.counts!)}}
-                    </div>
-                </div>
-                <div class="d-flex items-center justify-between">
-                    <div class="text-16 fw-500 lh-18">Total a pagar</div>
-                    <div class="text-16 lh-18">{{booking.payment!.totalDue|currency:'MXN'}}</div>
-                </div>
-                <div class="d-flex items-center justify-between">
-                    <div class="text-16 fw-500 lh-18">Total pagado</div>
-                    <div class="text-16 lh-18">{{booking.payment!.payed|currency:'MXN'}}</div>
-                </div>
-                @if(activePayment){
-                    <div class="d-flex items-center justify-between">
-                        <div class="text-16 fw-500 lh-18">Tiempo para pagar</div>
-                        <div class="text-16 lh-18"><countdown [config]="countdownConfig" /></div>
-                    </div>
-                }@else{
-                    <div class="d-flex items-center justify-between">
-                        <div class="text-16 fw-500 lh-18">Limite de Pago</div>
-                        <div [ngClass]="{'status-canceled': booking.status === 'CANCELED'}" class="text-16 lh-18">{{booking.payment!.paymentLimit!.toDate()|date:'dd MMM YYYY HH:mm'|titlecase}}</div>
+                @if(booking.flightDetails.round && booking.flightDetails.return){
+                    <div class="booking-card__detail">
+                        Regreso: {{toDate(booking.flightDetails.return) | date:'dd MMM y, HH:mm' | titlecase}}
                     </div>
                 }
-                <div class="d-flex items-center justify-between">
-                    <div class="text-16 fw-500 lh-18">Metodo de pago</div>
-                    <div class="text-16 lh-18">
-                        @switch(booking.payment!.method){
-                            @case("SPEI"){
-                                SPEI
-                            }
-                            @case("CASH"){
-                                Efectivo
-                            }
-                            @case("CARD"){
-                                Tarjeta
-                            }
-                        }
-                    </div>
+                <div class="booking-card__detail">
+                    Pasajeros: {{getPassengersText(booking.flightDetails.passengers.counts)}}
                 </div>
-            </div>
-        }@else if(booking.type==='HOTEL'&&booking.hotelDetails){
-            <mat-list>
-                <div class="mt-0 fw-700 text-center" mat-subheader>Habitaciónes</div>
-            </mat-list>
-
-        }
+            } @else if(booking.type==='HOTEL'&&booking.hotelDetails){
+                <div class="booking-card__detail">
+                    Estancia: {{toDate(booking.hotelDetails.checkin) | date:'dd MMM y' | titlecase}} - {{toDate(booking.hotelDetails.checkout) | date:'dd MMM y' | titlecase}}
+                </div>
+                <div class="booking-card__detail">
+                    Huéspedes: {{getHotelGuests()}}
+                </div>
+            }
+            @if(summary.supplierReference){
+                <div class="booking-card__detail">
+                    Referencia: <strong>{{summary.supplierReference}}</strong>
+                </div>
+            }
+        </div>
     </div>
     <div class="col-md-4">
-        <a [href]="'/confirmacion/' + booking.bookingID" target="_blank" mat-stroked-button color="primary" class="w-100 py-20">
-            Ver detalles
-        </a>
-        <a [href]="'/realizar-pago/' + booking.bookingID" [disabled]="booking.status !== 'PENDING'" mat-stroked-button color="primary" class="w-100 mt-10 py-20">
-            Realizar pago
-        </a>
-        <button [disabled]="booking.status === 'CANCELED'" mat-stroked-button color="warn" class="w-100 mt-10 py-20">
-            Cancelar reservación
-        </button>
+        <div class="booking-card h-100">
+            <div class="booking-row">
+                <span class="booking-row__label">Estado</span>
+                <span [class]="getBadgeClass(summary.lifecycleTone)">{{summary.lifecycleLabel}}</span>
+            </div>
+            <div class="booking-row">
+                <span class="booking-row__label">Pago</span>
+                <span [class]="getBadgeClass(summary.paymentTone)">{{summary.paymentStatusLabel}}</span>
+            </div>
+            <div class="booking-row">
+                <span class="booking-row__label">Total confirmado</span>
+                <strong>{{summary.pricing.confirmedTotal|currency:'MXN'}}</strong>
+            </div>
+            @if(summary.pricing.amountPaid > 0 || !summary.hasOutstandingBalance){
+                <div class="booking-row">
+                    <span class="booking-row__label">Pagado</span>
+                    <strong>{{summary.pricing.amountPaid|currency:'MXN'}}</strong>
+                </div>
+            }
+            @if(summary.hasOutstandingBalance){
+                <div class="booking-row">
+                    <span class="booking-row__label">Saldo pendiente</span>
+                    <strong [class.text-danger]="summary.hasOutstandingBalance">{{summary.pricing.balance|currency:'MXN'}}</strong>
+                </div>
+            }
+            @if(activePayment){
+                <div class="booking-row">
+                    <span class="booking-row__label">Tiempo para pagar</span>
+                    <strong><countdown [config]="countdownConfig" /></strong>
+                </div>
+            } @else if(paymentDeadline){
+                <div class="booking-row">
+                    <span class="booking-row__label">Límite de pago</span>
+                    <strong>{{paymentDeadline|date:'dd MMM y, HH:mm'|titlecase}}</strong>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="booking-card h-100">
+            <div class="booking-card__eyebrow">Siguiente paso</div>
+            <p class="booking-card__message booking-card__message--strong">{{summary.customerNextStep}}</p>
+            @if(paymentDeadline && summary.hasOutstandingBalance && !activePayment){
+                <div class="booking-card__hint">Límite de pago: {{paymentDeadline|date:'dd MMM y, HH:mm'|titlecase}}</div>
+            }
+            <a [href]="getDetailsUrl()" target="_blank" mat-stroked-button color="primary" class="w-100 py-20">
+                Ver detalle completo
+            </a>
+            <a [href]="getPaymentUrl()" [class.link-disabled]="!summary.canPay" mat-stroked-button color="primary" class="w-100 mt-10 py-20">
+                Completar pago
+            </a>
+        </div>
     </div>
 </div>

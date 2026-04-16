@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { PaymentStatus } from './types/booking.types';
+import { getPaymentStatusLabel } from './utils/booking-display.utils';
 
 @Pipe({
   name: 'paymentStatus',
@@ -7,14 +8,6 @@ import { PaymentStatus } from './types/booking.types';
 })
 export class PaymentStatusPipe implements PipeTransform {
   transform(value: PaymentStatus | string | null | undefined, getCssClass: boolean = false): string {
-    const labels: Record<PaymentStatus, string> = {
-      PENDING: 'Pendiente',
-      COMPLETED: 'Completado',
-      FAILED: 'Fallido',
-      CANCELED: 'Cancelado',
-      VALIDATING: 'Validando'
-    };
-
     const classes: Record<PaymentStatus, string> = {
       PENDING: 'bg-warning text-dark',
       COMPLETED: 'bg-success',
@@ -27,6 +20,6 @@ export class PaymentStatusPipe implements PipeTransform {
     if (getCssClass) {
       return 'badge '+(classes[key] ?? 'bg-secondary');
     }
-    return labels[key] ?? 'Desconocido';
+    return getPaymentStatusLabel(value);
   }
 }
