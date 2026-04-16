@@ -3,7 +3,8 @@
   "version": "2.1.2",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "dev": "ng serve",
+    "start": "node dist/xplora/server/server.mjs",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -17,6 +18,10 @@
     "build:functions": "npm install --force --prefix functions && npm run build --prefix functions",
     "copy:server-bundle": "rm -rf functions/lib/ssr-bundle && mkdir -p functions/lib/ssr-bundle && cp -R dist/xplora/server/* functions/lib/ssr-bundle/",
     "deploy:firebase": "npm run build:prod-ssr && npm run build:functions && npm run copy:server-bundle && firebase deploy --only hosting,functions"
+  },
+  "engines": {
+    "node": "22.x",
+    "npm": "11.x"
   },
   "private": true,
   "dependencies": {
