@@ -16,6 +16,7 @@ import { VoucherTransformService } from '../../services/voucher-transform.servic
 import { MetaHandlerService } from '../../services/meta-handler.service';
 import { BookingDisplayService, BookingDisplaySummary } from '../../services/booking-display.service';
 import { getToneClass } from '../../utils/booking-display.utils';
+import { SiteIdentityService } from '../../services/site-identity.service';
 
 @Component({
   selector: 'app-booking-public-confirmation',
@@ -25,6 +26,8 @@ import { getToneClass } from '../../utils/booking-display.utils';
 })
 export class BookingPublicConfirmationComponent {
   private readonly isBrowser: boolean;
+  readonly site = this.siteIdentity.config;
+  readonly contactWhatsAppHref: string;
 
   constructor(
     public bookingHandler: BookingHandlerService,
@@ -35,9 +38,11 @@ export class BookingPublicConfirmationComponent {
     private voucher: VoucherTransformService,
     private meta: MetaHandlerService,
     private display: BookingDisplayService,
+    private siteIdentity: SiteIdentityService,
     @Inject(PLATFORM_ID) platformId: Object
   ){
     this.isBrowser = isPlatformBrowser(platformId);
+    this.contactWhatsAppHref = this.wa.getUrlFromTemplate('contactoDirecto');
   }
   booking?:FirebaseBooking;
   summary?: BookingDisplaySummary;
@@ -52,8 +57,8 @@ export class BookingPublicConfirmationComponent {
   iconWhatsApp=faWhatsapp;
   ngOnInit(): void {
     this.meta.setMeta({
-      title: 'Xplora Travel || Confirmación de Reservación',
-      description: 'Consulta el estado de tu reservación y los detalles de pago en Xplora Travel.',
+      title: `${this.site.brand.name} || Confirmación de Reservación`,
+      description: `Consulta el estado de tu reservación y los detalles de pago en ${this.site.brand.name}.`,
       image: '/assets/img/banner-generico.jpg'
     });
     this.route.data.pipe(
@@ -103,8 +108,8 @@ export class BookingPublicConfirmationComponent {
         ? (booking.hotelDetails?.hotel?.image || '/assets/img/banner-generico.jpg')
         : 'https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3';
       this.meta.setMeta({
-        title: `Xplora Travel || Confirmación de ${bookingType}`,
-        description: `Revisa el estado de tu reservación de ${bookingType.toLowerCase()} y los detalles de pago en Xplora Travel.`,
+        title: `${this.site.brand.name} || Confirmación de ${bookingType}`,
+        description: `Revisa el estado de tu reservación de ${bookingType.toLowerCase()} y los detalles de pago en ${this.site.brand.name}.`,
         image
       });
       console.log(this.voucher.transformFirebaseBookingToVoucher(booking));
@@ -113,10 +118,6 @@ export class BookingPublicConfirmationComponent {
   toFlightBooking(booking: FirebaseBooking):FlightFirebaseBooking{
     return booking as FlightFirebaseBooking;
   }
-  openContactWhatsApp(): void {
-    this.wa.redirectToMessage('contactoDirecto');
-  }
-
   getBadgeClass(tone: BookingDisplaySummary['lifecycleTone']): string {
     return getToneClass(tone);
   }

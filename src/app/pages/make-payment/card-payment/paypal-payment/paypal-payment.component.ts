@@ -15,6 +15,7 @@ import { HttpErrorResponse } from '@angular/common/module.d-CnjH8Dlt';
 import { PaymentErrorService } from '../../../../services/payment-error.service';
 import { FireBookingService } from '../../../../services/fire-booking.service';
 import { TestMode, PayPalClientId } from '../../../../../environments/environment'
+import { SiteIdentityService } from '../../../../services/site-identity.service';
 
 @Component({
   selector: 'app-paypal-payment',
@@ -23,7 +24,16 @@ import { TestMode, PayPalClientId } from '../../../../../environments/environmen
   styleUrl: './paypal-payment.component.scss'
 })
 export class PaypalPaymentComponent implements OnInit {
-  constructor(private pp: PayPalService, private copomex: CopomexService, private sb: MatSnackBar, private errorsResponse: PaymentErrorService, private firebase: FireBookingService){}
+  readonly site = this.siteIdentity.config;
+
+  constructor(
+    private pp: PayPalService,
+    private copomex: CopomexService,
+    private sb: MatSnackBar,
+    private errorsResponse: PaymentErrorService,
+    private firebase: FireBookingService,
+    private siteIdentity: SiteIdentityService
+  ){}
   paypal:any;
   cardFields?:PayPalCardFieldsComponent;
   private nonce = inject(CSP_NONCE, { optional: true });

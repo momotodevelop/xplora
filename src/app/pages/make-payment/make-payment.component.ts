@@ -15,6 +15,7 @@ import { CardTransactionListComponent } from './card-payment/card-transaction-li
 import { MetaHandlerService } from '../../services/meta-handler.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ValidatingPaymentComponent } from './card-payment/validating-payment/validating-payment.component';
+import { SiteIdentityService } from '../../services/site-identity.service';
 
 @Component({
     selector: 'app-make-payment',
@@ -27,6 +28,7 @@ export class MakePaymentComponent implements OnInit {
   booking!: FlightFirebaseBooking;
   validating:boolean = false;
   private readonly isBrowser: boolean;
+  readonly site = this.siteIdentity.config;
   constructor(
     private route: ActivatedRoute, 
     private xplora: XploraApiService, 
@@ -35,6 +37,7 @@ export class MakePaymentComponent implements OnInit {
     private promos: XploraPromosService,
     private fireBooking: FireBookingService,
     private meta: MetaHandlerService,
+    private siteIdentity: SiteIdentityService,
     @Inject(PLATFORM_ID) platformId: Object
   ){
     this.isBrowser = isPlatformBrowser(platformId);
@@ -42,8 +45,8 @@ export class MakePaymentComponent implements OnInit {
 
   ngOnInit(): void {
     this.meta.setMeta({
-      title: "Xplora Travel || Completar Reservación || Realizar Pago",
-      description: "Completa el pago de tu reservación de vuelo en Xplora Travel de forma segura y sencilla. Elige tu método de pago preferido y asegura tu lugar en el viaje.",
+      title: `${this.site.brand.name} || Completar Reservación || Realizar Pago`,
+      description: `Completa el pago de tu reservación de vuelo en ${this.site.brand.name} de forma segura y sencilla. Elige tu método de pago preferido y asegura tu lugar en el viaje.`,
       image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fpayment-cash.jpg?alt=media&token=ef52cdf2-3de6-42b1-94bc-9dc8be9f78f3"
     });
     this.sharedService.toggleHideNav(false);
@@ -76,8 +79,8 @@ export class MakePaymentComponent implements OnInit {
         if(booking.payment?.method === "CASH"){
             const payTotal = booking.payment.totalDue-booking.payment.payed;
             this.meta.setMeta({
-              title: "Xplora Travel || Pago en Efectivo || Completar Reservación",
-              description: "Realiza el pago de tu reservación de vuelo en efectivo de forma segura y sencilla en Xplora Travel. Sigue las instrucciones para completar tu pago y asegurar tu lugar.",
+              title: `${this.site.brand.name} || Pago en Efectivo || Completar Reservación`,
+              description: `Realiza el pago de tu reservación de vuelo en efectivo de forma segura y sencilla en ${this.site.brand.name}. Sigue las instrucciones para completar tu pago y asegurar tu lugar.`,
               image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fpayment-cash.jpg?alt=media&token=ef52cdf2-3de6-42b1-94bc-9dc8be9f78f3",
               ogType: "paymeny.link",
               payment: {
@@ -93,8 +96,8 @@ export class MakePaymentComponent implements OnInit {
         }else if(booking.payment?.method === "SPEI"){
             const payTotal = booking.payment.totalDue-booking.payment.payed;
             this.meta.setMeta({
-              title: "Xplora Travel || Pago por Transferencia SPEI || Completar Reservación",
-              description: "Realiza el pago de tu reservación de vuelo mediante transferencia SPEI de forma segura y sencilla en Xplora Travel. Sigue las instrucciones para completar tu pago y asegurar tu lugar.",
+              title: `${this.site.brand.name} || Pago por Transferencia SPEI || Completar Reservación`,
+              description: `Realiza el pago de tu reservación de vuelo mediante transferencia SPEI de forma segura y sencilla en ${this.site.brand.name}. Sigue las instrucciones para completar tu pago y asegurar tu lugar.`,
               image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fpayment-spei.jpg?alt=media&token=bb54c4ca-cd94-4e1f-9680-321676074d04",
               ogType: "paymeny.link",
               payment: {

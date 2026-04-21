@@ -4,6 +4,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faAndroid, faFacebook, faInstagram, faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 import { SharedDataService } from '../../services/shared-data.service';
 import { WhatsAppUrlManagerService } from '../../services/whatsapp-url-manager.service';
+import { SiteIdentityService, SitePhoneLink } from '../../services/site-identity.service';
 
 export interface FooterLink {
   url: string;
@@ -23,6 +24,7 @@ export interface FooterColumn {
   styleUrl: './footer.component.scss'
 })
 export class FooterComponent implements OnInit, AfterViewInit {
+  readonly site = this.siteIdentity.config;
   minFooter = false;
   androidIcon = faAndroid;
   fbIcon = faFacebook;
@@ -31,14 +33,23 @@ export class FooterComponent implements OnInit, AfterViewInit {
   year = new Date().getFullYear();
   dashboard = false;
   columns: FooterColumn[];
+  contactPhones: SitePhoneLink[];
+  whatsappContact: SitePhoneLink;
+  contactWhatsAppHref: string;
+  emailHref: string;
 
   @ViewChild('footer', { read: ElementRef, static: false }) footerElement?: ElementRef;
 
   constructor(
     private wa: WhatsAppUrlManagerService,
     private shared: SharedDataService,
+    private siteIdentity: SiteIdentityService,
     @Inject(PLATFORM_ID) private platformId: any
   ) {
+    this.contactPhones = this.siteIdentity.getContactPhones();
+    this.whatsappContact = this.siteIdentity.getWhatsAppContact();
+    this.contactWhatsAppHref = this.wa.getUrlFromTemplate('contactoDirecto');
+    this.emailHref = this.siteIdentity.getEmailHref();
     this.columns = [
       {
         title: 'Sobre Nosotros',
@@ -68,8 +79,9 @@ export class FooterComponent implements OnInit, AfterViewInit {
         links: [
           { url: '/preguntas-frecuentes', isBlank: false, title: 'Preguntas Frecuentes (FAQ)' },
           { url: '/contacto', isBlank: false, title: 'Atención a Clientes' },
-          { url: this.wa.getUrlFromTemplate('confirmarReservacion'), isBlank: false, title: 'Confirmar Servicios' },
+          { url: this.wa.getUrlFromTemplate('confirmarReservacion'), isBlank: true, title: 'Confirmar Servicios' },
           { url: this.wa.getUrlFromTemplate('ayudaAeropuerto'), isBlank: true, title: 'Atención en el Aeropuerto' },
+          { url: this.emailHref, isBlank: false, title: this.site.contact.email },
           { url: '/contacto', isBlank: false, title: 'Contáctanos' },
         ],
       },
@@ -82,10 +94,6 @@ export class FooterComponent implements OnInit, AfterViewInit {
       this.updateFooterHeight();
     });
     this.shared.headerDashboard.subscribe(isDash => {this.dashboard = isDash});
-  }
-
-  openContactWhatsApp(): void {
-    this.wa.redirectToMessage('contactoDirecto');
   }
 
   ngAfterViewInit(): void {

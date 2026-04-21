@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { SharedDataService } from '../../services/shared-data.service';
 import { TermsTextComponent } from './terms-text/terms-text.component';
 import { MetaHandlerService } from '../../services/meta-handler.service';
+import { SiteIdentityService } from '../../services/site-identity.service';
 
 @Component({
   selector: 'app-terms',
@@ -25,10 +26,16 @@ export class TermsComponent implements OnInit {
     { title: "Contacto", id: "contacto" }
   ];
   active?:string;
-  constructor(private shared: SharedDataService, private meta: MetaHandlerService){
+  readonly site = this.siteIdentity.config;
+
+  constructor(
+    private shared: SharedDataService,
+    private meta: MetaHandlerService,
+    private siteIdentity: SiteIdentityService
+  ){
     this.meta.setMeta({
-      title: 'Xplora Travel || Términos y Condiciones',
-      description: 'Consulta los términos y condiciones de Xplora Travel para conocer derechos, responsabilidades y políticas aplicables a tus reservaciones.',
+      title: `${this.site.brand.name} || Términos y Condiciones`,
+      description: `Consulta los términos y condiciones de ${this.site.brand.name} para conocer derechos, responsabilidades y políticas aplicables a tus reservaciones.`,
       image: '/assets/img/banner-generico.jpg'
     });
   }

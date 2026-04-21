@@ -146,8 +146,10 @@ export class CashPaymentComponent implements OnInit {
     return this.selectedOffice?.referenceLabel || 'el mismo codigo proporcionado';
   }
 
-  openWhatsAppContact() {
-    this.wa.redirectToMessage('expirado', { clave: this.booking.bookingID!.slice(-6).toUpperCase() });
+  get expiredWhatsAppHref(): string {
+    return this.wa.getUrlFromTemplate('expirado', {
+      clave: this.booking.bookingID!.slice(-6).toUpperCase()
+    });
   }
 
   countdownNotify(event: CountdownEvent) {

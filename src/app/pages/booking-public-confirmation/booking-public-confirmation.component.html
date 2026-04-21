@@ -21,7 +21,7 @@
                         <span [class]="getBadgeClass(summary.paymentTone)">{{summary.paymentStatusLabel}}</span>
                     </div>
                     @if(booking.status === 'CANCELED'){
-                        <p class="text-dark-1">{{booking.contact!.name|titlecase}}, lamentamos que tu reservación haya sido cancelada. Si necesitas asistencia, por favor contáctanos a través de <a (click)="openContactWhatsApp()" class="text-blue-1 fw-500">WhatsApp</a>.</p>
+                        <p class="text-dark-1">{{booking.contact!.name|titlecase}}, lamentamos que tu reservación haya sido cancelada. Si necesitas asistencia, por favor contáctanos a través de <a [href]="contactWhatsAppHref" target="_blank" rel="noopener" class="text-blue-1 fw-500">WhatsApp</a>.</p>
                     }@else{
                         <p class="text-dark-1">{{booking.contact!.name|titlecase}}, te hemos enviado los detalles de tu reservación al correo: <b>{{booking.contact!.email}}</b></p>
                     }
@@ -256,7 +256,7 @@
         <div class="border-light rounded-16 bg-white px-40 py-40 text-center">
             <h1 class="text-28 fw-600 mb-16">No pudimos cargar tu confirmación</h1>
             <p class="text-16 text-light-1 mb-24">{{loadError}}</p>
-            <a class="button -md -dark-1 bg-blue-1 text-white" (click)="openContactWhatsApp()">Solicitar ayuda por WhatsApp</a>
+            <a class="button -md -dark-1 bg-blue-1 text-white" [href]="contactWhatsAppHref" target="_blank" rel="noopener">Solicitar ayuda por WhatsApp</a>
         </div>
     </div>
 </section>

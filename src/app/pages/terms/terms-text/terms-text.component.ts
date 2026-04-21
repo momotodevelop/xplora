@@ -1,5 +1,6 @@
 import { Component, OnChanges, SimpleChanges, ElementRef, Inject, Input, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { SiteIdentityService } from '../../../services/site-identity.service';
 
 @Component({
   selector: 'app-terms-text',
@@ -10,8 +11,15 @@ import { isPlatformBrowser } from '@angular/common';
 export class TermsTextComponent implements OnChanges {
   @Input() activeSection:string = '';
   private readonly isBrowser: boolean;
+  readonly site = this.siteIdentity.config;
+  readonly emailHref = this.siteIdentity.getEmailHref();
+  readonly websiteHref = this.siteIdentity.getWebsiteHref();
 
-  constructor(private el: ElementRef<HTMLElement>, @Inject(PLATFORM_ID) platformId: Object){
+  constructor(
+    private el: ElementRef<HTMLElement>,
+    private siteIdentity: SiteIdentityService,
+    @Inject(PLATFORM_ID) platformId: Object
+  ){
     this.isBrowser = isPlatformBrowser(platformId);
   }
   ngOnChanges(changes: SimpleChanges): void {

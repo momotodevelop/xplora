@@ -138,8 +138,10 @@ export class SpeiPaymentComponent implements OnInit {
         this.countdownCompleted = true; // Marca el temporizador como completado
       }
   }
-  openWhatsAppContact() {
-    this.wa.redirectToMessage('expirado', { clave: this.booking.bookingID!.slice(-6).toUpperCase() });
+  get expiredWhatsAppHref(): string {
+    return this.wa.getUrlFromTemplate('expirado', {
+      clave: this.booking.bookingID!.slice(-6).toUpperCase()
+    });
   }
 
   getRemainingSeconds(target: Date): number {

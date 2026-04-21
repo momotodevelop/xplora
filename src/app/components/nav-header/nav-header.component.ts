@@ -13,6 +13,7 @@ import { Router, RouterModule } from '@angular/router';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { BookingProcessLoginBottomsheetComponent } from './booking-process-login-bottomsheet/booking-process-login-bottomsheet.component';
 import { ScrollRevealDirective } from '../../scroll-reveal.directive';
+import { SiteIdentityService } from '../../services/site-identity.service';
 
 @Component({
     selector: 'app-nav-header',
@@ -25,6 +26,7 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
   dashboard:boolean=false;
   booking:boolean=false;
   private readonly isBrowser: boolean;
+  readonly site = this.siteIdentity.config;
   menuItems:MenuItem []=[
     {
       name: "Inicio",
@@ -68,6 +70,7 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
     public shared: SharedDataService,
     private router: Router,
     private injector: Injector,
+    private siteIdentity: SiteIdentityService,
     @Inject(PLATFORM_ID) platformId: Object
   ){
     this.isBrowser = isPlatformBrowser(platformId);
@@ -139,21 +142,24 @@ export class NavHeaderComponent implements OnInit, AfterViewInit {
     })
   }
   get profileAvatar():string{
+    const siteName = this.site.brand.name.replace(/\s+/g, '+');
+    const backgroundColor = this.siteIdentity.getUiAvatarBackgroundColor();
+
     if(this.user?.photoURL){
       return this.user.photoURL;
     } else if(this.userData){
       if(this.userData.name && this.userData.lastName){
-        return `https://ui-avatars.com/api/?background=004aad&color=fff&name=${this.userData.name}+${this.userData.lastName}&rounded=true&bold=true`;
+        return `https://ui-avatars.com/api/?background=${backgroundColor}&color=fff&name=${this.userData.name}+${this.userData.lastName}&rounded=true&bold=true`;
       }else{
         if(this.user?.displayName){
           const name = this.user.displayName.replace(/\s+/g, '+') || '';
-          return `https://ui-avatars.com/api/?background=004aad&color=fff&name=${name}+&rounded=true&bold=true`;
+          return `https://ui-avatars.com/api/?background=${backgroundColor}&color=fff&name=${name}+&rounded=true&bold=true`;
         }else{
-          return `https://ui-avatars.com/api/?background=004aad&color=fff&name=Xplora+Travel&rounded=true&bold=true`;
+          return `https://ui-avatars.com/api/?background=${backgroundColor}&color=fff&name=${siteName}&rounded=true&bold=true`;
         }
       }
     }else{
-      return `https://ui-avatars.com/api/?background=004aad&color=fff&name=Xplora+Travel&rounded=true&bold=true`;
+      return `https://ui-avatars.com/api/?background=${backgroundColor}&color=fff&name=${siteName}&rounded=true&bold=true`;
     }
   }
 }

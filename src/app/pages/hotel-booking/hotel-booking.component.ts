@@ -22,6 +22,7 @@ import { Timestamp } from 'firebase/firestore';
 import { Analytics, logEvent } from '@angular/fire/analytics';
 import { MetaHandlerService } from '../../services/meta-handler.service';
 import { FacebookPixelService } from '../../services/facebook-pixel.service';
+import { LinkedInConversionsService } from '../../services/linkedin-conversions.service';
 
 interface Params{
   bookingID:string;
@@ -62,7 +63,8 @@ export class HotelBookingComponent implements OnInit {
     private title: TitleCasePipe,
     private gtag: Analytics,
     private meta: MetaHandlerService,
-    private fbp: FacebookPixelService
+    private fbp: FacebookPixelService,
+    private linkedInConversions: LinkedInConversionsService
   ) { }
   booking!:FirebaseBooking;
   guests!:{adults: number, childrens: number};
@@ -238,6 +240,13 @@ export class HotelBookingComponent implements OnInit {
       currency: 'MXN',
       value: this.total
     });
+    this.linkedInConversions.trackHotelBookingPending({
+      amount: this.total,
+      bookingId: this.booking.bookingID!,
+      email: this.contactData?.email,
+      firstName: this.contactData?.name,
+      lastName: this.contactData?.lastname
+    }).subscribe();
     this.fireBooking.updateBooking(this.booking.bookingID!, updateData).then(ok=>{
       //console.log(ok);
       //console.log("Reserva confirmada");

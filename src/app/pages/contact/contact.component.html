@@ -1,5 +1,5 @@
 <div class="ratio ratio-16:9">
-    <img src="/assets/img/xplora-offices-blue-169.jpg" alt="Oficinas de Xplora Travel">
+    <img src="/assets/img/xplora-offices-blue-169.jpg" [alt]="'Oficinas de ' + site.brand.name">
 </div>
 
 <section>
@@ -56,31 +56,35 @@
             </div>
 
             <div class="col-auto">
-                <div class="text-14 text-light-1">Lada sin costo</div>
-                <div class="text-18 fw-500 mt-10"><a href="tel:528004611015">(800) 461 1015</a></div>
-            </div>
-
-            <div class="col-auto">
-                <div class="text-14 text-light-1">Desde el extranjero</div>
-                <div class="text-18 fw-500 mt-10"><a href="tel:525588974866">+52 (55) 8897 4866</a></div>
-                <div class="text-18 fw-500 mt-10"><a href="tel:523321011777">+52 (33) 2101 1777</a></div>
+                <div class="text-14 text-light-1">Teléfonos de contacto</div>
+                @for(phone of contactPhones; track phone.href){
+                    <div class="text-18 fw-500 mt-10">
+                        <div class="text-14 text-light-1">{{phone.label}}</div>
+                        <a [href]="phone.href">{{phone.formatted}}</a>
+                    </div>
+                }
             </div>
 
             <div class="col-auto">
                 <div class="text-14 text-light-1">¿Necesitas ayuda inmediata?</div>
-                <div class="text-18 fw-500 mt-10"><a (click)="openContactWhatsApp()"><fa-icon [icon]="waIcon"></fa-icon> +52 (56) 6766 2363</a></div>
+                <div class="text-18 fw-500 mt-10"><a [href]="wa.getUrlFromTemplate('contactoDirecto')" target="_blank" rel="noopener"><fa-icon [icon]="waIcon"></fa-icon> {{whatsappContact.formatted}}</a></div>
+            </div>
+
+            <div class="col-auto">
+                <div class="text-14 text-light-1">Correo electrónico</div>
+                <div class="text-18 fw-500 mt-10"><a [href]="emailHref">{{site.contact.email}}</a></div>
             </div>
 
             <div class="col-auto">
                 <div class="text-14 text-light-1">Síguenos en redes sociales</div>
                 <div class="d-flex x-gap-20 items-center mt-10">
-                    <a (click)="openContactWhatsApp()">
+                    <a [href]="wa.getUrlFromTemplate('contactoDirecto')" target="_blank" rel="noopener">
                         <fa-icon [icon]="waIcon"></fa-icon>
                     </a>
-                    <a href="https://www.instagram.com/xplora.trips" target="_blank">
+                    <a [href]="site.contact.social.instagram" target="_blank" rel="noopener">
                         <fa-icon [icon]="igIcon"></fa-icon>
                     </a>
-                    <a href="https://www.facebook.com/xplora.travel.mx" target="_blank">
+                    <a [href]="site.contact.social.facebook" target="_blank" rel="noopener">
                         <fa-icon [icon]="fbIcon"></fa-icon>
                     </a>
                 </div>
@@ -94,7 +98,7 @@
         <div class="row justify-center text-center">
             <div class="col-auto">
                 <div class="sectionTitle -md">
-                    <h2 class="sectionTitle__title">¿Por qué elegir Xplora Travel?</h2>
+                    <h2 class="sectionTitle__title">¿Por qué elegir {{site.brand.name}}?</h2>
                     <p class=" sectionTitle__text mt-5 sm:mt-0">Estos destinos populares tienen mucho que ofrecerte</p>
                 </div>
             </div>
@@ -150,7 +154,7 @@
                     </div>
                     <div class="col-auto">
                         <h4 class="text-26 text-white fw-600">Tu viaje comienza aquí</h4>
-                        <div class="text-white">Suscríbete y recibe las mejores ofertas de Xplora Travel</div>
+                        <div class="text-white">Suscríbete y recibe las mejores ofertas de {{site.brand.name}}</div>
                     </div>
                 </div>
             </div>

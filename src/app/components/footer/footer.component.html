@@ -6,17 +6,15 @@
                     <div class="row y-gap-40 justify-between xl:justify-start">
                         <div class="col-xl-2 col-lg-4 col-sm-6">
                             <h5 class="text-16 fw-500 mb-20">Contáctanos</h5>
+                            @for(phone of contactPhones; track phone.href){
+                                <div class="mt-20">
+                                    <div class="text-14 mt-20">{{phone.label}}</div>
+                                    <a [href]="phone.href" [ngClass]="minFooter?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5">{{phone.formatted}}</a>
+                                </div>
+                            }
                             <div class="mt-20">
-                                <div class="text-14 mt-20">Lada Sin Costo</div>
-                                <a href="tel:+528004611015" [ngClass]="minFooter?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5">(800) 461 1015</a>
-                            </div>
-                            <div class="mt-20">
-                                <div class="text-14 mt-20">Desde el Extranjero</div>
-                                <a href="tel:+525588974866" [ngClass]="minFooter?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5">+52 (55) 8897 4866</a>
-                            </div>
-                            <div class="mt-20">
-                            <div class="text-14 mt-20">¿Necesitas Ayuda Inmediata?</div>
-                                <a (click)="openContactWhatsApp()" [ngClass]="minFooter?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5"><fa-icon [icon]="waIcon"></fa-icon> (56) 6766 2363</a>
+                                <div class="text-14 mt-20">¿Necesitas Ayuda Inmediata?</div>
+                                <a [href]="contactWhatsAppHref" target="_blank" rel="noopener" [ngClass]="minFooter?'text-white':'text-blue-1'" class="text-18 fw-500 mt-5"><fa-icon [icon]="waIcon"></fa-icon> {{whatsappContact.formatted}}</a>
                             </div>
                         </div>
 
@@ -25,7 +23,7 @@
                                 <h5 class="text-16 fw-500 mb-30">{{column.title}}</h5>
                                 <div class="d-flex y-gap-10 flex-column">
                                     @for(link of column.links; track link;){
-                                        <a href="{{link.url}}">{{link.title}}</a>
+                                        <a [href]="link.url" [target]="link.isBlank ? '_blank' : null" [rel]="link.isBlank ? 'noopener' : null">{{link.title}}</a>
                                     }
                                 </div>
                             </div>
@@ -59,7 +57,7 @@
                     <div class="row x-gap-30 y-gap-10">
                     <div class="col-auto">
                         <div class="d-flex items-center">
-                        © {{year}} Xplora Travel. Todos los derechos reservados.
+                        © {{year}} {{site.brand.name}}. Todos los derechos reservados.
                         </div>
                     </div>
 
@@ -91,9 +89,9 @@
 
                     <div class="col-auto">
                         <div class="d-flex x-gap-20 items-center">
-                        <a (click)="openContactWhatsApp()"><fa-icon [icon]="waIcon"></fa-icon></a>
-                        <a href="https://www.facebook.com/xplora.travel.mx" target="_blank"><fa-icon [icon]="fbIcon"></fa-icon></a>
-                        <a href="https://www.instagram.com/xplora.trips" target="_blank"><fa-icon [icon]="igIcon"></fa-icon></a>
+                        <a [href]="contactWhatsAppHref" target="_blank" rel="noopener"><fa-icon [icon]="waIcon"></fa-icon></a>
+                        <a [href]="site.contact.social.facebook" target="_blank" rel="noopener"><fa-icon [icon]="fbIcon"></fa-icon></a>
+                        <a [href]="site.contact.social.instagram" target="_blank" rel="noopener"><fa-icon [icon]="igIcon"></fa-icon></a>
                         </div>
                     </div>
                     </div>

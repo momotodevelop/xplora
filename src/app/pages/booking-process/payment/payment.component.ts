@@ -45,6 +45,7 @@ import { PendingPaymentEmailData } from '../../../types/email-data.types';
 import { WhatsAppUrlManagerService } from '../../../services/whatsapp-url-manager.service';
 import { PaymentOffice } from '../../../types/payment-config.types';
 import { XploraPaymentOfficesService } from '../../../services/xplora-payment-offices.service';
+import { LinkedInConversionsService } from '../../../services/linkedin-conversions.service';
 
 export type AvailablePaymentMethods = "CASH"|"CARD"|"SPEI";
 
@@ -172,7 +173,8 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     private card: XploraCardServicesService,
     private gtag: Analytics,
     private wa: WhatsAppUrlManagerService,
-    private paymentOfficesService: XploraPaymentOfficesService
+    private paymentOfficesService: XploraPaymentOfficesService,
+    private linkedInConversions: LinkedInConversionsService
   ){
     
   }
@@ -336,6 +338,13 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       value: this.total as number,
       items
     });
+    this.linkedInConversions.trackFlightBookingPending({
+      amount: this.total,
+      bookingId: this.bookingID!,
+      email: this.booking.contact?.email,
+      firstName: this.booking.contact?.name,
+      lastName: this.booking.contact?.lastname
+    }).subscribe();
     this.paymentProcessStart.emit({
       amount: this.total,
       paymentMethod: this.selectedPayment!,

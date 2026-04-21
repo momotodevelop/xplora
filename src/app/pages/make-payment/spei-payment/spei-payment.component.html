@@ -45,7 +45,7 @@
     <mat-card-content>
         @if(countdownCompleted){
             <div style="z-index: 200; background-color: rgba(255, 255, 255, 0.7);" class="overlay position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
-                <a (click)="openWhatsAppContact()" style="opacity: 1;" mat-raised-button color="primary">Solicitar más tiempo</a>
+                <a [href]="expiredWhatsAppHref" target="_blank" rel="noopener" style="opacity: 1;" mat-raised-button color="primary">Solicitar más tiempo</a>
             </div>
         }
         <div class="row mt-3">

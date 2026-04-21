@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { SiteIdentityService } from './site-identity.service';
 
 export type WhatsAppTemplateID =
   | 'ayudaPago'
@@ -15,21 +16,26 @@ export type WhatsAppTemplateID =
   providedIn: 'root'
 })
 export class WhatsAppUrlManagerService {
-  private readonly baseNumber = '5215667662363';
+  private readonly baseNumber: string;
+  private readonly templates: Record<WhatsAppTemplateID, string>;
 
-  private readonly templates: Record<WhatsAppTemplateID, string> = {
-    ayudaPago: 'Hola, necesito ayuda para completar mi pago en Xplora Travel. El sistema no me permitió finalizar el proceso y quiero asegurar mi reserva. Mi clave de confirmación es {{clave}}.',
-    contactoDirecto: 'Hola, los contacto desde xploratravel.mx. Tengo algunas dudas y me gustaría recibir asistencia.',
-    expirado: 'Hola, mi tiempo para pagar ya expiró y quiero saber si aún puedo completar el pago y mantener mi reservación en Xplora Travel. Mi clave de confirmación es {{clave}}.',
-    ayudaAeropuerto: 'Hola, necesito atención inmediata en el aeropuerto.',
-    desvioConmutador: 'Hola, vengo del conmutador de Xplora Travel. El tiempo de espera era alto y deseo continuar mi asistencia por WhatsApp. Mi clave de confirmación es {{clave}}.',
-    confirmarReservacion: 'Hola, necesito confirmar la información de mi reservación con Xplora Travel.',
-    cotizarPromo: 'Hola, me gustaría cotizar un vuelo con su promoción de aniversario. ¿Podrían ayudarme, por favor?',
-    cambiarPago: 'Hola, deseo cambiar el método de pago de mi reservación en Xplora Travel. Mi clave de confirmación es {{clave}}. ¿Cómo puedo proceder para completar el pago?',
-    recordatorioPago: 'Hola {{nombre}}, tu reservación con número {{reserva}} está pendiente de pago. ¿Deseas completarla ahora?'
-  };
+  constructor(private siteIdentity: SiteIdentityService) {
+    const siteName = this.siteIdentity.config.brand.name;
+    const siteDomain = this.siteIdentity.config.brand.websiteDomain;
 
-  constructor() {}
+    this.baseNumber = this.siteIdentity.getWhatsAppNumber();
+    this.templates = {
+      ayudaPago: `Hola, necesito ayuda para completar mi pago en ${siteName}. El sistema no me permitió finalizar el proceso y quiero asegurar mi reserva. Mi clave de confirmación es {{clave}}.`,
+      contactoDirecto: `Hola, los contacto desde ${siteDomain}. Tengo algunas dudas y me gustaría recibir asistencia.`,
+      expirado: `Hola, mi tiempo para pagar ya expiró y quiero saber si aún puedo completar el pago y mantener mi reservación en ${siteName}. Mi clave de confirmación es {{clave}}.`,
+      ayudaAeropuerto: 'Hola, necesito atención inmediata en el aeropuerto.',
+      desvioConmutador: `Hola, vengo del conmutador de ${siteName}. El tiempo de espera era alto y deseo continuar mi asistencia por WhatsApp. Mi clave de confirmación es {{clave}}.`,
+      confirmarReservacion: `Hola, necesito confirmar la información de mi reservación con ${siteName}.`,
+      cotizarPromo: 'Hola, me gustaría cotizar un vuelo con su promoción de aniversario. ¿Podrían ayudarme, por favor?',
+      cambiarPago: `Hola, deseo cambiar el método de pago de mi reservación en ${siteName}. Mi clave de confirmación es {{clave}}. ¿Cómo puedo proceder para completar el pago?`,
+      recordatorioPago: 'Hola {{nombre}}, tu reservación con número {{reserva}} está pendiente de pago. ¿Deseas completarla ahora?'
+    };
+  }
 
   private extractPlaceholders(template: string): string[] {
     const matches = [...template.matchAll(/{{(.*?)}}/g)];

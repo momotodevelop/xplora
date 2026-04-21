@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { SiteIdentityService } from '../../../../services/site-identity.service';
 
 @Component({
   selector: 'app-traveler-footer',
@@ -7,5 +8,7 @@ import { Component } from '@angular/core';
   styleUrl: './traveler-footer.component.scss'
 })
 export class TravelerFooterComponent {
-  constructor() {}
+  readonly site = this.siteIdentity.config;
+
+  constructor(private siteIdentity: SiteIdentityService) {}
 }

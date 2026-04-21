@@ -4,8 +4,8 @@
       @if(dashboard){
         <div class="-left-side">
           <a href="/inicio" class="header-logo" data-x="header-logo" data-x-toggle="is-logo-dark">
-            <img src="assets/img/general/logo-light.svg" alt="Xplora Travel">
-            <img src="assets/img/general/logo-dark.svg" alt="Xplora Travel">
+            <img [src]="site.brand.logoLightPath" [alt]="site.brand.name">
+            <img [src]="site.brand.logoDarkPath" [alt]="site.brand.name">
           </a>
         </div>
       }
@@ -23,8 +23,8 @@
           <div class="d-flex items-center">
             @if(!dashboard){
               <a href="/inicio" class="header-logo mr-20" data-x="header-logo" data-x-toggle="is-logo-dark">
-                <img src="assets/img/general/logo-light.svg" alt="Xplora Travel">
-                <img src="assets/img/general/logo-dark.svg" alt="Xplora Travel">
+                <img [src]="site.brand.logoLightPath" [alt]="site.brand.name">
+                <img [src]="site.brand.logoDarkPath" [alt]="site.brand.name">
               </a>
             }
             @if(!booking){

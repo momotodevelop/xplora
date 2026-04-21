@@ -4,7 +4,15 @@ export const environment = {
     amadeusClientId: '3cbgI56VEolTgwl4e8G5oqaAAozJLW1y',
     amadeusClientSecret: 'WsBj5jGZLqVxfUxR',
     amadeusApiUrl: 'https://api.amadeus.com',
-    mpPublicKey: "APP_USR-f654f0cd-f9a1-438e-bed1-0238f164bbd3"
+    mpPublicKey: "APP_USR-f654f0cd-f9a1-438e-bed1-0238f164bbd3",
+    linkedIn: {
+        enabled: false,
+        trackingEndpoint: '',
+        conversionKeys: {
+            flightBookingPending: 'flight_booking_pending',
+            hotelBookingPending: 'hotel_booking_pending'
+        }
+    }
 };  
 export const firebaseConfig = {
     apiKey: "AIzaSyDegTPokfFX77Y95ohytq6gLluoON8TEw4",

@@ -13,6 +13,7 @@ import { HotelListResultDisplay } from '../../hotel-search.component';
 import { LiteApiService } from '../../../../services/lite-api.service';
 import { FacilityDescription } from '../../../../types/lite-api.types';
 import { HotelHandlerService } from '../../../../services/hotel-handler.service';
+import { WhatsAppUrlManagerService } from '../../../../services/whatsapp-url-manager.service';
 
 @Component({
   selector: 'app-hotel-result',
@@ -30,10 +31,18 @@ export class HotelResultComponent implements OnInit{
   cancelIcon=faCalendarTimes;
   discountIcon=faTag;
   waIcon=faWhatsapp;
+  readonly quoteUrl: string;
   facilities!:FacilityDescription[];
   facilitiesArray:(string)[] = [];
-  constructor(private places: GooglePlacesService, private lite: LiteApiService, private bs: MatBottomSheet, private datePipe: DatePipe, public hotelHandler:HotelHandlerService){
-    
+  constructor(
+    private places: GooglePlacesService,
+    private lite: LiteApiService,
+    private bs: MatBottomSheet,
+    private datePipe: DatePipe,
+    public hotelHandler:HotelHandlerService,
+    wa: WhatsAppUrlManagerService
+  ){
+    this.quoteUrl = wa.getUrlFromTemplate('contactoDirecto');
   }
   ngOnInit(): void {
     //console.log(this.hotelResult.zip);

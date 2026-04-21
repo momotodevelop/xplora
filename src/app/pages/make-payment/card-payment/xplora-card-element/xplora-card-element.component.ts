@@ -18,6 +18,7 @@ import { CardType, XploraCardServicesService } from '../../../../services/xplora
 import { Timestamp } from 'firebase/firestore';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
+import { SiteIdentityService } from '../../../../services/site-identity.service';
 export interface StoredCardPaymentData{
   bookingId: string;
   number: string;  
@@ -59,6 +60,7 @@ export class XploraCardElementComponent implements OnInit {
   availableInstallments?:Installment[];
   loading:boolean=false;
   total=0;
+  readonly site = this.siteIdentity.config;
   cardForm:FormGroup = new FormGroup({
     number: new FormControl('', [CreditCardValidators.validateCCNumber]),
     type: new FormControl(''),
@@ -66,7 +68,12 @@ export class XploraCardElementComponent implements OnInit {
     cvv: new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(4)]),
     holder: new FormControl('', [Validators.required])
   });
-  constructor(private clip: ClipSDKService, private card: XploraCardServicesService, private sb: MatSnackBar){
+  constructor(
+    private clip: ClipSDKService,
+    private card: XploraCardServicesService,
+    private sb: MatSnackBar,
+    private siteIdentity: SiteIdentityService
+  ){
 
   }
   ngOnInit(): void {

@@ -8,6 +8,8 @@ import { AsyncPipe, CommonModule, DatePipe, TitleCasePipe, isPlatformBrowser } f
 import { DateStringPipe } from './date-string.pipe';
 import { DurationPipe } from './duration.pipe';
 import { GoogleTagManagerService } from 'angular-google-tag-manager';
+import { LinkedInConversionsService } from './services/linkedin-conversions.service';
+import { SiteIdentityService } from './services/site-identity.service';
 
 @Component({
     selector: 'app-root',
@@ -22,22 +24,28 @@ import { GoogleTagManagerService } from 'angular-google-tag-manager';
     providers: [AsyncPipe, DatePipe, TitleCasePipe, DateStringPipe, DurationPipe]
 })
 export class AppComponent implements OnInit {
-  title = 'Xplora Travel';
+  title: string;
   hideNav:boolean = false;
   private readonly isBrowser: boolean;
 
   constructor(
     public shared: SharedDataService,
     @Inject(PLATFORM_ID) platformId: Object,
-    private injector: Injector
+    private injector: Injector,
+    private linkedInConversions: LinkedInConversionsService,
+    public siteIdentity: SiteIdentityService
   ){
     this.isBrowser = isPlatformBrowser(platformId);
+    this.title = this.siteIdentity.config.brand.name;
     this.shared.hideNav.subscribe(hidden=>{
       this.hideNav = hidden;
     });
   }
   ngOnInit(): void {
+    this.siteIdentity.applyTheme();
+
     if (this.isBrowser) {
+      this.linkedInConversions.initialize();
       this.injector.get(GoogleTagManagerService).addGtmToDom();
     }
   }
