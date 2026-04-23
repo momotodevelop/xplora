@@ -1,11 +1,5 @@
 @if(madePaymentMode){
-    @if(retryCardType === 'XPLORA') {
-        <app-xplora-card-element (paymentCompleted)="onPaymentCompleted($event)" [booking]="booking"></app-xplora-card-element>
-    }@else if(retryCardType === 'CLIP') {
-        <app-clip-card-element [booking]="booking"></app-clip-card-element>
-    }@else{
-        <app-xplora-card-element (paymentCompleted)="onPaymentCompleted($event)" [booking]="booking"></app-xplora-card-element>
-    }
+    <app-flow-redirect-payment [booking]="booking"></app-flow-redirect-payment>
 }@else{
     <p><b>Tu pago fue rechazado.</b> Para mantener tu reservación, <b>elige otra forma de pago</b> y complétala cuanto antes para asegurar tarifa y disponibilidad.</p>
     <!-- Opción 1: Reintentar pago en línea -->

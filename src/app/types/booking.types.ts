@@ -63,6 +63,15 @@ export interface FirebaseBooking{
         office?: string,
         promo?: Promo,
         paymentLimit?: Timestamp,
+        flowCheckout?: {
+            checkoutUrl: string;
+            token: string;
+            flowOrder: number;
+            commerceOrder: string;
+            amount: number;
+            subject: string;
+            createdAt: Timestamp | Date;
+        }
     };
     flightDetails?:FlightBookingDetails;
     hotelDetails?:HotelBookingDetails

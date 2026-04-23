@@ -27,6 +27,7 @@ export class MakePaymentComponent implements OnInit {
   bookingID!:string;
   booking!: FlightFirebaseBooking;
   validating:boolean = false;
+  forceCardPayment:boolean = false;
   private readonly isBrowser: boolean;
   readonly site = this.siteIdentity.config;
   constructor(
@@ -69,12 +70,14 @@ export class MakePaymentComponent implements OnInit {
 
     combineLatest([this.route.params,this.route.queryParams]).subscribe(([p, q]) => {
       const params:{bookingID:string} = p as {bookingID:string};
-      const queryParams:{promo?:string} = q as {promo?:string};
+      const queryParams:{promo?:string, card?:string} = q as {promo?:string, card?:string};
       this.bookingID = params.bookingID;
-      this.fireBooking.getBooking(this.bookingID).subscribe(booking=>{
+      this.forceCardPayment = queryParams.card === 'true';
+      this.fireBooking.watchBooking(this.bookingID).subscribe(booking=>{
         //console.log(booking);
         this.bookingHandler.setBookingInfo(booking as FlightFirebaseBooking);
         this.booking = booking as FlightFirebaseBooking;
+        this.validating = booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING';
         this.sharedService.setLoading(false);
         if(booking.payment?.method === "CASH"){
             const payTotal = booking.payment.totalDue-booking.payment.payed;
@@ -115,5 +118,9 @@ export class MakePaymentComponent implements OnInit {
   }
   processingPayment(){
     this.validating = true;
+  }
+
+  get shouldShowCardPayment(): boolean {
+    return this.forceCardPayment || this.booking?.payment?.method === 'CARD';
   }
 }

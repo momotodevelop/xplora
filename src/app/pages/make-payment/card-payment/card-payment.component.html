@@ -1,10 +1,6 @@
 <h4 class="mb-20">Completar Pago</h4>
-@if(activePaymentMethod === 'CLIP') {
-    <app-clip-card-element [booking]="booking"></app-clip-card-element>
-}@else if(activePaymentMethod === 'STRIPE') {
-    <app-stripe-card-element [booking]="booking"></app-stripe-card-element>
-}@else if(activePaymentMethod === 'PAYPAL') {
-    <app-paypal-payment (paymentProcessed)="processingPayment()" (disabledByFraudPrevention)="paypalDisabled()" [booking]="booking"></app-paypal-payment>
+@if(skipMethodSelector){
+    <app-flow-redirect-payment [booking]="booking"></app-flow-redirect-payment>
 }@else{
-    <app-retry-xplora-gateway [disabledByFraudPrevention]="disabledByFraudPrevention" [booking]="booking"></app-retry-xplora-gateway>
+    <app-retry-xplora-gateway [booking]="booking"></app-retry-xplora-gateway>
 }

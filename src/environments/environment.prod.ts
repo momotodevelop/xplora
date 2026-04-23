@@ -29,6 +29,9 @@ export const clipConfig = {
     secretKey: "3326996a-557f-46fa-b3ae-1878055ef2ef",
     token: "Basic OTk2NDJiZTktOGMxNS00NjY3LWJiZGYtMTY2MTk5OTljMDlmOjMzMjY5OTZhLTU1N2YtNDZmYS1iM2FlLTE4NzgwNTVlZjJlZg=="
 }
+export const flowConfig = {
+    createUrl: "https://createflowpayment-qoi5yrbrfa-uc.a.run.app"
+}
 export const TestMode = false;
 export const PayPalClientId = "AdEMpqpGvdC-8lA4dDLseIdROWw9o9gVzVCKyBhVPF5Gj0JHkD-syhwM90ungzLLhr9mEAl3tvOl1duo";
 export const LiteApiKey = "prod_69fc1f97-7d9a-42cd-993f-4210d578c1f6";

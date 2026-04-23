@@ -4,19 +4,19 @@
             <div class="col-xl-7 col-lg-8 pb-20">
                 @if(booking!==undefined){
                     @if(booking.payment){
-                        @if(booking.payment.method==='SPEI'){
+                        @if(shouldShowCardPayment){
+                            <app-card-payment [skipMethodSelector]="forceCardPayment" (paymentProcessed)="processingPayment()" [booking]="booking"></app-card-payment>
+                        }@else if(booking.payment.method==='SPEI'){
                             <app-spei-payment [booking]="booking"></app-spei-payment>
                         }@else if(booking.payment.method==='CASH'){
                             <app-cash-payment [booking]="booking"></app-cash-payment>
-                        }@else if(booking.payment.method==='CARD'){
-                            <app-card-payment (paymentProcessed)="processingPayment()" [booking]="booking"></app-card-payment>
                         }
                     }
                 }
             </div>
             <div class="col-xl-5 col-lg-4">
                 @if(booking!==undefined){
-                    @if(booking.payment&&booking.payment.method!=='CARD'){
+                    @if(booking.payment&&!shouldShowCardPayment){
                         <app-upload-payment-receipt [paymentMethod]="booking.payment!.method" [total]="booking.payment!.totalDue" [bookingID]="booking.bookingID!"></app-upload-payment-receipt>
                     }@else{
                         @if(!validating) {

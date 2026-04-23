@@ -20,6 +20,20 @@ interface DisplayCardData {
   createdAt: Timestamp;
 }
 
+interface GatewayPaymentRecord {
+  id: string;
+  processor: string;
+  processed_at: Timestamp;
+  response_data: {
+    event?: string;
+    source?: string;
+    status?: number;
+    amount?: number;
+    flowOrder?: number;
+    commerceOrder?: string;
+  };
+}
+
 @Component({
   selector: 'app-card-transaction-list',
   imports: [CommonModule, MatCardModule, TimeAgoPipe, FontAwesomeModule],
@@ -32,6 +46,7 @@ export class CardTransactionListComponent implements OnInit {
   @Input() payed!: number;
   paymentPending:number = 0;
   savedPayments:StoredCardPaymentDataFirebase[]=[];
+  gatewayPayments: GatewayPaymentRecord[] = [];
   timeIcon=faClock;
   paymentList:DisplayCardData[] = [];
   constructor(private cards: XploraCardServicesService){
@@ -50,7 +65,12 @@ export class CardTransactionListComponent implements OnInit {
     });
     this.paymentPending = this.total-this.payed;
     this.cards.getGatewayPaymentsByBooking(this.bookingId).subscribe(payments=>{
-      console.log(payments);
+      this.gatewayPayments = payments
+        .map(payment => ({
+          ...payment,
+          processed_at: payment.processed_at as Timestamp,
+        }))
+        .sort((a, b) => b.processed_at.toMillis() - a.processed_at.toMillis()) as GatewayPaymentRecord[];
     });
   }
   getCardIcon(type: CardType){
@@ -79,5 +99,33 @@ export class CardTransactionListComponent implements OnInit {
       break;
     }
     return icon;
+  }
+
+  getGatewayTitle(payment: GatewayPaymentRecord): string {
+    switch (payment.response_data?.event) {
+      case 'FLOW_ORDER_CREATED':
+        return 'Checkout Flow creado';
+      case 'FLOW_STATUS_SYNC':
+        return payment.response_data?.source === 'confirmation'
+          ? 'Pago confirmado por Flow'
+          : 'Retorno desde Flow';
+      default:
+        return `Evento ${payment.processor}`;
+    }
+  }
+
+  getGatewayStatus(payment: GatewayPaymentRecord): { label: string; className: string } {
+    switch (payment.response_data?.status) {
+      case 1:
+        return { label: 'Pendiente', className: 'bg-warning text-dark' };
+      case 2:
+        return { label: 'Validando', className: 'bg-info text-dark' };
+      case 3:
+        return { label: 'Rechazado', className: 'bg-danger' };
+      case 4:
+        return { label: 'Cancelado', className: 'bg-secondary' };
+      default:
+        return { label: 'Creado', className: 'bg-primary' };
+    }
   }
 }

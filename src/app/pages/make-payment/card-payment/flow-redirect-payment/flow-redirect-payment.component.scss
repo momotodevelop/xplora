@@ -1,0 +1,39 @@
+.flow-payment-card {
+  display: grid;
+  gap: 16px;
+}
+
+.flow-payment-card__lead {
+  margin: 0;
+  color: #4b5563;
+}
+
+.flow-payment-card__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f5f7fb;
+}
+
+.flow-payment-card__summary strong {
+  font-size: 1.1rem;
+}
+
+.flow-payment-card__notice {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #eef3ff;
+  color: #1e3a8a;
+}
+
+.flow-payment-card__notice--info {
+  background: #ecfeff;
+  color: #155e75;
+}
+
+.flow-payment-card__notice--success {
+  background: #ecfdf5;
+  color: #166534;
+}

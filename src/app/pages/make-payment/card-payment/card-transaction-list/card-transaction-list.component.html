@@ -41,7 +41,37 @@
                         </div>
                     </a>
                 }
-            }@else{
+            }
+
+            @if(gatewayPayments.length > 0){
+                @for(payment of gatewayPayments; track payment.id) {
+                    <div class="list-group-item mt-15">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{getGatewayTitle(payment)}}</h6>
+                            <small><fa-icon [icon]="timeIcon"></fa-icon> {{payment.processed_at | timeAgo}}</small>
+                        </div>
+                        <p class="mb-1">
+                            @if(payment.response_data.amount){
+                                {{payment.response_data.amount | currency: 'MXN'}}
+                            }@else{
+                                {{payment.processor}}
+                            }
+                        </p>
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                                <span class="badge" [ngClass]="getGatewayStatus(payment).className">
+                                    {{getGatewayStatus(payment).label}}
+                                </span>
+                            </div>
+                            <div class="text-dark text-end">
+                                {{payment.processor}}
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+            @if(savedPayments.length === 0 && gatewayPayments.length === 0){
                 <div class="text-center mt-20 d-flex flex-column align-items-center h-100">
                     <p class="text-muted">No hay pagos registrados.</p>
                 </div>

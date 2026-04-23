@@ -7,12 +7,11 @@ import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCreditCard, faExclamationTriangle, faInfoCircle, faPlaneCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { MatButtonModule } from '@angular/material/button';
-import { XploraCardElementComponent } from '../xplora-card-element/xplora-card-element.component';
 import { XploraCardServicesService } from '../../../../services/xplora-card-services.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { Timestamp } from 'firebase/firestore';
-import { ClipCardElementComponent } from '../clip-card-element/clip-card-element.component';
+import { FlowRedirectPaymentComponent } from '../flow-redirect-payment/flow-redirect-payment.component';
 
 export interface PaymentOption {
   id: string;           // Identificador único: 'RETRY' | 'CASH' | 'SPEI'
@@ -29,7 +28,7 @@ export interface Discount {
 
 @Component({
   selector: 'app-retry-xplora-gateway',
-  imports: [MatCheckboxModule, ReactiveFormsModule, FormsModule, CommonModule, FontAwesomeModule, MatButtonModule, XploraCardElementComponent, ClipCardElementComponent],
+  imports: [MatCheckboxModule, ReactiveFormsModule, FormsModule, CommonModule, FontAwesomeModule, MatButtonModule, FlowRedirectPaymentComponent],
   templateUrl: './retry-xplora-gateway.component.html',
   styleUrl: './retry-xplora-gateway.component.scss'
 })
@@ -37,7 +36,6 @@ export class RetryXploraGatewayComponent implements OnInit, OnChanges {
   @Input() booking!: FirebaseBooking;
   @Input() disabledByFraudPrevention:boolean = false;
   selectedOption: FormControl<'RETRY' | 'CASH' | 'SPEI' | null> = new FormControl(null, [Validators.required]);
-  retryCardType: "XPLORA"|"CLIP" = "CLIP";
   infoIcon = faInfoCircle;
   cardIcon = faCreditCard;
   planeConfirmIcon = faPlaneCircleCheck;
@@ -94,10 +92,6 @@ export class RetryXploraGatewayComponent implements OnInit, OnChanges {
   }
   getDiscountedAmount(discount: number){
     return this.booking.payment!.amount * (1 - (discount / 100));
-  }
-  onPaymentCompleted(event:any){
-    this.madePaymentMode = false;
-    this.selectedOption.reset();
   }
   getCardClasses(optionId: string) {
     return {

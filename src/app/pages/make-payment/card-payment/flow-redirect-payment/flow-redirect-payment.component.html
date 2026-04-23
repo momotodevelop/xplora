@@ -1,0 +1,34 @@
+<div class="flow-payment-card">
+  <p class="flow-payment-card__lead">
+    Serás redirigido al sitio de pago para concluir la transacción de forma segura.
+  </p>
+
+  <div class="flow-payment-card__summary">
+    <span>Saldo pendiente</span>
+    <strong>{{ pendingAmount | currency: 'MXN' }}</strong>
+  </div>
+
+  <div class="flow-payment-card__notice">
+    El pago se procesará con cargo a tu tarjeta de crédito o débito.
+  </div>
+
+  @if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
+    <div class="flow-payment-card__notice flow-payment-card__notice--info">
+      Ya recibimos tu pago y se encuentra en validación. No realices un segundo cobro mientras se actualiza la reservación.
+    </div>
+  } @else if (pendingAmount <= 0) {
+    <div class="flow-payment-card__notice flow-payment-card__notice--success">
+      Esta reservación ya no tiene saldo pendiente.
+    </div>
+  } @else {
+    <button
+      mat-raised-button
+      color="primary"
+      class="w-100"
+      [disabled]="!canStartCheckout || creatingCheckout"
+      (click)="startCheckout()"
+    >
+      {{ creatingCheckout ? 'Redirigiendo al sitio de pago...' : payButtonLabel }}
+    </button>
+  }
+</div>
