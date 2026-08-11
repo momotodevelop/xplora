@@ -57,6 +57,13 @@
                                 {{payment.processor}}
                             }
                         </p>
+                        @if(payment.response_data.kycUrl){
+                            <div class="mb-1">
+                                <a [href]="payment.response_data.kycUrl" target="_blank" rel="noopener" class="text-blue-1 fw-500">
+                                    Completar validación de identidad
+                                </a>
+                            </div>
+                        }
                         <div class="d-flex w-100 justify-content-between">
                             <div>
                                 <span class="badge" [ngClass]="getGatewayStatus(payment).className">

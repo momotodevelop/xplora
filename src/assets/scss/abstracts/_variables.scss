@@ -1,5 +1,9 @@
+@import './brand';
+
 :root {
-  --font-primary: "Jost", sans-serif;
+  --font-primary: #{$font-primary};
+  --primary-color: #{$primary-color};
+  --primary-color-rgb: #{$primary-color-rgb};
 }
 
 $breakpoints: (
@@ -44,7 +48,7 @@ $colors: (
   light-2: #F5F5F5,
   light-3: #FBFCFF,
 
-  blue-1: #3554D1,
+  blue-1: $primary-color,
   blue-2: #E5F0FD,
 
   green-1: #EBFCEA,

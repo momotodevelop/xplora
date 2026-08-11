@@ -31,6 +31,8 @@ interface GatewayPaymentRecord {
     amount?: number;
     flowOrder?: number;
     commerceOrder?: string;
+    kycUrl?: string;
+    kycStatus?: string;
   };
 }
 
@@ -109,12 +111,18 @@ export class CardTransactionListComponent implements OnInit {
         return payment.response_data?.source === 'confirmation'
           ? 'Pago confirmado por Flow'
           : 'Retorno desde Flow';
+      case 'FLOW_KYC_CREATED':
+        return 'Validación de identidad iniciada';
       default:
         return `Evento ${payment.processor}`;
     }
   }
 
   getGatewayStatus(payment: GatewayPaymentRecord): { label: string; className: string } {
+    if (payment.response_data?.event === 'FLOW_KYC_CREATED') {
+      return { label: 'Acción requerida', className: 'bg-info text-dark' };
+    }
+
     switch (payment.response_data?.status) {
       case 1:
         return { label: 'Pendiente', className: 'bg-warning text-dark' };

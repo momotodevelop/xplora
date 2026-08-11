@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { BottomSheetHeaderComponent } from '../bottom-sheet-header/bottom-sheet-header.component';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 @Component({
   selector: 'app-xplorai-smartfare',
-  imports: [BottomSheetHeaderComponent],
+  imports: [XploraBottomSheetComponent],
   templateUrl: './xplorai-smartfare.component.html',
   styleUrl: './xplorai-smartfare.component.scss'
 })

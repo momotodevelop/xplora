@@ -1,11 +1,12 @@
+<app-xplora-bottom-sheet title="Fechas de estancia" subtitle="Elige tu llegada y salida" [contentPadding]="true">
 <div class="w-100 mt-10" style="display: inline-flex;">
     <mat-form-field subscriptSizing="dynamic" appearance="outline" class="w-50 mr-5">
-        <mat-label>Fecha de Salida</mat-label>
-        <input matInput appPreventEdit placeholder="Fecha de Salida" readonly="readonly" spellcheck="false" #start [value]="selectedDateRange.start|date:'EEE. d MMM YYY'|titlecase" type="text">
+        <mat-label>Fecha de llegada</mat-label>
+        <input matInput appPreventEdit placeholder="Fecha de llegada" readonly="readonly" spellcheck="false" #start [value]="selectedDateRange.start|date:'EEE. d MMM yyyy'|titlecase" type="text">
     </mat-form-field>
     <mat-form-field subscriptSizing="dynamic" appearance="outline" class="w-50 mr-5">
-        <mat-label>Fecha de Salida</mat-label>
-        <input matInput appPreventEdit readonly="readonly" placeholder="Fecha de Regreso" spellcheck="false" #end [value]="selectedDateRange.end|date:'EEE. d MMM YYY'|titlecase" type="text">
+        <mat-label>Fecha de salida</mat-label>
+        <input matInput appPreventEdit readonly="readonly" placeholder="Fecha de salida" spellcheck="false" #end [value]="selectedDateRange.end|date:'EEE. d MMM yyyy'|titlecase" type="text">
     </mat-form-field>
 </div>
 <mat-calendar   [selected]="selectedDateRange"
@@ -13,3 +14,4 @@
                 (selectedChange)="onRangeDateSelected($event)"
                 style="margin-top: -15px;">
 </mat-calendar>
+</app-xplora-bottom-sheet>

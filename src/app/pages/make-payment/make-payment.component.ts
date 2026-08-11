@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SharedDataService } from '../../services/shared-data.service';
 import { XploraApiService } from '../../services/xplora-api.service';
 import { combineLatest, map } from 'rxjs';
@@ -39,6 +39,7 @@ export class MakePaymentComponent implements OnInit {
     private fireBooking: FireBookingService,
     private meta: MetaHandlerService,
     private siteIdentity: SiteIdentityService,
+    private router: Router,
     @Inject(PLATFORM_ID) platformId: Object
   ){
     this.isBrowser = isPlatformBrowser(platformId);
@@ -74,6 +75,10 @@ export class MakePaymentComponent implements OnInit {
       this.bookingID = params.bookingID;
       this.forceCardPayment = queryParams.card === 'true';
       this.fireBooking.watchBooking(this.bookingID).subscribe(booking=>{
+        if (booking.payment?.method === 'DEFERRED' && booking.payment.deferredPlan) {
+          this.router.navigate(['/plan-pagos', this.bookingID], { replaceUrl: true });
+          return;
+        }
         //console.log(booking);
         this.bookingHandler.setBookingInfo(booking as FlightFirebaseBooking);
         this.booking = booking as FlightFirebaseBooking;
@@ -123,4 +128,9 @@ export class MakePaymentComponent implements OnInit {
   get shouldShowCardPayment(): boolean {
     return this.forceCardPayment || this.booking?.payment?.method === 'CARD';
   }
+
+  get shouldShowOfflineReceipt(): boolean {
+    return this.booking?.payment?.method === 'CASH' || this.booking?.payment?.method === 'SPEI';
+  }
+
 }

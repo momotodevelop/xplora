@@ -23,7 +23,8 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   CARD: 'Tarjeta',
   CASH: 'Efectivo',
   SPEI: 'Transferencia SPEI',
-  PAYPAL: 'PayPal'
+  PAYPAL: 'PayPal',
+  DEFERRED: 'Pagos diferidos'
 };
 
 export const BOOKING_TYPE_LABELS: Record<BookingTypes, string> = {

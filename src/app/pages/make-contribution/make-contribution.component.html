@@ -1,0 +1,108 @@
+<section class="contribution-page">
+  <div class="container">
+    <div class="contribution-page__heading">
+      <div>
+        <span>Plan de pagos {{booking?.bookingID?.slice(-6)?.toUpperCase()}}</span>
+        <h1>Realizar un abono</h1>
+        <p>Selecciona si realizarás este abono por transferencia SPEI o en efectivo.</p>
+      </div>
+      @if(booking){
+        <a [routerLink]="['/plan-pagos', booking.bookingID]" mat-stroked-button color="primary">Volver al plan</a>
+      }
+    </div>
+
+    @if(loadError){
+      <div class="contribution-page__error">{{loadError}}</div>
+    }@else if(booking && paymentsLoaded){
+      @if(paymentSubmitted){
+        <div class="contribution-page__success">
+          <mat-icon>check_circle</mat-icon>
+          <div>
+            <strong>Comprobante registrado</strong>
+            <p>El abono aparecerá en validación hasta que la agencia confirme la recepción de los fondos.</p>
+          </div>
+        </div>
+      }
+
+      <mat-card class="contribution-summary">
+        <mat-card-content>
+          <div>
+            <span>{{requestedInstallment ? (requestedInstallment.type === 'DOWN_PAYMENT' ? 'Anticipo' : 'Pago ' + requestedInstallment.number) : 'Abono vencido a la fecha'}}</span>
+            <strong>{{contributionAmount|currency:'MXN'}}</strong>
+          </div>
+          <div>
+            <span>Saldo total del plan</span>
+            <strong>{{outstandingBalance|currency:'MXN'}}</strong>
+          </div>
+          @if(validatingAmount > 0){
+            <div>
+              <span>Otros pagos en validación</span>
+              <strong>{{validatingAmount|currency:'MXN'}}</strong>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      @if(contributionAmount > 0 && paymentBooking){
+        <div class="payment-method-selector">
+          <button
+            type="button"
+            class="payment-method-selector__button"
+            [class.payment-method-selector__button--active]="selectedPaymentMethod === 'SPEI'"
+            (click)="selectPaymentMethod('SPEI')"
+          >
+            <mat-icon>account_balance</mat-icon>
+            Transferencia SPEI
+          </button>
+          <button
+            type="button"
+            class="payment-method-selector__button"
+            [class.payment-method-selector__button--active]="selectedPaymentMethod === 'CASH'"
+            (click)="selectPaymentMethod('CASH')"
+          >
+            <mat-icon>payments</mat-icon>
+            Efectivo
+          </button>
+        </div>
+
+        @for(currentPaymentBooking of [paymentBooking]; track paymentRenderKey){
+          <div class="mt-20">
+            @if(selectedPaymentMethod === 'SPEI'){
+              <app-spei-payment [booking]="currentPaymentBooking"></app-spei-payment>
+            }@else{
+              <app-cash-payment [booking]="currentPaymentBooking"></app-cash-payment>
+            }
+          </div>
+
+          <div class="mt-20">
+            <app-upload-payment-receipt
+              [bookingID]="booking.bookingID!"
+              [total]="contributionAmount"
+              [initialAmount]="contributionAmount"
+              [maxAmount]="outstandingBalance"
+              [paymentMethod]="selectedPaymentMethod"
+              [deferredPlanId]="booking.payment!.deferredPlan!.id"
+              [installmentId]="requestedInstallment?.id"
+              [showHistory]="false"
+              [lockAmount]="true"
+              title="Registrar comprobante del abono"
+              helperText="Realiza el pago con la referencia mostrada y sube el comprobante. El abono quedará en validación hasta que la agencia confirme los fondos."
+              (paymentSaved)="handlePaymentSaved()"
+            ></app-upload-payment-receipt>
+          </div>
+        }
+      }@else{
+        <div class="contribution-page__empty">
+          <mat-icon>event_available</mat-icon>
+          <div>
+            <strong>{{paymentBlockedReason || 'No hay pagos vencidos pendientes a la fecha.'}}</strong>
+            @if(!paymentBlockedReason){
+              <p>Desde el plan de pagos puedes elegir una parcialidad futura o indicar un abono personalizado.</p>
+            }
+            <a [routerLink]="['/plan-pagos', booking.bookingID]" mat-raised-button color="primary">Ver plan de pagos</a>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</section>

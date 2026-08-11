@@ -3,7 +3,7 @@ import { SharedDataService } from '../../services/shared-data.service';
 import { ActivatedRoute } from '@angular/router';
 import { FireBookingService } from '../../services/fire-booking.service';
 import { HotelBookingSidebarComponent } from './hotel-booking-sidebar/hotel-booking-sidebar.component';
-import { FirebaseBooking } from '../../types/booking.types';
+import { DeferredPaymentPlan, FirebaseBooking } from '../../types/booking.types';
 import { HolderData, HotelBookingRoomDataComponent } from './hotel-booking-room-data/hotel-booking-room-data.component';
 import { ContactData, HotelBookingContactDataComponent } from './hotel-booking-contact-data/hotel-booking-contact-data.component';
 import { HotelBookingPaymentInfoComponent, PaymentCardData } from './hotel-booking-payment-info/hotel-booking-payment-info.component';
@@ -23,6 +23,9 @@ import { Analytics, logEvent } from '@angular/fire/analytics';
 import { MetaHandlerService } from '../../services/meta-handler.service';
 import { FacebookPixelService } from '../../services/facebook-pixel.service';
 import { LinkedInConversionsService } from '../../services/linkedin-conversions.service';
+import { DeferredPaymentPlanService } from '../../services/deferred-payment-plan.service';
+import { XploraPaymentConfigService } from '../../services/xplora-payment-config.service';
+import { DEFAULT_PAYMENT_CONFIG } from '../../types/payment-config.types';
 
 interface Params{
   bookingID:string;
@@ -64,7 +67,9 @@ export class HotelBookingComponent implements OnInit {
     private gtag: Analytics,
     private meta: MetaHandlerService,
     private fbp: FacebookPixelService,
-    private linkedInConversions: LinkedInConversionsService
+    private linkedInConversions: LinkedInConversionsService,
+    private deferredPaymentPlans: DeferredPaymentPlanService,
+    private paymentConfigService: XploraPaymentConfigService
   ) { }
   booking!:FirebaseBooking;
   guests!:{adults: number, childrens: number};
@@ -73,15 +78,21 @@ export class HotelBookingComponent implements OnInit {
   roomsHolders:HolderData[]=[];
   contactData?:ContactData;
   paymentType:"NOW"|"DELAYED"="NOW";
-  paymentMethod:"CARD"|"CASH"|"SPEI"="CARD";
+  paymentMethod:"CARD"|"CASH"|"SPEI"|"DEFERRED"="CARD";
   cardData?:PaymentCardData;
+  deferredPlan?: DeferredPaymentPlan;
   charges:Charge[]=[];
   promo?:Promo;
   dates:[Date, Date] = [new Date(), new Date()];
   dN:{d:number, n:number} = {d:0, n:0};
   loaderSteps?:Step[];
+  speiPaymentTimeMinutes = DEFAULT_PAYMENT_CONFIG.speiPaymentTimeMinutes;
   remainingPaymentTime:number = (12*60*60); // Tiempo restante para el pago en segundos (12 horas por defecto)
   ngOnInit(): void {
+    this.paymentConfigService.watchPaymentConfig().subscribe(config => {
+      this.speiPaymentTimeMinutes = config.speiPaymentTimeMinutes;
+    });
+
     this.shared.setLoading(true);
     this.shared.setBookingMode(true);
     this.shared.changeHeaderType("dark");
@@ -150,13 +161,25 @@ export class HotelBookingComponent implements OnInit {
     //console.log(paymentType);
     this.updatePrices();
   }
-  paymentMethodChange(paymentMethod: "CARD" | "CASH" | "SPEI"){
+  paymentMethodChange(paymentMethod: "CARD" | "CASH" | "SPEI" | "DEFERRED"){
+    const wasDeferred = this.paymentMethod === 'DEFERRED';
     this.paymentMethod = paymentMethod;
-    //console.log(paymentMethod);
+    if (paymentMethod === 'DEFERRED') {
+      this.paymentType = 'DELAYED';
+      this.cardData = undefined;
+      this.updatePrices();
+    } else if (wasDeferred) {
+      this.paymentType = 'NOW';
+      this.deferredPlan = undefined;
+      this.updatePrices();
+    }
   }
   cardDataChange(cardData: PaymentCardData){
     this.cardData = cardData;
     //console.log(cardData);
+  }
+  deferredPlanChange(deferredPlan: DeferredPaymentPlan | undefined): void {
+    this.deferredPlan = deferredPlan;
   }
   verifyPromo(promoCode:string){
     this.promos.getPromoByCode(promoCode).subscribe(promo=>{
@@ -175,10 +198,17 @@ export class HotelBookingComponent implements OnInit {
     });
   }
   confirmBooking(){
-    let paymentLimit:Timestamp|undefined;
+    if (!this.readyToBook()) {
+      this.sb.open('Completa la información requerida antes de reservar.', 'OK', {duration: 4000});
+      return;
+    }
+
+    let paymentLimit:Timestamp;
     switch (this.paymentMethod) {
       case "SPEI":
-        paymentLimit = new Timestamp((new Date().getTime()/1000) + (600), 0); // 10 minutos
+        paymentLimit = Timestamp.fromMillis(
+          Date.now() + (this.speiPaymentTimeMinutes * 60 * 1000)
+        );
         break;
       case "CASH":
         paymentLimit = new Timestamp((new Date().getTime()/1000) + (12*60*60), 0); // 12 horas
@@ -189,6 +219,10 @@ export class HotelBookingComponent implements OnInit {
         }else{
           paymentLimit = new Timestamp((new Date().getTime()/1000) + (24*60*60), 0); // 24 horas
         }
+        break;
+      case "DEFERRED":
+        paymentLimit = this.deferredPlan!.payoffDate;
+        break;
     }
     //console.log("Confirmando reserva...");
     this.loaderSteps = this.createLoaderSteps();
@@ -205,7 +239,8 @@ export class HotelBookingComponent implements OnInit {
         originalAmount: 0,
         payed: 0,
         status: "PENDING",
-        paymentLimit: paymentLimit
+        paymentLimit: paymentLimit,
+        ...(this.deferredPlan ? {deferredPlan: this.deferredPlan} : {})
       },
       charges: this.charges,
       contact: {
@@ -323,7 +358,26 @@ export class HotelBookingComponent implements OnInit {
         duration: 2000
       }
     ]
-    if(this.paymentType==='DELAYED'){
+    if(this.paymentMethod === 'DEFERRED' && this.deferredPlan){
+      steps.push({
+        title: 'Registrando tu solicitud de Pagos diferidos...',
+        lines: [
+          {
+            content: [
+              { type: 'text', text: `Plan ${this.deferredPaymentPlans.getFrequencyLabel(this.deferredPlan.frequency)}`, bold: true },
+              { type: 'text', text: ' · Anticipo ' },
+              { type: 'currency', amount: this.deferredPlan.downPaymentAmount }
+            ]
+          },
+          {
+            content: [
+              { type: 'text', text: 'Plan preaprobado · pendiente de anticipo' }
+            ]
+          }
+        ],
+        duration: 3000
+      });
+    }else if(this.paymentType==='DELAYED'){
       let icon;
         switch (this.cardData!.brand) {
           case "visa":
@@ -437,6 +491,9 @@ export class HotelBookingComponent implements OnInit {
       if(!this.cardData){
         return false;
       }
+    }
+    if(this.paymentMethod==='DEFERRED' && !this.deferredPlan){
+      return false;
     }
     return true;
   }

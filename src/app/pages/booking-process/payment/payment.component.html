@@ -103,20 +103,122 @@
                 <img src="assets/img/payments/spei.svg" class="my-2" style="max-width: 100px;">
             </div>
             <div class="col-md-8">
-                <p class="text-14 text-dark-1" style="text-align: justify;">Al hacer clic en "Pagar", se mostrarán los <b>datos para realizar la transferencia</b>. Contarás con 5 minutos para completar el pago y <b>confirmar tu reservación</b>.<br>Pasado este tiempo, la disponibilidad y tarifa podrían ser liberadas sin previo aviso. Te recomendamos tener <b>lista tu app bancaria</b> antes de continuar.</p>
+                <p class="text-14 text-dark-1" style="text-align: justify;">Al hacer clic en "Pagar", se mostrarán los <b>datos para realizar la transferencia</b>. Contarás con {{speiPaymentTimeMinutes}} {{speiPaymentTimeMinutes === 1 ? 'minuto' : 'minutos'}} para completar el pago y <b>confirmar tu reservación</b>.<br>Pasado este tiempo, la disponibilidad y tarifa podrían ser liberadas sin previo aviso. Te recomendamos tener <b>lista tu app bancaria</b> antes de continuar.</p>
             </div>
         </div>
+    </mat-expansion-panel>
+    <mat-expansion-panel hideToggle #panelDeferred (opened)="openedPanel('DEFERRED')" (closed)="closedPanel('DEFERRED')">
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                <fa-icon [ngClass]="{'active-icon':selectedPayment==='DEFERRED'}" class="mr-5 text-14" [icon]="deferredIcon"></fa-icon>
+                Pagos diferidos
+            </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        @if(deferredEligibility?.eligible){
+            <div class="deferred-intro">
+                <div>
+                    <strong>Financiamiento Directo</strong>
+                    <p>
+                        Aparta con {{selectedDeferredPlan?.downPaymentPercentage}}% y cubre el resto
+                        de acuerdo con el calendario seleccionado.
+                    </p>
+                </div>
+            </div>
+
+            <div class="deferred-benefits">
+                <span><mat-icon>percent</mat-icon> Sin intereses</span>
+                <span><mat-icon>credit_card_off</mat-icon> Sin tarjeta de crédito</span>
+                <span><mat-icon>bolt</mat-icon> Aprobación inmediata</span>
+            </div>
+
+            <p class="deferred-helper">
+                @if(deferredPlans.length > 1){
+                    Compara los calendarios disponibles y selecciona el que prefieras.
+                }@else{
+                    El calendario disponible para este viaje es semanal.
+                }
+            </p>
+
+            <div class="deferred-plan-grid" [class.deferred-plan-grid--single]="deferredPlans.length === 1">
+                @for(plan of deferredPlans; track plan.id){
+                    <button
+                        type="button"
+                        class="deferred-plan"
+                        [class.deferred-plan--selected]="selectedDeferredFrequency === plan.frequency"
+                        (click)="selectDeferredFrequency(plan.frequency)"
+                    >
+                        <div class="deferred-plan__header">
+                            <div>
+                                <span class="deferred-plan__eyebrow">Plan {{getDeferredFrequencyLabel(plan.frequency)}}</span>
+                                <strong>{{plan.installments.length}} pagos</strong>
+                            </div>
+                            <mat-icon>{{selectedDeferredFrequency === plan.frequency ? 'radio_button_checked' : 'radio_button_unchecked'}}</mat-icon>
+                        </div>
+                        <div class="deferred-plan__summary">
+                            <span>
+                                <small>Anticipo</small>
+                                <strong>{{plan.downPaymentAmount|currency:'MXN'}}</strong>
+                            </span>
+                            <span>
+                                <small>Saldo financiado</small>
+                                <strong>{{plan.financedAmount|currency:'MXN'}}</strong>
+                            </span>
+                        </div>
+                        <div class="deferred-schedule">
+                            <div class="deferred-schedule__row deferred-schedule__row--header">
+                                <span>Pago</span>
+                                <span>Fecha</span>
+                                <span>Monto</span>
+                                <span>Saldo</span>
+                            </div>
+                            @for(installment of plan.installments; track installment.id){
+                                <div class="deferred-schedule__row">
+                                    <span>{{installment.type === 'DOWN_PAYMENT' ? 'Anticipo' : '#' + installment.number}}</span>
+                                    <span>{{installment.dueDate.toDate()|date:'dd MMM y'|titlecase}}</span>
+                                    <span>{{installment.amount|currency:'MXN'}}</span>
+                                    <span>{{installment.balanceAfter|currency:'MXN'}}</span>
+                                </div>
+                            }
+                        </div>
+                    </button>
+                }
+            </div>
+
+            <div class="deferred-approval-note">
+                <mat-icon>info</mat-icon>
+                <span>
+                    Será necesario realizar el pago del anticipo para completar la activación del plan de pagos.
+                </span>
+            </div>
+
+            <mat-checkbox [(ngModel)]="acceptedDeferredTerms" color="primary" class="deferred-acceptance">
+                Acepto el calendario seleccionado y los
+                <a href="#" (click)="openDeferredTerms($event)">términos y condiciones de Pagos diferidos</a>.
+            </mat-checkbox>
+        }@else{
+            <div class="deferred-unavailable">
+                <mat-icon>event_busy</mat-icon>
+                <div>
+                    <strong>Este viaje no es elegible por ahora</strong>
+                    <p>{{deferredEligibility?.reason || 'Estamos verificando el monto y la fecha de salida.'}}</p>
+                    <small>Se requiere una compra mínima de $2,000 MXN y al menos 60 días de anticipación.</small>
+                </div>
+            </div>
+        }
     </mat-expansion-panel>
 </mat-accordion>
 
 <!-- <div id="paymentBrick_container"></div> -->
-<button [disabled]="!selectedPayment||(selectedPayment==='CARD'&&!cardForm.valid)||(selectedPayment==='CASH'&&!selectedPaymentOffice)||loading" (click)="makePaymentFirebase()" mat-raised-button style="margin-top: 16px;" color="primary" class="w-100" >
+<button [disabled]="!selectedPayment||(selectedPayment==='CARD'&&!cardForm.valid)||(selectedPayment==='CASH'&&!selectedPaymentOffice)||(selectedPayment==='DEFERRED'&&!canConfirmDeferredPlan)||loading" (click)="makePaymentFirebase()" mat-raised-button style="margin-top: 16px;" color="primary" class="w-100" >
     @if(loading){
         Procesando tu pago <fa-icon [icon]="spinnerIcon" [animation]="'spin'"></fa-icon>
     }@else{
         @if(selectedPayment!==undefined){
             @if(selectedPayment==='CARD'){
                 Pagar {{total|currency:'MXN'}}
+            }@else if(selectedPayment==='DEFERRED'){
+                Aceptar plan de pagos y continuar al anticipo de {{selectedDeferredPlan?.downPaymentAmount|currency:'MXN'}}
             }@else{
                 Confirmar Reservación
             }

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { HotelInfoBookingDetails } from '../../../types/booking.types';
+import { DeferredPaymentPlan, HotelInfoBookingDetails } from '../../../types/booking.types';
 import { HotelHandlerService } from '../../../services/hotel-handler.service';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -32,7 +32,8 @@ export class HotelBookingSidebarComponent implements OnInit, OnChanges {
   @Input() dates: [Date, Date] = [new Date(), new Date()];
   @Input() rooms: number = 0;
   @Input() paymentType!: "NOW" | "DELAYED";
-  @Input() paymentMethod!: "CARD" | "CASH" | "SPEI";
+  @Input() paymentMethod!: "CARD" | "CASH" | "SPEI" | "DEFERRED";
+  @Input() deferredPlan?: DeferredPaymentPlan;
   @Input() promo?: Promo;
   @Input() dN!: {d:number, n:number}
   @Output() verifyPromo:EventEmitter<string> = new EventEmitter();

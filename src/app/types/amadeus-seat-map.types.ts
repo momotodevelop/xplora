@@ -19,7 +19,9 @@ export interface SeatMap {
     decks:                  Deck[];
     aircraftCabinAmenities: AircraftCabinAmenities;
     availableSeatsCounters: AvailableSeatsCounter[];
-    selectedSeats?: SelectedSeat[]
+    selectedSeats?: SelectedSeat[];
+    provider?:              'DUFFEL' | 'AMADEUS';
+    sliceId?:               string;
 }
 
 export interface SeatMapSavingData{
@@ -33,11 +35,17 @@ export interface SeatMapSavingData{
     aircraftCabinAmenities: AircraftCabinAmenities;
     selectedSeats: SelectedSeat[];
     operating?: Operating;
+    provider?: 'DUFFEL' | 'AMADEUS';
+    flightOfferId?: string;
+    sliceId?: string;
 }
 
 export interface SelectedSeat {
-    passengerID: number,
-    seat?: SeatElement
+    passengerID: number;
+    seat?: SeatElement;
+    travelerId?: string;
+    serviceId?: string;
+    status?: 'NOT_AVAILABLE' | 'NOT_REQUIRED';
 }
 
 export interface Aircraft {
@@ -109,6 +117,27 @@ export interface Deck {
     deckType:          string;
     deckConfiguration: DeckConfiguration;
     seats:             SeatElement[];
+    cabinClass?:       Cabin;
+    cabinName?:        string;
+    layoutRows?:       SeatMapLayoutRow[];
+}
+
+export interface SeatMapLayoutRow {
+    index: number;
+    rowNumber?: number;
+    hasExit: boolean;
+    isWing: boolean;
+    sections: SeatMapLayoutSection[];
+}
+
+export interface SeatMapLayoutSection {
+    elements: SeatMapLayoutElement[];
+}
+
+export interface SeatMapLayoutElement {
+    type: string;
+    name?: string;
+    seat?: SeatElement;
 }
 
 export interface DeckConfiguration {
@@ -129,6 +158,10 @@ export interface SeatElement {
     characteristicsCodes: string[];
     travelerPricing:      TravelerPricing[];
     coordinates:          Coordinates;
+    provider?:             'DUFFEL' | 'AMADEUS';
+    serviceIds?:           string[];
+    name?:                 string;
+    disclosures?:          string[];
 }
 
 export type Cabin = "ECONOMY"|"PREMIUM_ECONOMY"|"BUSINESS"|"FIRST" ;
@@ -142,6 +175,7 @@ export interface TravelerPricing {
     travelerId:             string;
     seatAvailabilityStatus: SeatAvailabilityStatus;
     price?:                 Price;
+    serviceId?:             string;
 }
 
 export interface Price {

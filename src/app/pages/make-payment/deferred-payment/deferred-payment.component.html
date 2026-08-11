@@ -1,0 +1,166 @@
+@if(plan){
+  <mat-card class="deferred-detail">
+    <mat-card-content>
+      <div class="deferred-detail__header">
+        <div>
+          <span class="deferred-detail__eyebrow">Pagos diferidos</span>
+          <h3>Plan {{getFrequencyLabel()}}</h3>
+          <p>Tu reservación debe quedar liquidada 7 días antes del viaje.</p>
+        </div>
+        <span class="deferred-status" [attr.data-status]="getPlanVisualStatus()">{{getPlanStatusLabel()}}</span>
+      </div>
+
+      @if(isAwaitingDownPayment){
+        <div class="deferred-notice deferred-notice--warning">
+          <mat-icon>verified</mat-icon>
+          <span>
+            @if(downPaymentValidating > 0){
+              El plan está preaprobado y el comprobante del anticipo está en validación. Se activará cuando se confirmen los fondos.
+            }@else{
+              El plan está preaprobado. Solo falta cubrir el anticipo de {{plan.downPaymentAmount|currency:'MXN'}} para activarlo.
+            }
+          </span>
+        </div>
+      }@else if(plan.status === 'REJECTED'){
+        <div class="deferred-notice deferred-notice--danger">
+          <mat-icon>cancel</mat-icon>
+          <span>
+            La preaprobación fue retirada. Cualquier anticipo recibido debe reembolsarse en su totalidad.
+            @if(plan.rejectionReason){ Motivo: {{plan.rejectionReason}} }
+          </span>
+        </div>
+      }
+
+      <div class="deferred-metrics">
+        <div>
+          <span>Total del plan</span>
+          <strong>{{plan.purchaseAmount|currency:'MXN'}}</strong>
+        </div>
+        <div>
+          <span>Pagado</span>
+          <strong>{{completedAmount|currency:'MXN'}}</strong>
+        </div>
+        <div>
+          <span>En validación</span>
+          <strong>{{validatingAmount|currency:'MXN'}}</strong>
+        </div>
+        <div>
+          <span>Saldo a pagar</span>
+          <strong>{{outstandingBalance|currency:'MXN'}}</strong>
+        </div>
+      </div>
+
+      <div class="deferred-table-wrap">
+        <div class="deferred-table">
+          <div class="deferred-table__row deferred-table__row--header">
+            <span>Pago</span>
+            <span>Fecha límite</span>
+            <span>Monto</span>
+            <span>Saldo programado</span>
+            <span>Estado</span>
+            <span></span>
+          </div>
+          @for(installment of plan.installments; track installment.id){
+            <div class="deferred-table__row">
+              <span>
+                <strong>{{installment.type === 'DOWN_PAYMENT' ? 'Anticipo' : 'Pago ' + installment.number}}</strong>
+              </span>
+              <span>{{installment.dueDate.toDate()|date:'dd MMM y'|titlecase}}</span>
+              <span>{{installment.amount|currency:'MXN'}}</span>
+              <span>{{installment.balanceAfter|currency:'MXN'}}</span>
+              <span>
+                <span class="installment-status" [attr.data-status]="getInstallmentStatus(installment)">
+                  {{getInstallmentStatusLabel(installment)}}
+                </span>
+                @if(getInstallmentValidating(installment) > 0){
+                  <small>{{getInstallmentValidating(installment)|currency:'MXN'}} por aplicar</small>
+                }
+              </span>
+              <span>
+                <a
+                  mat-stroked-button
+                  color="primary"
+                  target="_blank"
+                  rel="noopener"
+                  [class.link-disabled]="!canPayInstallment(installment)"
+                  [attr.href]="canPayInstallment(installment) ? getContributionUrl(installment) : null"
+                >
+                  Pagar
+                </a>
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if(canMakePayments && customPaymentLimit > 0){
+        <div class="custom-payment">
+          <div>
+            <strong>{{isAwaitingDownPayment ? 'Cubrir anticipo' : 'Hacer un abono por otra cantidad'}}</strong>
+            <p>
+              {{isAwaitingDownPayment
+                ? 'Mientras el plan espera activación, el máximo disponible corresponde al anticipo.'
+                : 'Por defecto se muestra el saldo total, descontando los pagos aplicados.'}}
+            </p>
+          </div>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Cantidad</mat-label>
+            <input matInput currencyInput [formControl]="customAmount" type="text" />
+            <span matTextPrefix>$&nbsp;</span>
+            <span matTextSuffix>MXN</span>
+          </mat-form-field>
+          <a
+            mat-raised-button
+            color="primary"
+            target="_blank"
+            rel="noopener"
+            [class.link-disabled]="customAmount.invalid"
+            [attr.href]="customAmount.valid ? getContributionUrl(isAwaitingDownPayment ? downPaymentInstallment : undefined, customAmount.value) : null"
+          >
+            Hacer abono
+          </a>
+        </div>
+      }
+
+      @if(canMakePayments && !isAwaitingDownPayment){
+        <a
+          mat-button
+          color="primary"
+          target="_blank"
+          rel="noopener"
+          [href]="getContributionUrl()"
+        >
+          Pagar únicamente el total vencido a la fecha
+        </a>
+      }
+      <button type="button" mat-button color="primary" (click)="openTerms()">Ver términos y condiciones del plan</button>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="mt-20 payment-history">
+    <mat-card-content>
+      <h4>Pagos realizados</h4>
+      @if(payments.length){
+        <div class="payment-history__list">
+          @for(payment of payments; track payment.id){
+            <div class="payment-history__item">
+              <div>
+                <strong>{{getPaymentMethodLabel(payment)}}</strong>
+                <span>{{toDate(payment.timestamp)|date:'dd MMM y, HH:mm'|titlecase}}</span>
+              </div>
+              <div class="payment-history__amount">
+                <strong>{{payment.amount|currency:'MXN'}}</strong>
+                <span [attr.data-status]="payment.status">{{getPaymentStatusLabel(payment)}}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }@else{
+        <div class="payment-history__empty">
+          <mat-icon>receipt_long</mat-icon>
+          <span>Aún no hay abonos registrados para este plan.</span>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+}

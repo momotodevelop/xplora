@@ -1,5 +1,5 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, inject, Inject, Input, OnInit } from '@angular/core';
-import { BottomSheetHeaderComponent } from '../bottom-sheet-header/bottom-sheet-header.component';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 import { SwiperDirective } from '../../swiper.directive';
 import { HotelRoomDisplay } from '../../pages/hotel-offer/hotel-details-rooms/hotel-details-rooms.component';
 import { SwiperOptions } from 'swiper/types';
@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-room-details-popup',
-  imports: [BottomSheetHeaderComponent, SwiperDirective, CommonModule, MatIconModule],
+  imports: [XploraBottomSheetComponent, SwiperDirective, CommonModule, MatIconModule],
   templateUrl: './room-details-popup.component.html',
   styleUrl: './room-details-popup.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

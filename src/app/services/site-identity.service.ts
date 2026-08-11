@@ -1,5 +1,5 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, Injectable, PLATFORM_ID, DOCUMENT } from '@angular/core';
 import { SITE_IDENTITY_CONFIG, SiteIdentityConfig, SitePhone } from '../config/site-identity.config';
 
 export interface SitePhoneLink extends SitePhone {

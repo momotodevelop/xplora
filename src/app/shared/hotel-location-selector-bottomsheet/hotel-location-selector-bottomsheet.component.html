@@ -1,23 +1,69 @@
-<div class="px-15 py-15 mat-elevation-z1">
-    <div class="form-input">
-        <input [formControl]="searchInput" #search type="text">
-        <label class="lh-1 text-16 text-light-1">¿A donde vamos?</label>
+<app-xplora-bottom-sheet title="¿Dónde quieres hospedarte?" subtitle="Encuentra tu estancia ideal" [contentPadding]="false">
+<div class="destination-search">
+  <div class="destination-search__header">
+    <div class="destination-search__input">
+      <i class="icon-search"></i>
+      <input
+        [formControl]="searchInput"
+        type="search"
+        autocomplete="off"
+        placeholder="Ciudad, aeropuerto u hotel"
+        aria-label="Buscar destino de hotel"
+      >
     </div>
-</div>
-<cdk-virtual-scroll-viewport itemSize="3" style="height: 280px;">
-    <div [@listAnimation] class="y-gap-5">
-        @for (option of options; track option) {
-            <div>
-                <button (click)="selectPlace(option.suggestion)" class="-link d-block col-12 text-left rounded-4 px-15 py-15">
-                    <div class="d-flex">
-                    <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
-                    <div class="ml-10">
-                        <div class="text-15 lh-12 fw-500">{{(option.mainText ?? option.text) | titlecase}}</div>
-                        <div class="text-14 lh-12 text-light-1 mt-5">{{option.secondaryText | titlecase}}</div>
-                    </div>
-                    </div>
-                </button>
-            </div>
+    <p>Escribe al menos 3 caracteres para buscar destinos y hoteles.</p>
+  </div>
+
+  <div class="destination-search__results">
+    @if (loading) {
+      <div class="destination-search__status">
+        <span class="destination-search__spinner"></span>
+        Buscando en Duffel…
+      </div>
+    } @else if (errorMessage) {
+      <div class="destination-search__status destination-search__status--error">
+        {{ errorMessage }}
+      </div>
+    } @else if (searched && options.length === 0) {
+      <div class="destination-search__status">
+        No encontramos coincidencias. Prueba con otra ciudad o el nombre de un hotel.
+      </div>
+    } @else if (!searched) {
+      <div class="destination-search__status">
+        Puedes buscar, por ejemplo, Cancún, Madrid o el nombre de un alojamiento.
+      </div>
+    }
+
+    @if (!loading && options.length > 0) {
+      <div [@listAnimation]="options.length" class="destination-search__list">
+        @for (
+          option of options;
+          track trackSuggestion($index, option)
+        ) {
+          <button
+            type="button"
+            class="destination-search__option"
+            (click)="selectDestination(option)"
+          >
+            <span
+              class="destination-search__icon"
+              [class.destination-search__icon--hotel]="option.type === 'accommodation'"
+            >
+              <i [class]="option.type === 'accommodation' ? 'icon-bed' : 'icon-location-2'"></i>
+            </span>
+            <span class="destination-search__copy">
+              <span class="destination-search__type">
+                {{ getTypeLabel(option.type) }}
+              </span>
+              <strong>{{ option.name }}</strong>
+              @if (option.secondaryName) {
+                <span>{{ option.secondaryName }}</span>
+              }
+            </span>
+          </button>
         }
-    </div>
-</cdk-virtual-scroll-viewport>
+      </div>
+    }
+  </div>
+</div>
+</app-xplora-bottom-sheet>

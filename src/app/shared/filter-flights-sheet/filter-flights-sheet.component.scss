@@ -1,0 +1,19 @@
+.filter-sheet__content {
+  padding: 20px 18px 8px;
+}
+
+.filter-sheet__footer {
+  min-height: 72px;
+  padding: 10px 16px max(10px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: .85fr 1.15fr;
+  gap: 10px;
+  border-top: 1px solid #e1e6ef;
+  background: #fff;
+  box-shadow: 0 -7px 22px rgba(28, 45, 78, .08);
+}
+
+.filter-sheet__footer .button {
+  width: 100%;
+  white-space: nowrap;
+}

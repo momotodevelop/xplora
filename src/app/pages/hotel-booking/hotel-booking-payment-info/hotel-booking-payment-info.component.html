@@ -4,7 +4,9 @@
         <div class="col-md-6">
             <mat-radio-button value="NOW" color="primary" class="border-light rounded-4 w-100 d-flex payment-type-radiobuton">
                 <div class="fw-500">Pagar ahora</div>
-                <span class="badge badge-pill badge-success d-flex items-center">-10%</span>
+                @if(selectedPaymentMethod !== 'DEFERRED'){
+                    <span class="badge badge-pill badge-success d-flex items-center">-10%</span>
+                }
             </mat-radio-button>
         </div>
         <div class="col-md-6">
@@ -13,7 +15,7 @@
             </mat-radio-button>
         </div>
     </mat-radio-group>
-    <mat-tab-group (selectedTabChange)="changePaymentMethod($event)" mat-stretch-tabs class="example-stretched-tabs mat-elevation-z4 rounded-4 mt-20">
+    <mat-tab-group #paymentMethodTabs (selectedTabChange)="changePaymentMethod($event)" mat-stretch-tabs class="example-stretched-tabs mat-elevation-z4 rounded-4 mt-20">
         <mat-tab label="Tarjeta de Crédito/Débito">
             <div class="px-15 py-15 w-100">
                 @if(paymentTypeSelected==='NOW'){
@@ -97,7 +99,7 @@
                         <div class="col-md-8">
                             <div class="text-16 fw-500">Transferencia Bancaria (SPEI)</div>
                             <div style="text-align: justify;" class="text-15 lh-15">
-                                Puedes realizar tu pago mediante transferencia bancaria SPEI, una opción rápida y segura para transferir fondos directamente desde tu cuenta bancaria. <b>Al elegir esta opción, recibirás los datos bancarios y una referencia para completar la transacción. Nuestro sistema utiliza inteligencia artificial (IA) para validar la transferencia automáticamente</b>, reduciendo tiempos de espera y agilizando la confirmación de tu pago.*
+                                Puedes realizar tu pago mediante transferencia bancaria SPEI, una opción rápida y segura. <b>Al elegirla, recibirás los datos bancarios y una referencia, y contarás con {{speiPaymentTimeMinutes}} {{speiPaymentTimeMinutes === 1 ? 'minuto' : 'minutos'}} para completar la transferencia.</b> Nuestro sistema utiliza inteligencia artificial (IA) para validar el pago automáticamente, reduciendo tiempos de espera y agilizando la confirmación de tu reservación.*
                             </div>
                             <div class="text-12 text-light-1">
                                 *En casos excepcionales, la validación automática podría requerir revisión manual.
@@ -122,6 +124,92 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </mat-tab>
+            <mat-tab label="Pagos diferidos">
+                <div class="deferred-payment px-15 py-15">
+                    @if(deferredEligibility?.eligible){
+                        <div class="deferred-payment__intro">
+                            <div>
+                                <strong>Financiamiento directo con la agencia</strong>
+                                <p>
+                                    Anticipo de {{deferredPlans[0].downPaymentPercentage}}% y liquidación total
+                                    a más tardar 7 días antes de tu estancia.
+                                </p>
+                            </div>
+                            <span>{{deferredEligibility!.anticipationDays}} días de anticipación</span>
+                        </div>
+
+                        <p class="deferred-payment__helper">
+                            @if(deferredPlans.length > 1){
+                                Compara el calendario quincenal y el mensual antes de elegir.
+                            }@else{
+                                Por la anticipación de tu viaje, el calendario disponible es semanal.
+                            }
+                        </p>
+
+                        <div class="deferred-payment__plans" [class.deferred-payment__plans--single]="deferredPlans.length === 1">
+                            @for(plan of deferredPlans; track plan.id){
+                                <button
+                                    type="button"
+                                    class="deferred-payment__plan"
+                                    [class.deferred-payment__plan--selected]="selectedDeferredFrequency === plan.frequency"
+                                    (click)="selectDeferredFrequency(plan.frequency)"
+                                >
+                                    <div class="deferred-payment__plan-header">
+                                        <div>
+                                            <small>Plan {{getDeferredFrequencyLabel(plan.frequency)}}</small>
+                                            <strong>{{plan.installments.length}} pagos</strong>
+                                        </div>
+                                        <mat-icon>{{selectedDeferredFrequency === plan.frequency ? 'radio_button_checked' : 'radio_button_unchecked'}}</mat-icon>
+                                    </div>
+                                    <div class="deferred-payment__totals">
+                                        <span><small>Anticipo</small><strong>{{plan.downPaymentAmount|currency:'MXN'}}</strong></span>
+                                        <span><small>Saldo financiado</small><strong>{{plan.financedAmount|currency:'MXN'}}</strong></span>
+                                    </div>
+                                    <div class="deferred-payment__schedule">
+                                        <div class="deferred-payment__row deferred-payment__row--header">
+                                            <span>Pago</span><span>Fecha</span><span>Monto</span><span>Saldo</span>
+                                        </div>
+                                        @for(installment of plan.installments; track installment.id){
+                                            <div class="deferred-payment__row">
+                                                <span>{{installment.type === 'DOWN_PAYMENT' ? 'Anticipo' : '#' + installment.number}}</span>
+                                                <span>{{installment.dueDate.toDate()|date:'dd MMM y'}}</span>
+                                                <span>{{installment.amount|currency:'MXN'}}</span>
+                                                <span>{{installment.balanceAfter|currency:'MXN'}}</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </button>
+                            }
+                        </div>
+
+                        <div class="deferred-payment__notice">
+                            <mat-icon>info</mat-icon>
+                            <span>
+                                El plan está preaprobado y quedará activo en cuanto el anticipo sea validado.
+                            </span>
+                        </div>
+
+                        <mat-checkbox
+                            [(ngModel)]="acceptedDeferredTerms"
+                            (change)="deferredTermsChanged()"
+                            color="primary"
+                            class="deferred-payment__acceptance"
+                        >
+                            Acepto el calendario seleccionado y los
+                            <a href="#" (click)="openDeferredTerms($event)">términos y condiciones de Pagos diferidos</a>.
+                        </mat-checkbox>
+                    }@else{
+                        <div class="deferred-payment__unavailable">
+                            <mat-icon>event_busy</mat-icon>
+                            <div>
+                                <strong>Este viaje no es elegible</strong>
+                                <p>{{deferredEligibility?.reason || 'Estamos verificando el monto y la fecha de entrada.'}}</p>
+                                <small>Se requiere una compra mínima de $2,000 MXN y al menos 60 días de anticipación.</small>
+                            </div>
+                        </div>
+                    }
                 </div>
             </mat-tab>
         }

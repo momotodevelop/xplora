@@ -1,0 +1,165 @@
+.deferred-payment__intro,
+.deferred-payment__notice,
+.deferred-payment__unavailable {
+  align-items: flex-start;
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+}
+
+.deferred-payment__intro {
+  background: linear-gradient(135deg, #eef5ff, #f8fbff);
+  border: 1px solid #d7e6fa;
+  justify-content: space-between;
+}
+
+.deferred-payment__intro strong,
+.deferred-payment__intro p {
+  display: block;
+  margin: 0;
+}
+
+.deferred-payment__intro strong,
+.deferred-payment__plan-header strong {
+  color: #123a72;
+}
+
+.deferred-payment__intro p,
+.deferred-payment__helper,
+.deferred-payment__unavailable p {
+  color: #64748b;
+}
+
+.deferred-payment__intro > span {
+  background: #123a72;
+  border-radius: 999px;
+  color: #fff;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 10px;
+}
+
+.deferred-payment__helper {
+  font-size: 13px;
+  margin: 14px 0 9px;
+}
+
+.deferred-payment__plans {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.deferred-payment__plans--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.deferred-payment__plan {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  color: inherit;
+  cursor: pointer;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.deferred-payment__plan--selected {
+  border-color: #123a72;
+  box-shadow: 0 8px 22px rgba(18, 58, 114, .12);
+}
+
+.deferred-payment__plan-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 13px;
+}
+
+.deferred-payment__plan-header small,
+.deferred-payment__plan-header strong,
+.deferred-payment__totals small,
+.deferred-payment__totals strong {
+  display: block;
+}
+
+.deferred-payment__plan-header mat-icon {
+  color: #123a72;
+}
+
+.deferred-payment__totals {
+  background: #f8fafc;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 11px 13px;
+}
+
+.deferred-payment__schedule {
+  max-height: 240px;
+  overflow: auto;
+}
+
+.deferred-payment__row {
+  border-top: 1px solid #edf2f7;
+  display: grid;
+  font-size: 11px;
+  gap: 5px;
+  grid-template-columns: .75fr 1.25fr 1fr 1fr;
+  padding: 8px 11px;
+}
+
+.deferred-payment__row span:nth-child(n + 3) {
+  text-align: right;
+}
+
+.deferred-payment__row--header {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.deferred-payment__notice {
+  background: #fff7dd;
+  color: #7c5a09;
+  font-size: 12px;
+  margin-top: 14px;
+}
+
+.deferred-payment__acceptance {
+  display: block;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.deferred-payment__acceptance a {
+  color: #123a72;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.deferred-payment__unavailable {
+  background: #f8fafc;
+}
+
+.deferred-payment__unavailable p {
+  margin: 2px 0;
+}
+
+@media (max-width: 767px) {
+  .deferred-payment__plans {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .deferred-payment__intro {
+    display: block;
+  }
+
+  .deferred-payment__intro > span {
+    display: inline-block;
+    margin-top: 10px;
+  }
+}

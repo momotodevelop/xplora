@@ -1,4 +1,11 @@
-<div class="p-20" style="max-width: 840px;">
+<ng-template #passengersFooter let-close="close">
+    <div class="d-flex justify-end x-gap-10">
+        <button mat-stroked-button type="button" (click)="close()">Cancelar</button>
+        <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">Guardar pasajeros</button>
+    </div>
+</ng-template>
+<app-xplora-bottom-sheet title="Editar pasajeros" subtitle="Revisa la información de quienes viajan" [footerTemplate]="passengersFooter">
+<div style="max-width: 840px;">
     <div class="d-flex justify-between items-center mb-10">
         <h3 class="mb-0">Editar pasajeros</h3>
         @let counts = getCountsPreview();
@@ -73,10 +80,6 @@
                 El conteo de pasajeros se actualizará al guardar. Si agregaste pasajeros nuevos, revisa también el desglose de cargos y el total confirmado.
             </div>
         </div>
-        <div class="col-12 d-flex justify-end">
-            <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
-                Guardar
-            </button>
-        </div>
     </form>
 </div>
+</app-xplora-bottom-sheet>

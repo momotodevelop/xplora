@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { NgxExtendedPdfViewerModule, NgxExtendedPdfViewerService, pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
-import { BottomSheetHeaderComponent } from '../../../shared/bottom-sheet-header/bottom-sheet-header.component';
+import { XploraBottomSheetComponent } from '../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
 @Component({
     selector: 'app-sectur',
-    imports: [NgxExtendedPdfViewerModule, BottomSheetHeaderComponent, MatSliderModule],
+    imports: [NgxExtendedPdfViewerModule, XploraBottomSheetComponent, MatSliderModule],
     providers: [NgxExtendedPdfViewerService],
     templateUrl: './sectur.component.html',
     styleUrl: './sectur.component.scss'

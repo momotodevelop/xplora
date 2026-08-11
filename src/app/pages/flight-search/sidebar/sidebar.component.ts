@@ -8,12 +8,12 @@ import { FeatherIconsModule } from '../../../modules/feather-icons/feather-icons
 import { FlightFiltersComponent } from '../../../shared/flight-filters/flight-filters.component';
 
 export interface FilterFormValue {
-  segments: boolean[], 
+  stops: boolean[],
   airlines:boolean[], 
   orderBy:string, 
   price: {min:number, max:number},
-  departureTime: "MORNING"|"AFTERNOON"|"EVENING",
-  arrivalTime: "MORNING"|"AFTERNOON"|"EVENING"
+  departureTime?: "MORNING"|"AFTERNOON"|"EVENING"|null,
+  arrivalTime?: "MORNING"|"AFTERNOON"|"EVENING"|null
 }
 
 @Component({

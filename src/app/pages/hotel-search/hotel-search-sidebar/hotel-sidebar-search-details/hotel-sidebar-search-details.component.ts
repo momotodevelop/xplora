@@ -88,8 +88,8 @@ export class HotelSidebarSearchDetailsComponent implements OnInit {
       const url:string = "resultados/hoteles/"+
       this.destination?.id+"/"+
       roomString+"/"+
-      this.datepipe.transform(this.checkIn, "YYYY-MM-dd")+"/"+
-      this.datepipe.transform(this.checkOut, "YYYY-MM-dd");
+      this.datepipe.transform(this.checkIn, "yyyy-MM-dd")+"/"+
+      this.datepipe.transform(this.checkOut, "yyyy-MM-dd");
       this.router.navigateByUrl(url);
       this.onSearch.emit();
     }

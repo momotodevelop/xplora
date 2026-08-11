@@ -1,32 +1,27 @@
 import { CommonModule } from "@angular/common";
-import { Component, AfterViewInit, ViewChild, Inject } from "@angular/core";
+import { Component, AfterViewInit, Inject } from "@angular/core";
 import { MatBottomSheetModule, MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from "@angular/material/bottom-sheet";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatListModule, MatSelectionList, MatListOption } from "@angular/material/list";
 import { MatTabsModule } from "@angular/material/tabs";
 import { ExtraServiceBottomSheetData } from "../extras.component";
-import { AddPremiumInsuranceComponent } from "../add-insurance/add-insurance.component";
 import { FlightAdditionalServiceItem } from "../../../../types/booking.types";
-import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
-import { IconDefinition } from "@fortawesome/free-brands-svg-icons";
-import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
-export interface ExtraBaggageData{passengerID: number, pieces: number}
+import { XploraBottomSheetComponent } from '../../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
+
+export interface ExtraBaggageData { passengerID: number; pieces: number }
 
 @Component({
     selector: 'app-extras-pets',
-    imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule, MatIconModule, FontAwesomeModule],
-    templateUrl: './add-carry-on.component.html'
+    imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatIconModule, XploraBottomSheetComponent],
+    templateUrl: './add-carry-on.component.html',
+    styleUrl: './add-carry-on.component.scss'
 })
 export class AddCarryOnComponent implements AfterViewInit{
   price:number;
   total:number=0;
-  @ViewChild('outbound') outbound!:MatSelectionList;
-  @ViewChild('inbound') inbound?:MatSelectionList;
   extraBaggage:{outbound: FlightAdditionalServiceItem[], inbound: FlightAdditionalServiceItem[]};
-  includedIcon:IconDefinition = faCheckCircle;
   constructor(@Inject(MAT_BOTTOM_SHEET_DATA) public data: ExtraServiceBottomSheetData,
-  private _bottomSheetRef: MatBottomSheetRef<AddPremiumInsuranceComponent>){
+  private _bottomSheetRef: MatBottomSheetRef<AddCarryOnComponent>){
     this.price = this.data.price;
     this.extraBaggage = this.data.saved;
     this.ensureMinimumFree();
@@ -46,17 +41,22 @@ export class AddCarryOnComponent implements AfterViewInit{
   }
   private ensureMinimumFree(){
     this.extraBaggage.outbound.forEach(item => {
-      if ((item.value ?? 0) < 1) {
-        item.value = 1;
-        item.active = true;
+      const minimum = this.includedQuantity(item);
+      if ((item.value ?? 0) < minimum) {
+        item.value = minimum;
+        item.active = minimum > 0;
       }
     });
     this.extraBaggage.inbound.forEach(item => {
-      if ((item.value ?? 0) < 1) {
-        item.value = 1;
-        item.active = true;
+      const minimum = this.includedQuantity(item);
+      if ((item.value ?? 0) < minimum) {
+        item.value = minimum;
+        item.active = minimum > 0;
       }
     });
+  }
+  includedQuantity(item:FlightAdditionalServiceItem):number {
+    return Number(item.metadata?.['includedQuantity'] ?? 0);
   }
   addPiece(scope:'INBOUND'|'OUTBOUND', passengerI:number){
     let item:FlightAdditionalServiceItem;
@@ -77,7 +77,7 @@ export class AddCarryOnComponent implements AfterViewInit{
       item = this.extraBaggage.inbound[passengerI];
     }
     const nextValue = (item.value ?? 0) - 1;
-    item.value = Math.max(1, nextValue);
+    item.value = Math.max(this.includedQuantity(item), nextValue);
     item.active = item.value > 0;
     this.change();
   }
@@ -89,10 +89,10 @@ export class AddCarryOnComponent implements AfterViewInit{
   }
   change(){
     const outboundPieces = this.extraBaggage.outbound.reduce((total, item)=>{
-      return total+Math.max(0, (item.value ?? 0) - 1);
+      return total+Math.max(0, (item.value ?? 0) - this.includedQuantity(item));
     },0)
     const inboundPieces = this.extraBaggage.inbound.reduce((total, item)=>{
-      return total+Math.max(0, (item.value ?? 0) - 1);
+      return total+Math.max(0, (item.value ?? 0) - this.includedQuantity(item));
     },0)
     this.total=(this.outboundPrice*outboundPieces)+(this.inboundPrice*inboundPieces);
   }

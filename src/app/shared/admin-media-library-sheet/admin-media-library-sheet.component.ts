@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
-import { BottomSheetHeaderComponent } from '../bottom-sheet-header/bottom-sheet-header.component';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 import { StorageMediaItem, StorageService } from '../../services/storage.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
@@ -29,7 +29,7 @@ export interface AdminMediaLibrarySheetData {
     MatIconModule,
     MatProgressBarModule,
     MatSnackBarModule,
-    BottomSheetHeaderComponent
+    XploraBottomSheetComponent
   ],
   templateUrl: './admin-media-library-sheet.component.html',
   styleUrl: './admin-media-library-sheet.component.scss'

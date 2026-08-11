@@ -34,7 +34,17 @@ export class FlightOfferComponent {
   carryOnIcon = faSuitcaseRolling;
   constructor(private bs:MatBottomSheet,public flightOffersHandler: FlightOffersDataHandlerService){}
   openDetails(offer:FlightOffer){
-    this.bs.open(FlightOfferDetailsComponent, {data: {offer, dictionaries:this.dictionaries}, panelClass: 'flight-offer-details-bottomsheet'});
+    this.bs.open(FlightOfferDetailsComponent, {
+      data: {offer, dictionaries:this.dictionaries},
+      panelClass: 'flight-offer-details-bottomsheet'
+    }).afterDismissed().subscribe(result => {
+      if (result?.action === 'select') {
+        this.selectedFlight.emit({
+          offer: this.offer,
+          dictionaries: this.dictionaries
+        });
+      }
+    });
   }
   removeFlight(event:Event){
     this.removedFlight.emit();

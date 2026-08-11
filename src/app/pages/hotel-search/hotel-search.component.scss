@@ -1,0 +1,233 @@
+.stays-results {
+  min-height: 70vh;
+  background: #f7f8fa;
+}
+
+.stays-results__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.stays-results__count {
+  margin: 28px 0 14px;
+  color: #4b5563;
+  font-size: 15px;
+}
+
+.stays-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.stays-card {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) 1fr;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.05);
+}
+
+.stays-card__image {
+  position: relative;
+  min-height: 250px;
+  background: #e5e7eb;
+}
+
+.stays-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stays-card__provider {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.82);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.stays-card__content {
+  display: grid;
+  grid-template-columns: 1fr minmax(190px, 230px);
+  gap: 24px;
+  padding: 24px;
+}
+
+.stays-card__main {
+  min-width: 0;
+}
+
+.stays-card__stars {
+  min-height: 19px;
+  color: #f59e0b;
+  letter-spacing: 2px;
+}
+
+.stays-card__description {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #4b5563;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.stays-card__amenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stays-card__amenities span {
+  padding: 5px 10px;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+}
+
+.stays-card__price {
+  padding-left: 24px;
+  border-left: 1px solid #e5e7eb;
+  text-align: right;
+}
+
+.stays-card__review {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.stays-card__review > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #0d6efd;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.stays-card__public-price {
+  color: #6b7280;
+  font-size: 14px;
+  text-decoration: line-through;
+}
+
+.stays-card__total-price {
+  margin-top: 2px;
+  color: #111827;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.stays-state {
+  display: flex;
+  min-height: 430px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 24px;
+  padding: 40px 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #ffffff;
+  text-align: center;
+}
+
+.stays-state--error {
+  border-color: #fecaca;
+  background: #fffafa;
+}
+
+.stays-state__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.stays-state__icon--neutral {
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 18px;
+}
+
+.stays-spinner {
+  width: 46px;
+  height: 46px;
+  border: 4px solid #dbeafe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: stays-spin 0.9s linear infinite;
+}
+
+@keyframes stays-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 991px) {
+  .stays-card {
+    grid-template-columns: 230px 1fr;
+  }
+
+  .stays-card__content {
+    grid-template-columns: 1fr;
+  }
+
+  .stays-card__price {
+    padding-top: 18px;
+    padding-left: 0;
+    border-top: 1px solid #e5e7eb;
+    border-left: 0;
+    text-align: left;
+  }
+
+  .stays-card__review {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 767px) {
+  .stays-results__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stays-card {
+    grid-template-columns: 1fr;
+  }
+
+  .stays-card__image {
+    min-height: 220px;
+  }
+
+  .stays-card__content {
+    padding: 20px;
+  }
+}

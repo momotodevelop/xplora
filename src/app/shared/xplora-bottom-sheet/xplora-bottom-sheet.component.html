@@ -1,0 +1,51 @@
+<section class="xplora-sheet">
+  @if (showHandle) {
+    <div class="xplora-sheet__handle-area" aria-hidden="true">
+      <div class="xplora-sheet__handle"></div>
+    </div>
+  }
+
+  @if (headerTemplate) {
+    <header class="xplora-sheet__header xplora-sheet__header--custom">
+      <ng-container
+        [ngTemplateOutlet]="headerTemplate"
+        [ngTemplateOutletContext]="templateContext" />
+    </header>
+  } @else if (hasHeader) {
+    <header class="xplora-sheet__header">
+      <div class="xplora-sheet__heading">
+        @if (subtitle) {
+          <div class="xplora-sheet__subtitle">{{ subtitle }}</div>
+        }
+        @if (title) {
+          <h2>{{ title }}</h2>
+        }
+      </div>
+      <button
+        mat-icon-button
+        type="button"
+        class="xplora-sheet__close"
+        [attr.aria-label]="closeLabel"
+        (click)="close()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </header>
+  }
+
+  <div
+    class="xplora-sheet__content"
+    [class.xplora-sheet__content--padded]="contentPadding"
+    [class.xplora-sheet__content--scrollable]="contentScrollable">
+    <ng-content />
+  </div>
+
+  @if (footerTemplate) {
+    <footer
+      class="xplora-sheet__footer"
+      [class.xplora-sheet__footer--padded]="footerPadding">
+      <ng-container
+        [ngTemplateOutlet]="footerTemplate"
+        [ngTemplateOutletContext]="templateContext" />
+    </footer>
+  }
+</section>

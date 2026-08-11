@@ -3,13 +3,29 @@
         <div class="col-12 col-md-6 col-xl-4">
             <img src="assets/img/validating-card-payment.svg" class="img-fluid w-80" alt="Validando Pago">
             <div class="text-22 fw-500">
-                Tu pago se encuentra en proceso de validación.
+                @if(requiresIdentityVerification){
+                    Tu pago fue recibido y falta concluir la validación de identidad.
+                }@else{
+                    Tu pago se encuentra en proceso de validación.
+                }
             </div>
             <div class="text-16 text-muted mt-10" style="text-align: justify;">
-                Por motivos de seguridad tu pago está siendo validado. Este proceso puede tomar hasta 48 horas. Regresa a esta pagina más tarde para verificar el estado de tu pago.
-                <br>
-                Si tienes alguna duda, por favor contacta a nuestro equipo de validación antifraude en cualquiera de nuestros canales de soporte.
+                @if(requiresIdentityVerification){
+                    Para confirmar tu reservación, es necesario completar el proceso de validación de identidad. Puedes retomarlo con el enlace seguro de abajo y, una vez concluido, seguiremos con la revisión de tu pago.
+                }@else{
+                    Por motivos de seguridad tu pago está siendo validado. Este proceso puede tomar hasta 48 horas. Regresa a esta pagina más tarde para verificar el estado de tu pago.
+                    <br>
+                    Si tienes alguna duda, por favor contacta a nuestro equipo de validación antifraude en cualquiera de nuestros canales de soporte.
+                }
             </div>
+            @if(kycUrl){
+                <a class="button -md -dark-1 bg-blue-1 text-white mt-20" [href]="kycUrl" target="_blank" rel="noopener">
+                    Completar validación de identidad
+                </a>
+                <div class="text-14 text-muted mt-10">
+                    Si ya empezaste el proceso, puedes continuar con el mismo enlace.
+                </div>
+            }
         </div>
     </div>
 </div>

@@ -3,10 +3,11 @@ import { MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
   selector: 'app-bottomsheet-destination-search',
-  imports: [MatTabsModule, MatInputModule, MatFormFieldModule],
+  imports: [MatTabsModule, MatInputModule, MatFormFieldModule, XploraBottomSheetComponent],
   templateUrl: './bottomsheet-destination-search.component.html',
   styleUrl: './bottomsheet-destination-search.component.scss'
 })

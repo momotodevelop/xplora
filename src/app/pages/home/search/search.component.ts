@@ -1,14 +1,12 @@
-import { Component, Inject, Injector, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, Injector, OnInit, PLATFORM_ID } from '@angular/core';
 import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { LocationSelectionSheetComponent } from '../../../shared/location-selection-sheet/location-selection-sheet.component';
 import { PaxSelectionSheetComponent } from '../../../shared/pax-selection-sheet/pax-selection-sheet.component';
 import { TourLocationSelectionSheetComponent } from '../../../shared/tour-location-selection-sheet/tour-location-selection-sheet.component';
 import { AmadeusLocation } from '../../../types/amadeus-airport-response.types';
-import { FormGroup, FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule, DatePipe, TitleCasePipe, isPlatformBrowser } from '@angular/common';
 import { FlightDateSelectionSheetComponent } from '../../../shared/flight-date-selection-sheet/flight-date-selection-sheet.component';
-import { AmadeusAuthService } from '../../../services/amadeus-auth.service';
-import { AirportSearchService } from '../../../services/airport-search.service';
 import { DirectDestination } from '../../../types/amadeus-direct-airport-response.types';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,16 +18,12 @@ import { ScrollRevealDirective } from '../../../scroll-reveal.directive';
 import { MatButtonModule } from '@angular/material/button';
 import { Analytics, logEvent } from '@angular/fire/analytics';
 import { FacebookPixelService } from '../../../services/facebook-pixel.service';
+import { DuffelStaysService } from '../../../services/duffel-stays.service';
+import { DuffelStaysDestinationSelection } from '../../../types/duffel-stays.types';
 export interface Passengers{
   adults:number;
   childrens:number;
   infants:number;
-}
-export interface HotelSearchLocationData{
-  lat: number,
-  lng: number,
-  name: string,
-  id: string
 }
 @Component({
   selector: 'app-search',
@@ -45,7 +39,7 @@ export interface HotelSearchLocationData{
     ReactiveFormsModule
   ]
 })
-export class SearchComponent {
+export class SearchComponent implements OnInit {
   passengers:Passengers={
     adults:1,
     childrens:0,
@@ -60,7 +54,7 @@ export class SearchComponent {
   dates!: Date[];
   round: boolean = true;
   sugestedDestinations!:DirectDestination[];
-  hotelLocation?:HotelSearchLocationData;
+  hotelLocation?: DuffelStaysDestinationSelection;
   hotelRooms:number[][]=[
     [2,0]
   ];
@@ -73,17 +67,17 @@ export class SearchComponent {
     infants: 0
   };
   tourPassengersTotal: number = this.tourPassengers.adults + this.tourPassengers.childrens + this.tourPassengers.infants;
+  staysEnabled = false;
   private readonly isBrowser: boolean;
   constructor(
-    private titlecase: TitleCasePipe, 
-    private token: AmadeusAuthService, 
-    private locations: AirportSearchService, 
+    private titlecase: TitleCasePipe,
     private datepipe: DatePipe, 
     private router: Router, 
     private route: ActivatedRoute,
     private shared: SharedDataService,
     private injector: Injector,
     private fbp: FacebookPixelService,
+    private staysService: DuffelStaysService,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -91,6 +85,10 @@ export class SearchComponent {
       const query = q as { promo?: string };
       this.promoCode = query.promo;
     });
+  }
+
+  ngOnInit(): void {
+    void this.loadStaysAvailability();
   }
 
   private getBottomSheet(): MatBottomSheet | null {
@@ -106,30 +104,20 @@ export class SearchComponent {
     if (!bottomSheet) {
       return;
     }
-    bottomSheet.open(LocationSelectionSheetComponent, {data: {isOrigin, suggestedDestinations: this.sugestedDestinations}, panelClass: "locationSelectionSheet"}).afterDismissed().subscribe((location:AmadeusLocation)=>{
+    bottomSheet.open(LocationSelectionSheetComponent, {
+      data: {
+        isOrigin,
+        suggestedDestinations: this.sugestedDestinations,
+        excludedIataCode: isOrigin ? undefined : this.origin?.iataCode
+      },
+      panelClass: "locationSelectionSheet"
+    }).afterDismissed().subscribe((location:AmadeusLocation)=>{
       if(location!==undefined){
         if(isOrigin){
           this.origin=location;
           this.originInput.setValue((location.subType==="AIRPORT"?("Aeropuerto de "+this.titlecase.transform(location.address.cityName)+" ("+location.iataCode+")"):(this.titlecase.transform(location.address.cityName)+", "+this.titlecase.transform(location.address.countryName)+" (Todos los aeropuertos)")));
-          this.destinationInput.disable();
-          this.token.getToken().subscribe({
-            next: (token) => {
-              if(token!==null){
-                this.locations.searchDirectDestinations(location.iataCode, token).subscribe({
-                  next: (directDestinations) => {
-                    this.sugestedDestinations = directDestinations.data;
-                    this.destinationInput.enable();
-                  },
-                  error: (err) => {
-                    this.destinationInput.enable()
-                  }
-                })
-              }
-            },
-            error: (err) => {
-              this.destinationInput.enable();
-            }
-          });
+          this.sugestedDestinations = [];
+          this.destinationInput.enable();
         }else{
           this.destination=location;
           this.destinationInput.setValue((location.subType==="AIRPORT"?("Aeropuerto de "+this.titlecase.transform(location.address.cityName)+" ("+location.iataCode+")"):(this.titlecase.transform(location.address.cityName)+", "+this.titlecase.transform(location.address.countryName)+" (Todos los aeropuertos)")));
@@ -145,24 +133,23 @@ export class SearchComponent {
       }
     });
   }
-  openHotelDestination(){
+  openHotelDestination(): void {
     const bottomSheet = this.getBottomSheet();
     if (!bottomSheet) {
       return;
     }
-    bottomSheet.open(HotelLocationSelectorBottomsheetComponent, {panelClass:"locationSelectionSheet"}).afterDismissed().subscribe((result:google.maps.places.PlacePrediction)=>{
-      this.getPlaceData(result, ["displayName", "location"]).then(suggestion=>{
-        this.hotelLocation = {
-          name: suggestion.place.displayName!,
-          id: suggestion.place.id,
-          lat: suggestion.place.location!.lat(),
-          lng: suggestion.place.location!.lat()
-        }
-      })
+    bottomSheet.open<
+      HotelLocationSelectorBottomsheetComponent,
+      void,
+      DuffelStaysDestinationSelection
+    >(
+      HotelLocationSelectorBottomsheetComponent,
+      {panelClass: 'locationSelectionSheet'}
+    ).afterDismissed().subscribe(location => {
+      if (location) {
+        this.hotelLocation = location;
+      }
     });
-  }
-  async getPlaceData(suggestion: google.maps.places.PlacePrediction,fields:string[]){
-    return suggestion.toPlace().fetchFields({fields})
   }
   openPaxBottomSheet(){
     const bottomSheet = this.getBottomSheet();
@@ -274,13 +261,30 @@ export class SearchComponent {
     });
   }
   searchHotels(){
+    if (!this.staysEnabled) {
+      this.getSnackBar()?.open(
+        'El buscador de hoteles no esta disponible en este momento.',
+        undefined,
+        { duration: 2200 }
+      );
+      return;
+    }
     if(this.areHotelParamsDefined()){
+      const roomCount = this.getRoomsCount(this.hotelRooms);
+      if (roomCount.minors > 0) {
+        this.getSnackBar()?.open(
+          'Esta primera integracion de Duffel Stays admite busquedas solo para adultos.',
+          'OK',
+          { duration: 3200 }
+        );
+        return;
+      }
       this.shared.setLoading(true);
       const roomString:string = this.hotelRooms.map(pair => pair.join(',')).join('_');
       let searchEventData = {
         search_term: this.hotelLocation!.name,
-        checkin: this.datepipe.transform(this.dates[0], "YYYY-MM-dd"),
-        checkout: this.datepipe.transform(this.dates[1], "YYYY-MM-dd"),
+        checkin: this.datepipe.transform(this.dates[0], "yyyy-MM-dd"),
+        checkout: this.datepipe.transform(this.dates[1], "yyyy-MM-dd"),
         rooms: roomString
       };
       const analytics = this.getAnalytics();
@@ -288,13 +292,20 @@ export class SearchComponent {
         logEvent(analytics, 'search', searchEventData);
       }
       this.fbp.track('Search');
-      const url:string = "resultados/hoteles/"+
-      this.hotelLocation?.id+"/"+
-      roomString+"/"+
-      this.datepipe.transform(this.dates[0], "YYYY-MM-dd")+"/"+
-      this.datepipe.transform(this.dates[1], "YYYY-MM-dd");
-      //console.log(url);
-      this.router.navigateByUrl(url);
+      this.router.navigate([
+        '/resultados/hoteles',
+        this.hotelLocation?.id,
+        roomString,
+        this.datepipe.transform(this.dates[0], 'yyyy-MM-dd'),
+        this.datepipe.transform(this.dates[1], 'yyyy-MM-dd')
+      ], {
+        queryParams: {
+          lat: this.hotelLocation?.lat,
+          lng: this.hotelLocation?.lng,
+          destination: this.hotelLocation?.name,
+          destinationType: this.hotelLocation?.type
+        }
+      });
     }
   }
   searchFlights(){
@@ -303,14 +314,14 @@ export class SearchComponent {
       let searchEventData:any = {
         search_term: this.destination!.address.cityName, // Término de búsqueda principal
         location: this.destination, // Puede ser el mismo o más específico
-        date: this.datepipe.transform(this.dates[0], "YYYY-MM-dd"),
+        date: this.datepipe.transform(this.dates[0], "yyyy-MM-dd"),
         round: this.round,
         adults: this.passengers.adults,
         childrens: this.passengers.childrens,
         infants: this.passengers.infants
       }
       if(this.round){
-        searchEventData.return_date = this.datepipe.transform(this.dates[1], "YYYY-MM-dd");
+        searchEventData.return_date = this.datepipe.transform(this.dates[1], "yyyy-MM-dd");
       }
       const analytics = this.getAnalytics();
       if (analytics) {
@@ -320,8 +331,8 @@ export class SearchComponent {
       const url:string = "/resultados/vuelos/"
       +(this.origin?.subType==="AIRPORT"?'A':'C')+this.origin?.iataCode+"/"
       +(this.destination?.subType==="AIRPORT"?'A':'C')+this.destination?.iataCode+"/"
-      +this.datepipe.transform(this.dates[0], "YYYY-MM-dd")+"/"
-      +(this.round?this.datepipe.transform(this.dates[1], "YYYY-MM-dd"):"NA")+"/"
+      +this.datepipe.transform(this.dates[0], "yyyy-MM-dd")+"/"
+      +(this.round?this.datepipe.transform(this.dates[1], "yyyy-MM-dd"):"NA")+"/"
       +this.passengers.adults.toString()+"/"
       +(this.passengers.childrens.toString())+"/"
       +this.passengers.infants.toString()+"/ECONOMY";
@@ -401,5 +412,14 @@ export class SearchComponent {
     }
 
     return this.injector.get(Analytics);
+  }
+
+  private async loadStaysAvailability(): Promise<void> {
+    try {
+      const config = await this.staysService.getPublicConfig();
+      this.staysEnabled = config.enabled;
+    } catch {
+      this.staysEnabled = false;
+    }
   }
 }

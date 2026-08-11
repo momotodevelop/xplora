@@ -1,17 +1,13 @@
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
-import { AmadeusAuthService } from '../../services/amadeus-auth.service';
 import { AirportSearchService } from '../../services/airport-search.service';
-import { response } from 'express';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { catchError, debounceTime, forkJoin, map, of, retry } from 'rxjs';
+import { catchError, debounceTime, forkJoin, map, of } from 'rxjs';
 import {} from '@angular/common/http';
 import { AmadeusLocation, AmadeusLocationResponseError } from '../../types/amadeus-airport-response.types';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { trigger, transition, style, query, stagger, animate } from '@angular/animations';
-import { TranslateService } from '../../services/translate.service';
 import { TitleCasePipe } from '@angular/common';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { IataSubstitutionPipe } from '../../iata-substitution.pipe';
@@ -21,11 +17,12 @@ import { GeolocationService } from '../../services/geolocation.service';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { GoogleTranslationService } from '../../services/google-translation.service';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
     selector: 'app-location-selection-sheet',
-    imports: [MatBottomSheetModule, MatButtonModule, ScrollingModule, ReactiveFormsModule, TitleCasePipe, NgxSkeletonLoaderModule, IataSubstitutionPipe, MatSnackBarModule],
-    providers: [AirportSearchService, AmadeusAuthService, TranslateService, TitleCasePipe, IataSubstitutionPipe, GeolocationService],
+    imports: [MatBottomSheetModule, MatButtonModule, ScrollingModule, ReactiveFormsModule, TitleCasePipe, NgxSkeletonLoaderModule, IataSubstitutionPipe, MatSnackBarModule, XploraBottomSheetComponent],
+    providers: [AirportSearchService, TitleCasePipe, IataSubstitutionPipe, GeolocationService],
     templateUrl: './location-selection-sheet.component.html',
     styleUrl: './location-selection-sheet.component.scss',
     animations: [
@@ -37,28 +34,31 @@ import { GoogleTranslationService } from '../../services/google-translation.serv
     ]
 })
 export class LocationSelectionSheetComponent implements OnInit {
-  public token:string|null=null;
   searchInput = new FormControl('');
   locationResults:AmadeusLocation[]=[];
   loading:boolean=false;
   featuredLocations:AmadeusLocation[]=ORIGINS;
   suggestedDestinations:DirectDestination[]=[];
-  @ViewChild('search') searchElement!: ElementRef;
   constructor(
     private _bottomSheetRef: MatBottomSheetRef<LocationSelectionSheetComponent>, 
-    @Inject(MAT_BOTTOM_SHEET_DATA) public data: { isOrigin: boolean, suggestedDestinations?: DirectDestination[] },
-    private auth: AmadeusAuthService,
+    @Inject(MAT_BOTTOM_SHEET_DATA) public data: {
+      isOrigin: boolean,
+      suggestedDestinations?: DirectDestination[],
+      excludedIataCode?: string
+    },
     private airports: AirportSearchService,
     private translate: GoogleTranslationService,
-    private el: ElementRef<HTMLElement>,
     private location: GeolocationService,
     private _snackBar: MatSnackBar
   ){
     
   }
   ngOnInit(): void {
-    this.searchInput.disable();
-    this.generateToken();
+    const excludedIataCode = this.data.excludedIataCode?.toUpperCase();
+    this.featuredLocations = ORIGINS.filter(location =>
+      location.iataCode.toUpperCase() !== excludedIataCode
+    );
+    this.searchInput.enable();
     this.searchInput.valueChanges.pipe(debounceTime(500)).subscribe({
       next: (value)=>{
         this.locationResults=[];
@@ -68,9 +68,12 @@ export class LocationSelectionSheetComponent implements OnInit {
       }
     });
     if(!this.data.isOrigin){
-      if(this.data.suggestedDestinations!==undefined){
+      const suggestions = (this.data.suggestedDestinations || []).filter(destination =>
+        destination.iataCode.toUpperCase() !== excludedIataCode
+      );
+      if(suggestions.length > 0){
         this.loading=true;
-        const solicitudesTraduccion = this.data.suggestedDestinations.map(resultado => {
+        const solicitudesTraduccion = suggestions.map(resultado => {
           const traducirCityName = this.translate.translateV2(resultado.name, 'es');
           const traducirCountryName = this.translate.translateV2(resultado.address.countryName, 'es');
           return forkJoin([traducirCityName, traducirCountryName]).pipe(
@@ -92,12 +95,15 @@ export class LocationSelectionSheetComponent implements OnInit {
           this.suggestedDestinations=resultadosTraducidos;
           this.loading=false;
         });
+      } else {
+        this.suggestedDestinations = [];
+        this.loading = false;
       }
     }
   }
   searchAirports(keyword:string){
     this.loading=true;
-    this.airports.searchAirports(keyword, this.token as string).subscribe({
+    this.airports.searchAirports(keyword).subscribe({
       next: (resultados) => {
         if(resultados.meta.count===0){
           this._snackBar.open('No se encontraron resultados', 'Cerrar', { duration: 3000 });
@@ -128,13 +134,8 @@ export class LocationSelectionSheetComponent implements OnInit {
         }
       },
       error: (error:AmadeusLocationResponseError)=>{
-        if(error.status===401){
-          this.generateToken().then(ok=>{
-            if(ok){
-              retry();
-            }
-          });
-        }
+        this.loading=false;
+        this._snackBar.open('No se pudo consultar el catálogo de destinos.', 'Cerrar', { duration: 3000 });
       }
     });
   }
@@ -146,9 +147,13 @@ export class LocationSelectionSheetComponent implements OnInit {
   }
   selectDirectDestination(destination:DirectDestination){
     this.loading=true;
-    this.airports.getLocation("C"+destination.iataCode, this.token as string).subscribe({
+    this.airports.getLocation("C"+destination.iataCode).subscribe({
       next: (location) => {
         this._bottomSheetRef.dismiss(location.data);
+      },
+      error: () => {
+        this.loading = false;
+        this._snackBar.open('No se pudo consultar ese destino.', 'Cerrar', { duration: 3000 });
       }
     });
   }
@@ -157,7 +162,7 @@ export class LocationSelectionSheetComponent implements OnInit {
     this.location.getUbicacionActual().subscribe({
       next: (response) => {
         //console.log(response);
-        this.airports.getNearbyAirports(response.coords.latitude, response.coords.longitude, this.token as string).subscribe({
+        this.airports.getNearbyAirports(response.coords.latitude, response.coords.longitude).subscribe({
           next: (resultados) => {
             //console.log(response);
             const solicitudesTraduccion = resultados.data.map(resultado => {
@@ -191,21 +196,6 @@ export class LocationSelectionSheetComponent implements OnInit {
           this._snackBar.open('No se ha podido obtener tu ubicación.', undefined, { duration: 2000 });
         }
       }
-    });
-  }
-  generateToken():Promise<Boolean>{
-    return new Promise((resolve, reject)=>{
-      this.auth.getToken().subscribe({
-        next: (token) => {
-          this.token=token;
-          this.searchInput.enable();
-          this.searchElement.nativeElement.focus()
-          resolve(true);
-        },
-        error: (err) => {
-          reject(err);
-        }
-      });
     });
   }
 }

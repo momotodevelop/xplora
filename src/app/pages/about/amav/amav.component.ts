@@ -2,12 +2,12 @@ import { Component } from '@angular/core';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatSliderModule } from '@angular/material/slider';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
-import { BottomSheetHeaderComponent } from '../../../shared/bottom-sheet-header/bottom-sheet-header.component';
+import { XploraBottomSheetComponent } from '../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
 import { pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
 
 @Component({
     selector: 'app-amav',
-    imports: [NgxExtendedPdfViewerModule, BottomSheetHeaderComponent, MatSliderModule],
+    imports: [NgxExtendedPdfViewerModule, XploraBottomSheetComponent, MatSliderModule],
     templateUrl: './amav.component.html',
     styleUrl: './amav.component.scss'
 })

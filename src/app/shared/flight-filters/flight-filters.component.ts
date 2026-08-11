@@ -39,8 +39,8 @@ export class FlightFiltersComponent {
     arrivalTime: new FormControl()
   });
   prices: {min:number, max:number} = {min: 0, max: 0};
-  filterByDeparture!:"MORNING"|"AFTERNOON"|"EVENING";
-  filterByArrival!:"MORNING"|"AFTERNOON"|"EVENING";
+  filterByDeparture?:"MORNING"|"AFTERNOON"|"EVENING";
+  filterByArrival?:"MORNING"|"AFTERNOON"|"EVENING";
   estimatedResults:number=0;
   constructor(private offersData:FlightOffersDataHandlerService){}
   updateData(value:{filters: FilterOptions, sorting:SortOptions}){
@@ -50,7 +50,8 @@ export class FlightFiltersComponent {
     this.offersData.carriers.subscribe(options=>{
       const carriersFormArray  = this.filtersFormGroup.get('airlines') as FormArray;
       this.carrierOptions=options;
-      options.forEach(()=>{carriersFormArray.push(new FormControl(false))});
+      carriersFormArray.clear({emitEvent: false});
+      options.forEach(()=>{carriersFormArray.push(new FormControl(false), {emitEvent: false})});
     });
     if(!this.bottomSheet){
       this.offersData.filterFormValue.subscribe((value)=>{
@@ -64,12 +65,13 @@ export class FlightFiltersComponent {
       if(results.length>0){
         this.prices=this.getMinMaxPrice(results);
         const pricesValues = this.filtersFormGroup.get("price") as FormGroup;
-        pricesValues.get("min")?.setValue(this.prices.min);
-        pricesValues.get("max")?.setValue(this.prices.max);
+        pricesValues.get("min")?.setValue(this.prices.min, {emitEvent: false});
+        pricesValues.get("max")?.setValue(this.prices.max, {emitEvent: false});
         this.segments=this.getMinMaxNumberOfSegments(results);
         let actualValue:number=this.segments.min;
         let stopsOptions:{text:string, value:number}[]=[];
         let stopsFormArray = this.filtersFormGroup.get('stops') as FormArray;
+        stopsFormArray.clear({emitEvent: false});
         while (actualValue<this.segments.max+1) {
           if(actualValue===1){
             stopsOptions.push({text: "Directo", value:actualValue})
@@ -78,16 +80,19 @@ export class FlightFiltersComponent {
           }else{
             stopsOptions.push({text: (actualValue-1).toString()+" Escalas", value: actualValue})
           }
-          stopsFormArray.push(new FormControl(false));
+          stopsFormArray.push(new FormControl(false), {emitEvent: false});
           actualValue++; 
         }
         this.stopsOptions=stopsOptions;
-        if(this.bottomSheet){
-          combineLatest([this.offersData.filters, this.offersData.sorting]).pipe(first()).subscribe(data=>{
-            //console.log(data);
-            this.setFilterOptionsToForm(data[0]!, this.filtersFormGroup, this.carrierOptions, this.stopsOptions);
-          });
-        }
+        combineLatest([this.offersData.filters, this.offersData.sorting]).pipe(first()).subscribe(data=>{
+          this.setFilterOptionsToForm(
+            data[0] ?? {},
+            data[1] ?? ['precio', 'asc'],
+            this.filtersFormGroup,
+            this.carrierOptions,
+            this.stopsOptions
+          );
+        });
       }
     });
     this.filtersFormGroup.valueChanges.pipe(debounceTime(500)).subscribe((value:FilterFormValue)=>{
@@ -101,15 +106,15 @@ export class FlightFiltersComponent {
           segments: selectedStops,
           airlines: selectedAirlines,
           price: value.price,
-          departureTime: value.departureTime,
-          arrivalTime: value.arrivalTime
+          departureTime: value.departureTime ?? undefined,
+          arrivalTime: value.arrivalTime ?? undefined
         }, ((value.orderBy as string).split(".") as SortOptions));
       }else{
         const filters:FilterOptions = {
           airlines: this.getSelectedAirlinesIds(),
           segments: this.getSelectedStopsIds(),
-          arrivalTime: value.arrivalTime,
-          departureTime: value.departureTime,
+          arrivalTime: value.arrivalTime ?? undefined,
+          departureTime: value.departureTime ?? undefined,
           price: value.price
         }
         const sorting:SortOptions = (value.orderBy as string).split(".") as SortOptions;
@@ -131,39 +136,33 @@ export class FlightFiltersComponent {
 
     return selectedStopsValues; // Devuelve el array de IDs seleccionados
   }
-  setFilterOptionsToForm(filters: FilterOptions, filtersFormGroup: FormGroup, carrierOptions: CarrierOption[], stopsOptions: any[]): void {
-    if (filters.airlines && filters.airlines.length > 0) {
-      // Obtén el FormArray de aerolíneas del formulario
-      const airlinesFormArray = filtersFormGroup.get('airlines') as FormArray;
-      // Limpia el FormArray actual
-      airlinesFormArray.clear();
-      // Rellena el FormArray basado en los IDs de las aerolíneas seleccionadas
-      carrierOptions.forEach(option => {
-        airlinesFormArray.push(new FormControl(filters.airlines?.includes(option.id)));
-      });
-    }
-  
-    if (filters.segments && filters.segments.length>0) {
-      //console.log(filters.segments);
-      // Obtén el FormArray de paradas del formulario
-      const stopsFormArray = filtersFormGroup.get('stops') as FormArray;
-      // Limpia el FormArray actual
-      stopsFormArray.clear();
-      // Rellena el FormArray basado en los segmentCounts seleccionados
-      //console.log(stopsOptions);
-      stopsOptions.forEach((option, index) => {
-        // Asume que la opción de paradas se mapea 1:1 con el número de segmentos - 1 (por ejemplo, 0 paradas = 1 segmento)
-        stopsFormArray.push(new FormControl(filters.segments?.includes(index+2)));
-      });
-    }
-  
-    // Para los otros filtros como departureTime y arrivalTime, se asume que son controles simples dentro del FormGroup
-    if (filters.departureTime) {
-      filtersFormGroup.get('departureTime')!.setValue(filters.departureTime);
-    }
-    if (filters.arrivalTime) {
-      filtersFormGroup.get('arrivalTime')!.setValue(filters.arrivalTime);
-    }
+  setFilterOptionsToForm(
+    filters: FilterOptions,
+    sorting: SortOptions,
+    filtersFormGroup: FormGroup,
+    carrierOptions: CarrierOption[],
+    stopsOptions: {text:string, value:number}[]
+  ): void {
+    filtersFormGroup.get('orderBy')?.setValue(`${sorting[0]}.${sorting[1]}`, {emitEvent: false});
+
+    const airlinesFormArray = filtersFormGroup.get('airlines') as FormArray;
+    carrierOptions.forEach((option, index) => {
+      airlinesFormArray.at(index)?.setValue(Boolean(filters.airlines?.includes(option.id)), {emitEvent: false});
+    });
+
+    const stopsFormArray = filtersFormGroup.get('stops') as FormArray;
+    stopsOptions.forEach((option, index) => {
+      stopsFormArray.at(index)?.setValue(Boolean(filters.segments?.includes(option.value)), {emitEvent: false});
+    });
+
+    filtersFormGroup.get('price')?.setValue({
+      min: filters.price?.min ?? this.prices.min,
+      max: filters.price?.max ?? this.prices.max
+    }, {emitEvent: false});
+    filtersFormGroup.get('departureTime')?.setValue(filters.departureTime ?? null, {emitEvent: false});
+    filtersFormGroup.get('arrivalTime')?.setValue(filters.arrivalTime ?? null, {emitEvent: false});
+    this.filterByDeparture = filters.departureTime;
+    this.filterByArrival = filters.arrivalTime;
   }
   formatSliderLabel(value:number):string{
     const formatter = new Intl.NumberFormat('es-MX', {

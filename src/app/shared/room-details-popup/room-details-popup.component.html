@@ -1,5 +1,5 @@
-<bottom-sheet-header [title]="roomDetails.roomName" (close)="close()"></bottom-sheet-header>
-<div style="height: calc(80vh - 81px); overflow: scroll;">
+<app-xplora-bottom-sheet [title]="roomDetails.roomName" subtitle="Conoce todos los detalles" [contentPadding]="false">
+<div>
     <swiper-container appSwiper [config]="config" [autoplay]="{delay:500, disableOnInteraction: false}" [loop]="true" [speed]="500">
         @for(photo of roomDetails.photos; track $index) {
             <swiper-slide class="w-100">
@@ -27,3 +27,4 @@
         </div>
     </div>
 </div>
+</app-xplora-bottom-sheet>

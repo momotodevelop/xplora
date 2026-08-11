@@ -1,4 +1,4 @@
-import { Firestore, Timestamp } from "@angular/fire/firestore";
+import { DocumentReference, Timestamp } from "@angular/fire/firestore";
 import { Charge } from "../pages/booking-process/booking-sidebar/booking-sidebar.component";
 import { ContactInfoValue } from "../pages/booking-process/contact-info/contact-info.component";
 import { ExtraBaggageData } from "../pages/booking-process/extras/add-carry-on/add-carry-on.component";
@@ -12,11 +12,42 @@ import { PayPalOrderCaptureResponse } from "../services/paypal.service";
 import { PaymentErrorOutput } from "../services/payment-error.service";
 import { CodigoPostalInfo } from "../services/copomex.service";
 
-export type PaymentMethod = "CARD"|"CASH"|"SPEI"|"PAYPAL";
+export type PaymentMethod = "CARD"|"CASH"|"SPEI"|"PAYPAL"|"DEFERRED";
 export type PaymentType = "NOW"|"DELAYED";
 export type BookingStatus = "CONFIRMED"|"PENDING"|"HOLD"|"CANCELED"|"REJECTED"|"VALIDATING";
 export type BookingTypes = 'FLIGHT' | 'HOTEL' | 'TRANSPORTATION' | 'ACTIVITY' | 'CAR_RENTAL' | 'CRUISE' | 'PACKAGE' ;
 export type ReservationServiceType = BookingTypes | 'INSURANCE' | 'BAGGAGE' | 'SEAT' | 'EXTRA';
+export type DeferredPaymentFrequency = 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+export type DeferredPaymentPlanStatus = 'PREAPPROVED' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'COMPLETED' | 'CANCELED';
+export type DeferredPaymentInstallmentType = 'DOWN_PAYMENT' | 'INSTALLMENT';
+
+export interface DeferredPaymentInstallment {
+    id: string;
+    number: number;
+    type: DeferredPaymentInstallmentType;
+    dueDate: Timestamp;
+    amount: number;
+    balanceAfter: number;
+}
+
+export interface DeferredPaymentPlan {
+    id: string;
+    status: DeferredPaymentPlanStatus;
+    frequency: DeferredPaymentFrequency;
+    purchaseAmount: number;
+    downPaymentPercentage: number;
+    downPaymentAmount: number;
+    financedAmount: number;
+    tripStartDate: Timestamp;
+    payoffDate: Timestamp;
+    requestedAt: Timestamp;
+    termsVersion: string;
+    termsAccepted: boolean;
+    termsAcceptedAt: Timestamp;
+    installments: DeferredPaymentInstallment[];
+    rejectionReason?: string;
+    refundStatus?: 'NOT_APPLICABLE' | 'PENDING' | 'COMPLETED';
+}
 
 export interface ReservationLinkedService {
     id: string;
@@ -63,6 +94,7 @@ export interface FirebaseBooking{
         office?: string,
         promo?: Promo,
         paymentLimit?: Timestamp,
+        deferredPlan?: DeferredPaymentPlan,
         flowCheckout?: {
             checkoutUrl: string;
             token: string;
@@ -70,6 +102,14 @@ export interface FirebaseBooking{
             commerceOrder: string;
             amount: number;
             subject: string;
+            kyc?: {
+                provider: 'DIDIT';
+                url: string;
+                sessionId?: string;
+                status?: string;
+                callbackUrl: string;
+                createdAt: Timestamp | Date;
+            };
             createdAt: Timestamp | Date;
         }
     };
@@ -227,6 +267,9 @@ export interface OfflinePaymentData {
     status: PaymentStatus;
     timestamp: Timestamp | Date;
     receptURL: string; // URL del comprobante de pago
+    bookingRef?: DocumentReference;
+    deferredPlanId?: string;
+    installmentId?: string;
     senderBank?: string;
     paymentOffice?: string;
 }

@@ -31,7 +31,7 @@ export class AdminBookingsComponent implements OnInit {
   readonly typeOptions = ['ALL', 'FLIGHT', 'HOTEL', 'TRANSPORTATION', 'ACTIVITY', 'PACKAGE'];
   readonly statusOptions = ['ALL', 'PENDING', 'CONFIRMED', 'VALIDATING', 'HOLD', 'CANCELED', 'REJECTED'];
   readonly paymentStatusOptions = ['ALL', 'PENDING', 'COMPLETED', 'VALIDATING', 'FAILED', 'CANCELED'];
-  readonly paymentMethodOptions = ['ALL', 'CARD', 'PAYPAL', 'SPEI', 'CASH'];
+  readonly paymentMethodOptions = ['ALL', 'CARD', 'PAYPAL', 'SPEI', 'CASH', 'DEFERRED'];
   private readonly bookingSummaries = new Map<string, BookingDisplaySummary>();
 
   constructor(

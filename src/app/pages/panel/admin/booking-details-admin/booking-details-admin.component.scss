@@ -148,6 +148,79 @@
     margin-top: 10px;
 }
 
+.booking-admin__deferred-summary {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 16px;
+}
+
+.booking-admin__deferred-summary div {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.booking-admin__deferred-summary span,
+.booking-admin__deferred-summary strong {
+    display: block;
+}
+
+.booking-admin__deferred-summary span {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.booking-admin__deferred-summary strong {
+    color: #123a72;
+    margin-top: 3px;
+}
+
+.booking-admin__deferred-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    max-height: 360px;
+    overflow: auto;
+}
+
+.booking-admin__deferred-table {
+    min-width: 560px;
+}
+
+.booking-admin__deferred-row {
+    border-top: 1px solid #edf2f7;
+    display: grid;
+    font-size: 12px;
+    gap: 10px;
+    grid-template-columns: .8fr 1.2fr 1fr 1fr;
+    padding: 10px 12px;
+}
+
+.booking-admin__deferred-row:first-child {
+    border-top: 0;
+}
+
+.booking-admin__deferred-row span:nth-child(n + 3) {
+    text-align: right;
+}
+
+.booking-admin__deferred-row--header {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    position: sticky;
+    text-transform: uppercase;
+    top: 0;
+}
+
+.booking-admin__deferred-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
 .text-danger {
     color: #b91c1c;
 }
@@ -189,5 +262,9 @@
 @media (max-width: 767px) {
     .booking-admin__itinerary-item {
         flex-direction: column;
+    }
+
+    .booking-admin__deferred-summary {
+        grid-template-columns: 1fr 1fr;
     }
 }

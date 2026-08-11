@@ -89,6 +89,126 @@
     color: #64748b;
 }
 
+.deferred-confirmation__header {
+    align-items: flex-start;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.deferred-confirmation__header > div > span {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.deferred-confirmation__header h4,
+.deferred-confirmation__header p {
+    margin: 0;
+}
+
+.deferred-confirmation__header h4 {
+    color: #123a72;
+    font-size: 20px;
+    margin: 3px 0;
+}
+
+.deferred-confirmation__header p {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.deferred-confirmation__status {
+    background: #fff4d8;
+    border-radius: 999px;
+    color: #a16207;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 7px 10px;
+    white-space: nowrap;
+}
+
+.deferred-confirmation__status[data-status='APPROVED'],
+.deferred-confirmation__status[data-status='ACTIVE'],
+.deferred-confirmation__status[data-status='COMPLETED'] {
+    background: #e7f8ee;
+    color: #0f8a4b;
+}
+
+.deferred-confirmation__status[data-status='REJECTED'],
+.deferred-confirmation__status[data-status='CANCELED'] {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.deferred-confirmation__metrics {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 18px 0;
+}
+
+.deferred-confirmation__metrics div {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.deferred-confirmation__metrics small,
+.deferred-confirmation__metrics strong {
+    display: block;
+}
+
+.deferred-confirmation__metrics small {
+    color: #64748b;
+    font-size: 10px;
+}
+
+.deferred-confirmation__metrics strong {
+    color: #123a72;
+    margin-top: 3px;
+}
+
+.deferred-confirmation__table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    max-height: 330px;
+    overflow: auto;
+}
+
+.deferred-confirmation__table {
+    min-width: 520px;
+}
+
+.deferred-confirmation__row {
+    border-top: 1px solid #edf2f7;
+    display: grid;
+    font-size: 12px;
+    gap: 8px;
+    grid-template-columns: .8fr 1.2fr 1fr 1fr;
+    padding: 10px 12px;
+}
+
+.deferred-confirmation__row:first-child {
+    border-top: 0;
+}
+
+.deferred-confirmation__row span:nth-child(n + 3) {
+    text-align: right;
+}
+
+.deferred-confirmation__row--header {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    position: sticky;
+    text-transform: uppercase;
+    top: 0;
+}
+
 :host ::ng-deep .booking-badge {
     border-radius: 999px;
     display: inline-flex;
@@ -132,5 +252,13 @@
     .confirmation-callout__button {
         max-width: none;
         width: 100%;
+    }
+
+    .deferred-confirmation__header {
+        flex-direction: column;
+    }
+
+    .deferred-confirmation__metrics {
+        grid-template-columns: 1fr;
     }
 }

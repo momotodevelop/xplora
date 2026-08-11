@@ -5,7 +5,7 @@
             <div class="row y-gap-20 justify-center">
                 <div class="col-6 text-right">
                     <div style="width: 100%; height: 65px; display: flex; justify-content: flex-end; align-items: center;">
-                        <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/' + (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments[0].carrierCode) + '.svg'" style="max-height: 65px;">
+                        <img [src]="outboundAirlineLogoUrl" alt="Aerolínea del vuelo de ida" style="max-height: 65px;">
                     </div>
                     <div class="lh-17 fw-500">
                         {{booking.flightDetails.origin.address.cityName | titlecase}}<br>{{booking.flightDetails.destination.address.cityName | titlecase}}
@@ -59,7 +59,7 @@
                 </div>
                 <div class="col-6">
                     <div style="width: 100%; height: 65px; display: flex; justify-content: flex-start; align-items: center;">
-                        <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/' + (booking.flightDetails.flights.inbound!.offer!.itineraries[0].segments[0].carrierCode) + '.svg'" style="max-height: 65px;">
+                        <img [src]="inboundAirlineLogoUrl" alt="Aerolínea del vuelo de regreso" style="max-height: 65px;">
                     </div>
                     <div class="lh-17 fw-500">
                         {{booking.flightDetails.destination.address.cityName | titlecase}}<br>{{booking.flightDetails.origin.address.cityName | titlecase}}
@@ -116,7 +116,7 @@
             <div class="row y-gap-20">
                 <div class="col-12">
                     <div class="mb-10" style="width: 100%; height: 65px; display: flex; justify-content: flex-start; align-items: center;">
-                        <img [src]="'https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/' + (booking.flightDetails.flights.outbound!.offer!.itineraries[0].segments[0].carrierCode) + '.svg'" style="max-height: 65px;">
+                        <img [src]="outboundAirlineLogoUrl" alt="Aerolínea del vuelo" style="max-height: 65px;">
                     </div>
                     <div class="lh-17 fw-500">
                         {{booking.flightDetails.origin.address.cityName | titlecase}} - {{booking.flightDetails.destination.address.cityName | titlecase}}
@@ -216,7 +216,7 @@
         </div>
         <div class="row justify-start items-center flex-nowrap">
             <div class="col-auto d-flex">
-                <mat-icon style="width: 40px; height: 40px; font-size: 40px; color: #004aad;">health_and_safety</mat-icon>
+                <mat-icon style="width: 40px; height: 40px; font-size: 40px; color: var(--primary-color);">health_and_safety</mat-icon>
             </div>
             <div class="col-auto">
                 <div class="text-15">Seguro de viajero incluido</div>
@@ -230,7 +230,7 @@
         </div>
         <div class="row justify-start items-center flex-nowrap mt-10">
             <div class="col-auto d-flex">
-                <mat-icon style="width: 40px; height: 40px; font-size: 40px; color: #004aad;">luggage</mat-icon>
+                <mat-icon style="width: 40px; height: 40px; font-size: 40px; color: var(--primary-color);">luggage</mat-icon>
             </div>
             <div class="col-auto">
                 <div class="text-15">Equipaje de mano incluido</div>
@@ -246,7 +246,7 @@
         </div>
         <div class="row justify-start items-center flex-nowrap mt-10">
             <div class="col-auto d-flex">
-                <mat-icon style="width: 40px; height: 40px; font-size: 40px; color: #004aad;">textsms</mat-icon>
+                <mat-icon style="width: 40px; height: 40px; font-size: 40px; color: var(--primary-color);">textsms</mat-icon>
             </div>
             <div class="col-auto">
                 <div class="text-15">Atención especializada 24/7</div>

@@ -70,6 +70,8 @@
                         }@else{
                             <p class="text-22 text-center text-dark-1">Tu reservación ha sido confirmada.</p>
                         }
+                    }@else if(paymentMethod==='DEFERRED'){
+                        <p class="text-22 text-center text-dark-1">Tu plan de pagos está listo. Cubre el anticipo para activarlo.</p>
                     }@else{
                         <p class="text-22 text-center text-dark-1">Completa tu pago ahora para garantizar tu reservación.</p>
                     }
@@ -123,6 +125,11 @@
                                 </button>
                             }
                         }
+                        @case ("DEFERRED") {
+                            <button [routerLink]="['/plan-pagos', bookingId]" class="mb-20" style="color: green;" mat-stroked-button color="primary">
+                                <mat-icon>event_note</mat-icon> Ver plan y pagar anticipo
+                            </button>
+                        }
                     }
                     <div class="d-none d-sm-block">
                         @switch(paymentMethod){
@@ -151,6 +158,10 @@
                                     <p class="text-14 text-light-1">Es necesario verificar nuevamente la disponibilidad.</p>
                                     <p class="text-14 text-light-1">Haz clic en "Solicitar más tiempo".</p>
                                 }
+                            }
+                            @case ("DEFERRED") {
+                                <p class="text-14 text-light-1">El calendario seleccionado quedó guardado.</p>
+                                <p class="text-14 text-light-1">Quedará activo cuando el anticipo sea validado.</p>
                             }
                         }
                     </div>
@@ -181,6 +192,10 @@
                                     <p class="text-14 text-light-1">Es necesario verificar nuevamente la disponibilidad.</p>
                                     <p class="text-14 text-light-1">Haz clic en "Solicitar más tiempo".</p>
                                 }
+                            }
+                            @case ("DEFERRED") {
+                                <p class="text-12 text-light-1">El calendario seleccionado quedó guardado.</p>
+                                <p class="text-12 text-light-1">Quedará activo cuando el anticipo sea validado.</p>
                             }
                         }
                     </div>

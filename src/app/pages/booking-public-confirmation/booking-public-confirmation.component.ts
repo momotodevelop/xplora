@@ -5,7 +5,7 @@ import { catchError, map, of, switchMap } from 'rxjs';
 import { BookingHandlerService } from '../../services/booking-handler.service';
 import { FireBookingService } from '../../services/fire-booking.service';
 import { SharedDataService } from '../../services/shared-data.service';
-import { FirebaseBooking, FlightFirebaseBooking } from '../../types/booking.types';
+import { DeferredPaymentPlan, FirebaseBooking, FlightFirebaseBooking } from '../../types/booking.types';
 import { CommonModule } from '@angular/common';
 import { FlightConfirmationSidebarComponent } from './flight-confirmation-sidebar/flight-confirmation-sidebar.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -17,6 +17,7 @@ import { MetaHandlerService } from '../../services/meta-handler.service';
 import { BookingDisplayService, BookingDisplaySummary } from '../../services/booking-display.service';
 import { getToneClass } from '../../utils/booking-display.utils';
 import { SiteIdentityService } from '../../services/site-identity.service';
+import { DeferredPaymentPlanService } from '../../services/deferred-payment-plan.service';
 
 @Component({
   selector: 'app-booking-public-confirmation',
@@ -39,6 +40,7 @@ export class BookingPublicConfirmationComponent {
     private meta: MetaHandlerService,
     private display: BookingDisplayService,
     private siteIdentity: SiteIdentityService,
+    private deferredPlans: DeferredPaymentPlanService,
     @Inject(PLATFORM_ID) platformId: Object
   ){
     this.isBrowser = isPlatformBrowser(platformId);
@@ -123,7 +125,49 @@ export class BookingPublicConfirmationComponent {
   }
 
   getPaymentUrl(): string {
-    return `/reservar/realizar-pago/${this.booking?.bookingID}`;
+    return this.booking?.payment?.deferredPlan
+      ? `/plan-pagos/${this.booking.bookingID}`
+      : `/reservar/realizar-pago/${this.booking?.bookingID}`;
+  }
+
+  get deferredPlan(): DeferredPaymentPlan | undefined {
+    return this.booking?.payment?.deferredPlan;
+  }
+
+  getDeferredFrequencyLabel(): string {
+    return this.deferredPlan ? this.deferredPlans.getFrequencyLabel(this.deferredPlan.frequency) : '';
+  }
+
+  getDeferredPlanStatusLabel(): string {
+    switch (this.deferredPlan?.status) {
+      case 'PREAPPROVED':
+      case 'PENDING_APPROVAL':
+        return (this.booking?.payment?.payed ?? 0) >= this.deferredPlan.downPaymentAmount
+          ? 'Activo'
+          : 'Preaprobado · pendiente de anticipo';
+      case 'APPROVED':
+        return 'Aprobado';
+      case 'ACTIVE':
+        return 'Activo';
+      case 'COMPLETED':
+        return 'Liquidado';
+      case 'REJECTED':
+        return 'No aprobado';
+      case 'CANCELED':
+        return 'Cancelado';
+      default:
+        return '';
+    }
+  }
+
+  getDeferredPlanVisualStatus(): string {
+    if (
+      ['PREAPPROVED', 'PENDING_APPROVAL'].includes(this.deferredPlan?.status ?? '')
+      && (this.booking?.payment?.payed ?? 0) >= (this.deferredPlan?.downPaymentAmount ?? Infinity)
+    ) {
+      return 'ACTIVE';
+    }
+    return this.deferredPlan?.status ?? '';
   }
 
   toDate(value: unknown): Date | null {

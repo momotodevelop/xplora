@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { StorageService } from '../../services/storage.service';
 import { MatCardModule } from '@angular/material/card';
@@ -167,6 +167,13 @@ export class UploadPaymentReceiptComponent implements OnInit {
   @Input() defaultStatus: OfflinePaymentData['status'] = 'VALIDATING';
   @Input() title = 'Subir Comprobante de Pago';
   @Input() helperText?: string;
+  @Input() initialAmount?: number;
+  @Input() maxAmount?: number;
+  @Input() deferredPlanId?: string;
+  @Input() installmentId?: string;
+  @Input() showHistory = true;
+  @Input() lockAmount = false;
+  @Output() paymentSaved = new EventEmitter<OfflinePaymentData>();
   selectedFile: File | undefined;
   uploadProgress: Observable<number | string> | null = null;
   downloadURL: string | null = null;
@@ -191,6 +198,13 @@ export class UploadPaymentReceiptComponent implements OnInit {
   ){}
 
   ngOnInit(): void {
+    if (this.initialAmount !== undefined) {
+      this.amount.setValue(this.initialAmount);
+    }
+    if (this.maxAmount !== undefined) {
+      this.amount.addValidators(Validators.max(this.maxAmount));
+      this.amount.updateValueAndValidity({ emitEvent: false });
+    }
     //console.log(this.paymentOffices[0].id);
     this.paymentOfficesService.watchOffices().subscribe(offices => {
       this.paymentOffices = (offices ?? []).filter(office => office.active !== false);
@@ -277,20 +291,25 @@ export class UploadPaymentReceiptComponent implements OnInit {
               duration: 2500,
             });
             this.selectedFile = undefined; // Limpiar el archivo seleccionado
-            this.bookingService.addPaymentToBooking(this.bookingID, {
-              amount: parseInt(this.amount.value) || 0, // Usa el nuevo monto del pago o 0 si no se especifica
+            const savedPayment: OfflinePaymentData = {
+              amount: this.parseCurrencyAmount(this.amount.value),
               method: this.paymentMethod,
               senderBank: this.senderBank.value,
               paymentOffice: this.paymentOffice.value,
               status: this.defaultStatus,
               timestamp: new Timestamp(new Date().getTime() / 1000, 0), // Timestamp de Firestore
-              receptURL: this.downloadURL
-            }).then(payments=>{
+              receptURL: this.downloadURL,
+              ...(this.deferredPlanId ? { deferredPlanId: this.deferredPlanId } : {}),
+              ...(this.installmentId ? { installmentId: this.installmentId } : {})
+            };
+            this.bookingService.addPaymentToBooking(this.bookingID, savedPayment).then(payments=>{
               this.savedPayments = payments as DisplaySavedOfflinePayment[];
               this.payed = this.savedPayments.filter(p => p.status === 'COMPLETED').reduce((acc, payment) => acc + (payment.amount || 0), 0);
               this.pending = this.savedPayments.filter(p => p.status === 'VALIDATING').reduce((acc, payment) => acc + (payment.amount || 0), 0);
               this.amount.reset();
               this.senderBank.reset();
+              this.paymentOffice.reset();
+              this.paymentSaved.emit(savedPayment);
             });
           }
         },
@@ -315,6 +334,13 @@ export class UploadPaymentReceiptComponent implements OnInit {
     this.uploadError = false;
     this.downloadURL = null;
     this.uploadProgress = null;
+  }
+
+  private parseCurrencyAmount(value: unknown): number {
+    const normalized = String(value ?? '')
+      .replace(/[^0-9.-]/g, '');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : 0;
   }
   
 }

@@ -1,0 +1,238 @@
+.deferred-intro {
+  align-items: flex-start;
+  background: linear-gradient(135deg, #eef5ff, #f8fbff);
+  border: 1px solid #d7e6fa;
+  border-radius: 14px;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 18px;
+}
+
+.deferred-intro strong {
+  color: #123a72;
+  display: block;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.deferred-intro p,
+.deferred-helper,
+.deferred-unavailable p {
+  color: #64748b;
+  margin: 0;
+}
+
+.deferred-intro__badge {
+  background: #123a72;
+  border-radius: 999px;
+  color: #fff;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 10px;
+}
+
+.deferred-benefits {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 16px 0;
+}
+
+.deferred-benefits span {
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 10px;
+  color: #475569;
+  display: flex;
+  font-size: 12px;
+  gap: 7px;
+  padding: 10px;
+}
+
+.deferred-benefits mat-icon {
+  color: #123a72;
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+.deferred-helper {
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.deferred-plan-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.deferred-plan-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.deferred-plan {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  color: inherit;
+  cursor: pointer;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.deferred-plan:hover {
+  border-color: #9abbe5;
+  transform: translateY(-1px);
+}
+
+.deferred-plan--selected {
+  border-color: #123a72;
+  box-shadow: 0 8px 22px rgba(18, 58, 114, .12);
+}
+
+.deferred-plan__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 14px;
+}
+
+.deferred-plan__header strong,
+.deferred-plan__eyebrow {
+  display: block;
+}
+
+.deferred-plan__eyebrow {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.deferred-plan__header strong {
+  color: #123a72;
+  font-size: 18px;
+}
+
+.deferred-plan__header mat-icon {
+  color: #123a72;
+}
+
+.deferred-plan__summary {
+  background: #f8fafc;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 12px 14px;
+}
+
+.deferred-plan__summary small,
+.deferred-plan__summary strong {
+  display: block;
+}
+
+.deferred-plan__summary small {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.deferred-plan__summary strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.deferred-schedule {
+  max-height: 260px;
+  overflow: auto;
+}
+
+.deferred-schedule__row {
+  border-top: 1px solid #edf2f7;
+  display: grid;
+  font-size: 11px;
+  gap: 6px;
+  grid-template-columns: .75fr 1.25fr 1fr 1fr;
+  padding: 9px 12px;
+}
+
+.deferred-schedule__row span:nth-child(n + 3) {
+  text-align: right;
+}
+
+.deferred-schedule__row--header {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  position: sticky;
+  text-transform: uppercase;
+  top: 0;
+}
+
+.deferred-approval-note,
+.deferred-unavailable {
+  align-items: flex-start;
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 13px 14px;
+}
+
+.deferred-approval-note {
+  background: #fff7dd;
+  color: #7c5a09;
+  font-size: 12px;
+}
+
+.deferred-approval-note mat-icon,
+.deferred-unavailable mat-icon {
+  flex: 0 0 auto;
+}
+
+.deferred-acceptance {
+  display: block;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.deferred-acceptance a {
+  color: #123a72;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.deferred-unavailable {
+  background: #f8fafc;
+  color: #475569;
+  margin-top: 0;
+}
+
+.deferred-unavailable strong {
+  color: #0f172a;
+}
+
+.deferred-unavailable small {
+  display: block;
+  margin-top: 6px;
+}
+
+@media (max-width: 767px) {
+  .deferred-intro,
+  .deferred-plan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deferred-intro {
+    flex-direction: column;
+  }
+
+  .deferred-benefits {
+    grid-template-columns: 1fr;
+  }
+}

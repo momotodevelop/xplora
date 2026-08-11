@@ -1,28 +1,43 @@
-<div style="height: 50px; border-bottom: 1px solid #dddddd; padding: 8px 16px;">
-    <div class="text-20 fw-500 mb-0 d-inline-block">Detalles del Itinerario</div>
-    <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
-</div>
-<div style="max-height: calc(80vh - 120px); position: relative; padding: 0px 16px 20px 16px;" [class.hide-scroll]="loading" [class.scrollable]="!loading">
+<ng-template #detailsFooter>
+    <div class="itinerary-footer">
+        <div>
+            @if(data.offer.promoPrice){
+                <div class="text-14 text-light-1" style="text-decoration: line-through;">{{data.offer.promoPrice.originalTotal|currency:data.offer.price.currency}}</div>
+            }
+            <div class="itinerary-footer__price">{{(data.offer.promoPrice?.discountedTotal ?? data.offer.price.grandTotal)|currency:data.offer.price.currency}}</div>
+            <div class="itinerary-footer__taxes">T.U.A. e I.V.A. incluidos</div>
+        </div>
+        <button (click)="select()" class="button -md -blue-1 bg-dark-3 text-white">Seleccionar</button>
+    </div>
+</ng-template>
+
+<app-xplora-bottom-sheet
+    title="Detalles del vuelo"
+    subtitle="Tu itinerario"
+    [contentPadding]="false"
+    [footerPadding]="false"
+    [footerTemplate]="detailsFooter">
+<div class="itinerary-content">
     @if(loading){
-        <div class="d-flex justify-content-center" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 1);">
+        <div class="itinerary-loader">
             <div class="spinner-grow text-primary" role="status">
                 <span class="visually-hidden">Cargando...</span>
             </div>
         </div>
     }
-    @for(segment of data.offer.itineraries[0].segments; track segment;){
-        <div class="border-light rounded-4 mt-20">
-            <div class="py-20 px-30">
+    @for(segment of data.offer.itineraries[0].segments; track segment.id; let segmentIndex = $index; let last = $last){
+        <article class="segment-card">
+            <div class="segment-card__summary">
                 <div class="row justify-between items-center">
                     <div class="col-auto">
-                        <div class="fw-500 text-dark-1">{{segment.departure.iataCode}} • {{segment.arrival.iataCode}}, {{segment.departure.at|dateString:'dd MMM YYYY'|titlecase}}</div>
+                        <div class="fw-500 text-dark-1">{{segment.departure.iataCode}} • {{segment.arrival.iataCode}}, {{segment.departure.at|dateString:'dd MMM yyyy'|titlecase}}</div>
                     </div>
                     <div class="col-auto">
-                        <div class="text-14 text-light-1">4h 05m</div>
+                        <div class="segment-card__duration">{{segment.duration|duration}}</div>
                     </div>
                 </div>
             </div>
-            <div class="py-30 px-30 border-top-light">
+            <div class="segment-card__body">
                 <div class="row y-gap-10 justify-between">
                     <div class="col-auto">
                         <div class="d-flex items-center mb-15">
@@ -42,8 +57,8 @@
                                         <div class="lh-14 fw-500">{{segment.departure.at|dateString:'HH:mm'}}</div>
                                     </div>
                                     <div class="col-auto w-100">
-                                        @if(getLocationInfo(segment.departure.iataCode)!==undefined){
-                                            <div class="lh-14 fw-500">{{getLocationInfo(segment.departure.iataCode).address.cityName|titlecase}} ({{segment.departure.iataCode}})</div>
+                                        @if(getLocationInfo(segment.departure.iataCode); as departureLocation){
+                                            <div class="lh-14 fw-500">{{departureLocation.address.cityName|titlecase}} ({{segment.departure.iataCode}})</div>
                                         }
                                     </div>
                                 </div>
@@ -52,7 +67,19 @@
                                 <div class="w-28 d-flex justify-center mr-15">
                                     <img src="assets/img/flights/plane.svg" alt="image">
                                 </div>
-                                <div class="text-14 text-light-1">{{segment.duration|duration}}</div>
+                                <div>
+                                    <div class="text-14 text-light-1">{{segment.duration|duration}}</div>
+                                    @if(segment.stops?.length){
+                                        <div class="technical-stops">
+                                            @for(stop of segment.stops; track stop.id){
+                                                <span>
+                                                    Parada técnica en {{stop.airport.cityName || stop.airport.name}} ({{stop.airport.iataCode}})
+                                                    · {{stop.duration|duration}}
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
                             </div>
                             <div class="d-flex items-center mt-15">
                                 <div class="w-28 d-flex justify-center mr-15">
@@ -63,8 +90,8 @@
                                         <div class="lh-14 fw-500">{{segment.arrival.at|dateString:'HH:mm'}}</div>
                                     </div>
                                     <div class="col-auto w-100">
-                                        @if(getLocationInfo(segment.arrival.iataCode)!==undefined){
-                                            <div class="lh-14 fw-500">{{getLocationInfo(segment.arrival.iataCode).address.cityName|titlecase}} ({{segment.arrival.iataCode}})</div>
+                                        @if(getLocationInfo(segment.arrival.iataCode); as arrivalLocation){
+                                            <div class="lh-14 fw-500">{{arrivalLocation.address.cityName|titlecase}} ({{segment.arrival.iataCode}})</div>
                                         }
                                     </div>
                                 </div>
@@ -72,27 +99,38 @@
                         </div>
                     </div>
                     <div class="col-auto text-right md:text-left">
-                        <div class="text-14 text-light-1">{{getFareInfoBySegment(segment.id).cabin|flightClassName}}</div>
+                        @if(getFareInfoBySegment(segment.id); as fareInfo){
+                            <div class="text-14 text-light-1">{{fareInfo.cabin|flightClassName}}</div>
+                        }
                         <div class="text-14 mt-15 md:mt-5">
                             {{aircraftDefinition(segment.aircraft.code)|titlecase}}<br>
-                            Incl. 1 pieza de equipaje de mano<br>
+                            {{createCabinBagsText(segment.id)}}<br>
                             {{createCheckedBagsText(segment.id)}}<br>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </article>
+        @if(!last){
+            <div class="connection-card">
+                <div class="connection-card__line"></div>
+                <div class="connection-card__icon" aria-hidden="true">
+                    <i class="icon-clock"></i>
+                </div>
+                <div class="connection-card__content">
+                    <div class="connection-card__title">
+                        {{isLongConnection(segmentIndex) ? 'Escala larga' : 'Escala'}}
+                        en {{getLocationInfo(segment.arrival.iataCode)?.address?.cityName || segment.arrival.iataCode}}
+                    </div>
+                    <div class="connection-card__meta">
+                        {{getConnectionDuration(segmentIndex)|duration}} entre vuelos
+                        @if(hasTerminalChange(segmentIndex)){
+                            <span> · Cambio de terminal {{segment.arrival.terminal}} → {{data.offer.itineraries[0].segments[segmentIndex + 1].departure.terminal}}</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
     }
 </div>
-<div style="height: 70px;border-top: 1px solid #dddddd;padding: 8px 16px;display: flex;justify-content: space-between;">
-    <div>
-        @if(data.offer.promoPrice){
-            <div class="text-14 text-light-1" style="text-decoration: line-through;">{{data.offer.promoPrice.originalTotal|currency:data.offer.price.currency}}</div>
-        }
-        <div class="text-20 fw-500 mb-0" style="height: 25px;">{{(data.offer.promoPrice?.discountedTotal ?? data.offer.price.grandTotal)|currency:data.offer.price.currency}}</div>
-        <div class="text-16 fw-200 text-light-1">T.U.A. e I.V.A. Incluido</div>
-    </div>
-    <div>
-        <button class="button -md -blue-1 bg-dark-3 text-white">Seleccionar</button>
-    </div>
-</div>
+</app-xplora-bottom-sheet>

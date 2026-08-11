@@ -1,0 +1,145 @@
+.passengers-step {
+  display: grid;
+  gap: 20px;
+}
+
+.passenger-suggestions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+  min-height: 32px;
+}
+
+.passenger-suggestion {
+  --mdc-chip-container-height: 32px;
+  --mdc-chip-elevated-container-color: #f8fafc;
+  --mdc-chip-label-text-color: #475467;
+  --mdc-chip-outline-color: #d7dde5;
+  font-size: 12px;
+}
+
+.passenger-suggestion[aria-disabled='true'] {
+  opacity: .48;
+}
+
+.passenger-suggestion mat-icon[matChipAvatar] {
+  color: #667085;
+  font-size: 17px;
+  height: 17px;
+  width: 17px;
+}
+
+.passenger-accordion {
+  display: grid;
+  gap: 12px;
+}
+
+.passenger-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.passenger-panel--completed {
+  border-color: #b9dfc7;
+}
+
+.passenger-panel__number {
+  align-items: center;
+  background: #edf3fb;
+  border-radius: 10px;
+  color: var(--primary-color);
+  display: flex;
+  flex: 0 0 34px;
+  font-size: 13px;
+  font-weight: 800;
+  height: 34px;
+  justify-content: center;
+}
+
+.passenger-panel--completed .passenger-panel__number {
+  background: #e6f6ed;
+  color: #278352;
+}
+
+.passenger-panel__number mat-icon {
+  font-size: 19px;
+  height: 19px;
+  width: 19px;
+}
+
+.passenger-panel__title {
+  display: grid;
+  gap: 1px;
+  margin-left: 11px;
+  min-width: 0;
+}
+
+.passenger-panel__title strong {
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.passenger-panel__title small {
+  color: #718096;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.passenger-panel__edit {
+  color: var(--primary-color);
+  margin-right: 4px;
+}
+
+.passenger-form {
+  padding-top: 8px;
+}
+
+.passenger-form__fields {
+  row-gap: 18px;
+}
+
+.save-passenger-row {
+  align-items: center;
+  display: flex;
+  margin-top: 10px;
+  min-height: 32px;
+}
+
+.save-passenger-row mat-checkbox {
+  --mdc-checkbox-state-layer-size: 32px;
+  font-size: 13px;
+}
+
+.passenger-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.passengers-complete {
+  align-items: center;
+  background: #eef9f3;
+  border: 1px solid #c5e7d3;
+  border-radius: 14px;
+  color: #267047;
+  display: flex;
+  font-size: 13px;
+  gap: 9px;
+  padding: 13px 15px;
+}
+
+@media (max-width: 575px) {
+  .passenger-form {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .passenger-form__actions button {
+    width: 100%;
+  }
+}

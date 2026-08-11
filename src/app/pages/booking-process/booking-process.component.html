@@ -1,93 +1,150 @@
 @if(confirmationLoader){
-    <app-booking-creation-loader [bookingId]="bookingID!" (completed)="completeLoader()" [cashPaymentTime]="43200" [speiPaymentTime]="600" [steps]="confirmationLoaderSteps" [paymentMethod]="paymentMethod" [paymentType]="'NOW'"></app-booking-creation-loader>
-}@else{
-    @if(booking!==undefined){
-        <!-- <section class="layout-pt-md">
-            <div class="section-bg__item col-12">
-                <app-header-map [lat]="booking.destination.geoCode.latitude" [lng]="booking.destination.geoCode.longitude" ></app-header-map>
+    <app-booking-creation-loader
+        [bookingId]="bookingID!"
+        (completed)="completeLoader()"
+        [cashPaymentTime]="43200"
+        [speiPaymentTime]="speiPaymentTimeSeconds"
+        [steps]="confirmationLoaderSteps"
+        [paymentMethod]="paymentMethod"
+        [paymentType]="paymentMethod === 'DEFERRED' ? 'DELAYED' : 'NOW'">
+    </app-booking-creation-loader>
+}@else if(booking){
+    <main class="container booking-layout" #stepperContainer>
+        <div class="row y-gap-24">
+            <div class="col-lg-8">
+                <mat-vertical-stepper
+                    class="booking-stepper"
+                    [class.booking-stepper--payment]="activeStep === 4"
+                    [linear]="true"
+                    [selectedIndex]="activeStep"
+                    (selectionChange)="onStepSelectionChange($event.selectedIndex)">
+
+                    <mat-step [completed]="contactStepComplete" [editable]="true">
+                        <ng-template matStepLabel>Titular de la reservación</ng-template>
+                        <ng-template matStepContent>
+                            <div class="step-content">
+                                <app-contact-info (valid)="onContactValidity($event)"></app-contact-info>
+                                <div class="step-actions step-actions--end">
+                                    <button
+                                        type="button"
+                                        mat-flat-button
+                                        color="primary"
+                                        [disabled]="!contactInfo || loadingProcess"
+                                        (click)="processContact()">
+                                        Continuar
+                                        <mat-icon>arrow_forward</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </mat-step>
+
+                    <mat-step [completed]="passengersStepComplete" [editable]="true">
+                        <ng-template matStepLabel>Pasajeros</ng-template>
+                        <ng-template matStepContent>
+                            <div class="step-content">
+                                <app-passengers
+                                    [adults]="booking.flightDetails.passengers.counts.adults"
+                                    [childrens]="booking.flightDetails.passengers.counts.childrens"
+                                    [infants]="booking.flightDetails.passengers.counts.infants"
+                                    [passengersData]="booking.flightDetails.passengers.details ?? []"
+                                    (valid)="onPassengersValidity($event)">
+                                </app-passengers>
+                                <div class="step-actions">
+                                    <button type="button" mat-button (click)="prev()">
+                                        <mat-icon>arrow_back</mat-icon>
+                                        Anterior
+                                    </button>
+                                    <button
+                                        type="button"
+                                        mat-flat-button
+                                        color="primary"
+                                        [disabled]="!passengers || passengersForm?.savingRequestedPassengers"
+                                        (click)="processPassengers()">
+                                        Continuar
+                                        <mat-icon>arrow_forward</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </mat-step>
+
+                    <mat-step [completed]="seatsStepComplete" [editable]="true">
+                        <ng-template matStepLabel>Asientos</ng-template>
+                        <ng-template matStepContent>
+                            <div class="step-content">
+                                <app-seats
+                                    (completed)="seatSelection = $event"
+                                    (loading)="loadingSeats = $event"
+                                    (pendingSeats)="pendingSelectionSeats = $event"
+                                    (skip)="skipStep('SEATS')"
+                                    (goToPassengers)="goToPassengers()">
+                                </app-seats>
+                                <div class="step-actions">
+                                    <button type="button" mat-button (click)="prev()">
+                                        <mat-icon>arrow_back</mat-icon>
+                                        Anterior
+                                    </button>
+                                    <button
+                                        type="button"
+                                        mat-flat-button
+                                        color="primary"
+                                        [disabled]="loadingSeats"
+                                        (click)="processSeats()">
+                                        Continuar
+                                        <mat-icon>arrow_forward</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </mat-step>
+
+                    <mat-step [completed]="extrasStepComplete" [editable]="true">
+                        <ng-template matStepLabel>Adicionales</ng-template>
+                        <ng-template matStepContent>
+                            <div class="step-content">
+                                <app-extras (next)="completeExtrasStep()" (skip)="skipStep('EXTRAS')" #extras></app-extras>
+                                <div class="step-actions">
+                                    <button type="button" mat-button (click)="prev()">
+                                        <mat-icon>arrow_back</mat-icon>
+                                        Anterior
+                                    </button>
+                                    <button type="button" mat-flat-button color="primary" (click)="completeExtrasStep()">
+                                        Continuar
+                                        <mat-icon>arrow_forward</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </mat-step>
+
+                    <mat-step [completed]="false" [editable]="true">
+                        <ng-template matStepLabel>Pago</ng-template>
+                        <ng-template matStepContent>
+                            <section class="payment-step">
+                                <div class="payment-step__heading">
+                                    <button type="button" mat-icon-button aria-label="Volver a adicionales" (click)="prev()">
+                                        <mat-icon>arrow_back</mat-icon>
+                                    </button>
+                                    <div>
+                                        <span>Paso final</span>
+                                        <h2>Elige cómo pagar</h2>
+                                    </div>
+                                </div>
+                                <app-payment
+                                    [speiPaymentTimeMinutes]="speiPaymentTimeMinutes"
+                                    (selectedPaymentMethod)="changePaymentMethod($event)"
+                                    (paymentProcessStart)="startPayment($event)">
+                                </app-payment>
+                            </section>
+                        </ng-template>
+                    </mat-step>
+                </mat-vertical-stepper>
             </div>
-            <div class="container">
-                <div class="row justify-center text-center">
-                    <div class="col-xl-6 col-lg-8 col-md-10">
-                    <h1 class="text-40 md:text-25 fw-600 text-white">Tu viaje a {{booking.destination.address.cityName|titlecase}}</h1>
-                    <div class="text-white mt-15">Completa tu reservación</div>
-                    </div>
-                </div>
-            </div>
-        </section> -->
-        <div class="container mt-40" #stepperContainer>
-            <div class="row">
-                <div class="col-xl-7 col-lg-8">
-                    <!-- Header -->
-                    <div style="height: 50px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-                        <ng-container *ngIf="steps[activeStep] as step">
-                            <div [@slideHeader]>
-                                <h3>{{ step.title }}</h3>
-                            </div>
-                        </ng-container>
-                    </div>
-                    
-                    <!-- Content -->
-                    <div style="min-height: 150px; display: flex; justify-content: center; align-items: center; overflow: visible; margin-top: 16px;">
-                        <ng-container *ngIf="steps[activeStep] as step">
-                            <div [@slideContent]>
-                                @switch(step.content){
-                                    @case ("passengers") {
-                                        <app-passengers [adults]="booking.flightDetails.passengers.counts.adults" [childrens]="booking.flightDetails.passengers.counts.childrens" [infants]="booking.flightDetails.passengers.counts.infants" [passengersData]="booking.flightDetails.passengers.details ?? []" (valid)="passengers = $event"></app-passengers>
-                                    }
-                                    @case ("contact") {
-                                        <app-contact-info (valid)="contactInfo = $event"></app-contact-info>
-                                    }
-                                    @case ("seats") {
-                                        <app-seats (completed)="seatSelection=$event" (loading)="loadingSeats=$event" (pendingSeats)="pendingSelectionSeats=$event" (skip)="skipStep('SEATS')" (goToPassengers)="goToPassengers()"></app-seats>
-                                    }
-                                    @case ("extras") {
-                                        <app-extras (next)="next()" (skip)="skipStep('EXTRAS')" #extras></app-extras>
-                                    }
-                                    @case ("payment") {
-                                        <app-payment (selectedPaymentMethod)="changePaymentMethod($event)" (paymentProcessStart)="startPayment($event)"></app-payment>
-                                    }
-                                }
-                            </div>
-                        </ng-container>
-                    </div>
-                    <!-- Controls -->
-                    @if(activeStep!==4){
-                        <div class="row x-gap-10 mt-20">
-                            <div class="col-6">
-                                <button mat-raised-button class="w-100" (click)="prev()" [disabled]="activeStep === 0">Anterior</button>
-                            </div>
-                            <div class="col-6">
-                                @switch(activeStep){
-                                    @case (0) {
-                                        <button mat-raised-button class="w-100" [disabled]="!passengers" color="primary" (click)="processPassengers()">Siguiente</button>
-                                    }
-                                    @case (1) {
-                                        <button mat-raised-button class="w-100" color="primary" [disabled]="!contactInfo" (click)="processContact()">Siguiente</button>
-                                    }
-                                    @case (2) {
-                                        <button mat-raised-button class="w-100" [disabled]="loadingSeats" color="primary" (click)="processSeats()">Siguiente</button>
-                                    }
-                                    @case (3) {
-                                        <button mat-raised-button class="w-100" color="primary" (click)="next()">Siguiente</button>
-                                    }
-                                }
-                            </div>
-                        </div>
-                    }@else{
-                        <div class="row x-gap-10 mt-20">
-                            <div class="col-12">
-                                <button mat-raised-button class="w-100" (click)="prev()">Anterior</button>
-                            </div>
-                        </div>
-                    }
-                </div>
-                <div class="col-xl-5 col-lg-4 pt-20">
-                    @if(booking!==undefined){
-                        <app-booking-sidebar (openInsuranceExtra)="openInsuranceFromSidebar()"></app-booking-sidebar>
-                    }
-                </div>
-            </div>
+
+            <aside class="col-lg-4 booking-summary">
+                <app-booking-sidebar (openInsuranceExtra)="openInsuranceFromSidebar()"></app-booking-sidebar>
+            </aside>
         </div>
-    }
+    </main>
 }

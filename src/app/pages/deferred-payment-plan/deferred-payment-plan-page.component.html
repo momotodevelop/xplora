@@ -1,0 +1,22 @@
+<section class="deferred-plan-page">
+  <div class="container">
+    <div class="deferred-plan-page__heading">
+      <div>
+        <span>Reservación {{booking?.bookingID?.slice(-6)?.toUpperCase()}}</span>
+        <h1>Tu plan de pagos</h1>
+        <p>Consulta el calendario, el saldo y todos los comprobantes asociados a tu reservación.</p>
+      </div>
+      @if(booking){
+        <a [routerLink]="['/confirmacion', booking.bookingID]" class="button -md -outline-blue-1 text-blue-1">
+          Ver reservación
+        </a>
+      }
+    </div>
+
+    @if(booking){
+      <app-deferred-payment [booking]="booking"></app-deferred-payment>
+    }@else if(loadError){
+      <div class="deferred-plan-page__error">{{loadError}}</div>
+    }
+  </div>
+</section>

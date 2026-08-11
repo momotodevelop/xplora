@@ -10,6 +10,7 @@ import {
   where,
   getDoc,
   docData,
+  collectionData,
   CollectionReference,
   deleteDoc,
   writeBatch,
@@ -218,8 +219,12 @@ export class FireBookingService {
   }
 
   async addPaymentToBooking(bookingID: string, paymentData: OfflinePaymentData): Promise<OfflinePaymentData[]> {
-    const pagosCollection = collection(doc(this.firestore, 'bookings', bookingID), OFFLINE_PAYMENTS_COLLECTION) as CollectionReference<OfflinePaymentData>;
-    await addDoc(pagosCollection, paymentData);
+    const bookingRef = doc(this.firestore, 'bookings', bookingID);
+    const pagosCollection = collection(bookingRef, OFFLINE_PAYMENTS_COLLECTION) as CollectionReference<OfflinePaymentData>;
+    await addDoc(pagosCollection, {
+      ...paymentData,
+      bookingRef: paymentData.bookingRef ?? bookingRef
+    });
     const querySnapshot = await getDocs(pagosCollection);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OfflinePaymentData));
   }
@@ -241,5 +246,13 @@ export class FireBookingService {
     const pagosCollection = collection(doc(this.firestore, 'bookings', bookingID), OFFLINE_PAYMENTS_COLLECTION) as CollectionReference<OfflinePaymentData>;
     const querySnapshot = await getDocs(pagosCollection);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OfflinePaymentData));
+  }
+
+  watchOfflinePaymentsByBooking(bookingID: string): Observable<OfflinePaymentData[]> {
+    const paymentsCollection = collection(
+      doc(this.firestore, 'bookings', bookingID),
+      OFFLINE_PAYMENTS_COLLECTION
+    ) as CollectionReference<OfflinePaymentData>;
+    return collectionData(paymentsCollection, { idField: 'id' });
   }
 }

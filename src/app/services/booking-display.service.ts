@@ -127,6 +127,14 @@ export class BookingDisplayService {
     };
   }
 
+  private hasPendingIdentityVerification(booking: FirebaseBooking): boolean {
+    return Boolean(this.getKycUrl(booking)) && (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING');
+  }
+
+  private getKycUrl(booking: FirebaseBooking): string | null {
+    return booking.payment?.flowCheckout?.kyc?.url || null;
+  }
+
   private getEffectivePaymentStatus(booking: FirebaseBooking, hasOutstandingBalance: number): string {
     if (booking.payment?.status) {
       return booking.payment.status;
@@ -168,8 +176,24 @@ export class BookingDisplayService {
       return 'Tu reservación fue cancelada';
     }
 
+    if (booking.payment?.deferredPlan?.status === 'REJECTED') {
+      return 'La preaprobación del plan fue retirada';
+    }
+
     if (booking.status === 'REJECTED') {
       return 'Tu reservación no pudo confirmarse';
+    }
+
+    if (this.isDeferredPlanAwaitingDownPayment(booking)) {
+      return 'Tu plan de pagos fue preaprobado';
+    }
+
+    if (['PREAPPROVED', 'PENDING_APPROVAL'].includes(booking.payment?.deferredPlan?.status ?? '')) {
+      return 'Tu plan de pagos está activo';
+    }
+
+    if (this.hasPendingIdentityVerification(booking)) {
+      return 'Tu pago fue recibido y falta validar tu identidad';
     }
 
     if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
@@ -200,6 +224,22 @@ export class BookingDisplayService {
       return 'Pago en validación';
     }
 
+    if (this.isDeferredPlanAwaitingDownPayment(booking)) {
+      return 'Plan preaprobado';
+    }
+
+    if (['PREAPPROVED', 'PENDING_APPROVAL'].includes(booking.payment?.deferredPlan?.status ?? '')) {
+      return hasOutstandingBalance ? 'Plan activo' : 'Plan liquidado';
+    }
+
+    if (booking.payment?.deferredPlan?.status === 'APPROVED') {
+      return hasOutstandingBalance ? 'Plan aprobado' : 'Plan liquidado';
+    }
+
+    if (booking.payment?.deferredPlan?.status === 'ACTIVE') {
+      return hasOutstandingBalance ? 'Plan activo' : 'Plan liquidado';
+    }
+
     if (booking.status === 'PENDING' && hasOutstandingBalance) {
       return 'Pendiente de pago';
     }
@@ -218,6 +258,22 @@ export class BookingDisplayService {
   private getPublicMessage(booking: FirebaseBooking, hasOutstandingBalance: boolean, paymentDeadline: Date | null): string {
     if (booking.status === 'CANCELED') {
       return 'La reservación ya no se encuentra activa. Si aplica un reembolso o reacomodo, se dará seguimiento por nuestros canales de atención.';
+    }
+
+    if (booking.payment?.deferredPlan?.status === 'REJECTED') {
+      return 'La agencia retiró la preaprobación del plan. El anticipo recibido será reembolsado en su totalidad y la reservación asociada fue cancelada.';
+    }
+
+    if (this.isDeferredPlanAwaitingDownPayment(booking)) {
+      return 'Tu calendario quedó guardado y preaprobado. Cubre el anticipo para activar el plan.';
+    }
+
+    if (booking.payment?.method === 'DEFERRED' && hasOutstandingBalance) {
+      return 'Tu plan muestra cada fecha, abono y saldo pendiente. El total debe quedar liquidado siete días antes del inicio del viaje.';
+    }
+
+    if (this.hasPendingIdentityVerification(booking)) {
+      return 'Recibimos tu pago, pero falta concluir la validación de identidad para confirmar la reservación. No realices un segundo pago.';
     }
 
     if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
@@ -245,6 +301,22 @@ export class BookingDisplayService {
       return 'Caso cerrado o en seguimiento de cancelación. Verificar si existe reembolso, crédito o reacomodo pendiente.';
     }
 
+    if (booking.payment?.deferredPlan?.status === 'REJECTED') {
+      return 'Preaprobación retirada. Confirmar el reembolso total de cualquier anticipo recibido y comunicarlo al cliente.';
+    }
+
+    if (this.isDeferredPlanAwaitingDownPayment(booking)) {
+      return 'Plan preaprobado pendiente de anticipo. Verificar la aplicación de fondos para continuar el seguimiento.';
+    }
+
+    if (booking.payment?.method === 'DEFERRED' && hasOutstandingBalance) {
+      return 'Plan activo con saldo pendiente. Dar seguimiento a las parcialidades y comprobantes conforme al calendario.';
+    }
+
+    if (this.hasPendingIdentityVerification(booking)) {
+      return 'Pago recibido. Falta que el cliente complete KYC antes de cerrar la validación y confirmar la reservación.';
+    }
+
     if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
       return 'No ejecutar un nuevo cobro hasta cerrar la validación manual del pago.';
     }
@@ -268,6 +340,22 @@ export class BookingDisplayService {
   private getNextStep(booking: FirebaseBooking, hasOutstandingBalance: boolean, paymentDeadline: Date | null): string {
     if (booking.status === 'CANCELED') {
       return 'Confirmar con el cliente si procede reembolso, crédito o nueva cotización.';
+    }
+
+    if (booking.payment?.deferredPlan?.status === 'REJECTED') {
+      return 'Completar y documentar el reembolso total del anticipo recibido.';
+    }
+
+    if (this.isDeferredPlanAwaitingDownPayment(booking)) {
+      return 'Dar seguimiento al anticipo; el plan se activa cuando los fondos queden aplicados.';
+    }
+
+    if (booking.payment?.method === 'DEFERRED' && hasOutstandingBalance) {
+      return 'Dar seguimiento al próximo abono programado del plan.';
+    }
+
+    if (this.hasPendingIdentityVerification(booking)) {
+      return 'Dar seguimiento a la validación de identidad del cliente y confirmar la reservación en cuanto el caso quede resuelto.';
     }
 
     if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
@@ -320,6 +408,22 @@ export class BookingDisplayService {
       return 'Si necesitas apoyo con reembolso, cambios o una nueva cotización, contáctanos y te ayudaremos.';
     }
 
+    if (booking.payment?.deferredPlan?.status === 'REJECTED') {
+      return 'La agencia dará seguimiento al reembolso total del anticipo recibido.';
+    }
+
+    if (this.isDeferredPlanAwaitingDownPayment(booking)) {
+      return 'Realiza el anticipo indicado para activar tu plan preaprobado.';
+    }
+
+    if (booking.payment?.method === 'DEFERRED' && hasOutstandingBalance) {
+      return 'Consulta tu calendario y realiza cada abono en efectivo o por transferencia antes de su fecha límite.';
+    }
+
+    if (this.hasPendingIdentityVerification(booking)) {
+      return 'Completa tu validación de identidad para que podamos confirmar tu reservación.';
+    }
+
     if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
       return 'Te notificaremos en cuanto tu pago quede validado y el estado de tu compra se actualice.';
     }
@@ -354,6 +458,14 @@ export class BookingDisplayService {
       return 'Aquí ves el monto final confirmado de tu compra, incluso si cambió respecto a la cotización inicial.';
     }
 
+    if (booking.payment?.method === 'DEFERRED') {
+      return 'Los comprobantes aparecen primero en validación. El saldo disminuye cuando la agencia confirma que el abono fue recibido.';
+    }
+
+    if (this.hasPendingIdentityVerification(booking)) {
+      return 'Tu pago ya fue recibido. Lo único pendiente es completar la validación de identidad para continuar con la confirmación.';
+    }
+
     if (booking.status === 'PENDING' && hasOutstandingBalance) {
       return 'La tarifa y la disponibilidad siguen sujetas a confirmación hasta completar el pago.';
     }
@@ -384,7 +496,14 @@ export class BookingDisplayService {
       });
     }
 
-    if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
+    if (this.hasPendingIdentityVerification(booking)) {
+      timeline.push({
+        label: 'Validación de identidad requerida',
+        description: 'El pago ya fue recibido, pero falta concluir el proceso KYC del cliente.',
+        date: null,
+        tone: 'info'
+      });
+    } else if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
       timeline.push({
         label: 'Pago en validación',
         description: 'Existe una revisión manual o antifraude en curso.',
@@ -431,7 +550,14 @@ export class BookingDisplayService {
       });
     }
 
-    if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
+    if (this.hasPendingIdentityVerification(booking)) {
+      timeline.push({
+        label: 'Validación de identidad',
+        description: 'Necesitamos que completes tu verificación de identidad para continuar con la confirmación.',
+        date: null,
+        tone: 'info'
+      });
+    } else if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
       timeline.push({
         label: 'Pago en revisión',
         description: 'Estamos revisando tu pago y te notificaremos cuando quede validado.',
@@ -462,6 +588,22 @@ export class BookingDisplayService {
   private getCustomerTimelineStatusDescription(booking: FirebaseBooking, hasOutstandingBalance: boolean): string {
     if (booking.status === 'CANCELED') {
       return 'La reservación ya no está activa. Si necesitas ayuda, nuestro equipo puede orientarte sobre los siguientes pasos.';
+    }
+
+    if (booking.payment?.deferredPlan?.status === 'REJECTED') {
+      return 'La preaprobación fue retirada. La reservación se canceló y cualquier anticipo recibido deberá reembolsarse en su totalidad.';
+    }
+
+    if (this.isDeferredPlanAwaitingDownPayment(booking)) {
+      return 'Tu calendario está preaprobado y únicamente espera la aplicación del anticipo para activarse.';
+    }
+
+    if (booking.payment?.method === 'DEFERRED' && hasOutstandingBalance) {
+      return 'Tu plan está activo. Consulta el calendario y realiza los abonos antes de cada fecha límite.';
+    }
+
+    if (this.hasPendingIdentityVerification(booking)) {
+      return 'Tu pago ya fue recibido, pero falta completar tu validación de identidad para confirmar la compra.';
     }
 
     if (booking.status === 'VALIDATING' || booking.payment?.status === 'VALIDATING') {
@@ -531,6 +673,13 @@ export class BookingDisplayService {
       const b = right.startDate?.getTime() ?? Number.MAX_SAFE_INTEGER;
       return a - b;
     });
+  }
+
+  private isDeferredPlanAwaitingDownPayment(booking: FirebaseBooking): boolean {
+    const plan = booking.payment?.deferredPlan;
+    return !!plan
+      && ['PREAPPROVED', 'PENDING_APPROVAL'].includes(plan.status)
+      && (booking.payment?.payed ?? 0) < plan.downPaymentAmount;
   }
 
   private buildLinkedServiceItem(service: ReservationLinkedService): BookingItineraryItem {

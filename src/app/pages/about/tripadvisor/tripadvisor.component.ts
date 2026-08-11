@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { BottomSheetHeaderComponent } from '../../../shared/bottom-sheet-header/bottom-sheet-header.component';
+import { XploraBottomSheetComponent } from '../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
     selector: 'app-tripadvisor',
-    imports: [BottomSheetHeaderComponent],
+    imports: [XploraBottomSheetComponent],
     templateUrl: './tripadvisor.component.html',
     styleUrl: './tripadvisor.component.scss'
 })

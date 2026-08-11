@@ -1,11 +1,11 @@
 import { Component, inject, Inject, Sanitizer } from '@angular/core';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { BottomSheetHeaderComponent } from '../../../../../shared/bottom-sheet-header/bottom-sheet-header.component';
 import { DomSanitizer } from '@angular/platform-browser';
+import { XploraBottomSheetComponent } from '../../../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
   selector: 'app-clip-auth-modal',
-  imports: [MatBottomSheetModule],
+  imports: [MatBottomSheetModule, XploraBottomSheetComponent],
   templateUrl: './clip-auth-modal.component.html',
   styleUrl: './clip-auth-modal.component.scss'
 })

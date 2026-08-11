@@ -5,14 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatListModule, MatSelectionList, MatListOption } from '@angular/material/list';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ExtraServiceBottomSheetData } from '../extras.component';
-import { AddPremiumInsuranceComponent } from '../add-insurance/add-insurance.component';
 import { FlightAdditionalServiceItem } from '../../../../types/booking.types';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { XploraBottomSheetComponent } from '../../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-extras-flexpass',
-    imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule, FontAwesomeModule],
+    imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule, MatIconModule, XploraBottomSheetComponent],
     templateUrl: './add-flex-pass.component.html',
     styleUrl: './add-flex-pass.component.scss'
 })
@@ -21,9 +20,8 @@ export class AddFlexPassComponent implements AfterViewInit{
   total:number=0;
   @ViewChild('outbound') outbound!:MatSelectionList;
   @ViewChild('inbound') inbound?:MatSelectionList;
-  includedIcon = faCheckCircle;
   constructor(@Inject(MAT_BOTTOM_SHEET_DATA) public data: ExtraServiceBottomSheetData,
-  private _bottomSheetRef: MatBottomSheetRef<AddPremiumInsuranceComponent>){
+  private _bottomSheetRef: MatBottomSheetRef<AddFlexPassComponent>){
     this.price = this.data.price;
   }
   get outboundPrice(): number {
@@ -31,6 +29,16 @@ export class AddFlexPassComponent implements AfterViewInit{
   }
   get inboundPrice(): number {
     return this.price * (this.data.inboundSegmentCount || 0);
+  }
+  get selectedPassengerCount(): number {
+    return (this.outbound?.selectedOptions.selected.length || 0) +
+      (this.inbound?.selectedOptions.selected.length || 0);
+  }
+  get totalPassengerOptions(): number {
+    return (this.outbound?.options.length || 0) + (this.inbound?.options.length || 0);
+  }
+  get allPassengersSelected(): boolean {
+    return this.totalPassengerOptions > 0 && this.selectedPassengerCount === this.totalPassengerOptions;
   }
   ngAfterViewInit(): void {
     if(this.data.saved){
@@ -54,6 +62,18 @@ export class AddFlexPassComponent implements AfterViewInit{
   }
   close(){
     this._bottomSheetRef.dismiss();
+  }
+  toggleAllPassengers(): void {
+    const shouldSelect = !this.allPassengersSelected;
+    [this.outbound, this.inbound].forEach(list => {
+      if (!list) return;
+      if (shouldSelect) {
+        list.selectAll();
+      } else {
+        list.deselectAll();
+      }
+    });
+    this.change();
   }
   save() {
       const outboundSelected = new Set(this.outbound.selectedOptions.selected.map(option => option.value));

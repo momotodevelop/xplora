@@ -1,63 +1,136 @@
-import { Component, OnInit } from '@angular/core';
+import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime } from 'rxjs';
-import { GooglePlacesService } from '../../services/google-places.service';
-import { ScrollingModule } from '@angular/cdk/scrolling';
-import { TitleCasePipe } from '@angular/common';
 import { MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { trigger, transition, style, stagger, animate, query } from '@angular/animations';
-
-export interface LocationOption{
-  text: string;
-  secondaryText?: string;
-  mainText?: string;
-  placeId: string;
-  types: string[];
-  suggestion: google.maps.places.PlacePrediction; 
-  distance?: number;
-
-}
+import { debounceTime, distinctUntilChanged, Subscription } from 'rxjs';
+import { DuffelStaysService } from '../../services/duffel-stays.service';
+import {
+  DuffelStaysDestinationSelection,
+  DuffelStaysDestinationSuggestion,
+  DuffelStaysDestinationType
+} from '../../types/duffel-stays.types';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
   selector: 'app-hotel-location-selector-bottomsheet',
-  imports: [MatBottomSheetModule, MatButtonModule, ScrollingModule, ReactiveFormsModule, TitleCasePipe, MatSnackBarModule],
+  imports: [
+    CommonModule,
+    MatBottomSheetModule,
+    ReactiveFormsModule,
+    XploraBottomSheetComponent
+  ],
   templateUrl: './hotel-location-selector-bottomsheet.component.html',
   styleUrl: './hotel-location-selector-bottomsheet.component.scss',
   animations: [
     trigger('listAnimation', [
-        transition('* <=> *', [
-            query(':enter', [style({ opacity: 0, transform: 'translateY(-15px)' }), stagger('100ms', animate('600ms ease-out', style({ opacity: 1, transform: 'translateY(0px)' })))], { optional: true })
-        ])
+      transition('* <=> *', [
+        query(
+          ':enter',
+          [
+            style({ opacity: 0, transform: 'translateY(-10px)' }),
+            stagger(
+              '45ms',
+              animate(
+                '220ms ease-out',
+                style({ opacity: 1, transform: 'translateY(0)' })
+              )
+            )
+          ],
+          { optional: true }
+        )
+      ])
     ])
-]
+  ]
 })
-export class HotelLocationSelectorBottomsheetComponent implements OnInit {
-  searchInput:FormControl = new FormControl('');
-  constructor(private places: GooglePlacesService, private _ref: MatBottomSheetRef<HotelLocationSelectorBottomsheetComponent>){}
-  options?:LocationOption[];
+export class HotelLocationSelectorBottomsheetComponent
+implements OnInit, OnDestroy {
+  readonly searchInput = new FormControl('', { nonNullable: true });
+  options: DuffelStaysDestinationSuggestion[] = [];
+  loading = false;
+  searched = false;
+  errorMessage = '';
+
+  private searchSubscription?: Subscription;
+  private requestSequence = 0;
+
+  constructor(
+    private stays: DuffelStaysService,
+    private ref: MatBottomSheetRef<HotelLocationSelectorBottomsheetComponent>
+  ) {}
+
   ngOnInit(): void {
-    this.searchInput.valueChanges.pipe(debounceTime(500)).subscribe(value=>{
-      if(this.searchInput.valid&&value.length>0){
-        this.places.fetchAutocompleteSuggestions(value).then(results =>{
-          this.options = results.map(result=>{
-            return {
-              text: result.placePrediction!.text.text,
-              mainText: result.placePrediction!.mainText?.text ?? undefined,
-              secondaryText: result.placePrediction!.secondaryText?.text ?? undefined,
-              distance: result.placePrediction!.distanceMeters ?? undefined,
-              placeId: result.placePrediction!.placeId,
-              types: result.placePrediction!.types,
-              suggestion: result.placePrediction!
-            };
-          });
-          //console.log(this.options)
-        });
-      }
-    })
+    this.searchSubscription = this.searchInput.valueChanges.pipe(
+      debounceTime(350),
+      distinctUntilChanged()
+    ).subscribe(value => {
+      void this.loadSuggestions(value);
+    });
   }
-  selectPlace(suggestion:google.maps.places.PlacePrediction){
-    this._ref.dismiss(suggestion);
+
+  ngOnDestroy(): void {
+    this.searchSubscription?.unsubscribe();
+  }
+
+  getTypeLabel(type: DuffelStaysDestinationType): string {
+    if (type === 'city') {
+      return 'Destino';
+    }
+    if (type === 'airport') {
+      return 'Aeropuerto';
+    }
+    return 'Hotel';
+  }
+
+  selectDestination(option: DuffelStaysDestinationSuggestion): void {
+    const selection: DuffelStaysDestinationSelection = {
+      id: option.id,
+      type: option.type,
+      name: option.name,
+      lat: option.latitude,
+      lng: option.longitude
+    };
+    this.ref.dismiss(selection);
+  }
+
+  trackSuggestion(
+    _index: number,
+    option: DuffelStaysDestinationSuggestion
+  ): string {
+    return `${option.type}:${option.id}`;
+  }
+
+  private async loadSuggestions(rawQuery: string): Promise<void> {
+    const queryValue = rawQuery.trim();
+    const currentRequest = ++this.requestSequence;
+    this.errorMessage = '';
+
+    if (queryValue.length < 3) {
+      this.options = [];
+      this.loading = false;
+      this.searched = false;
+      return;
+    }
+
+    this.loading = true;
+    this.searched = true;
+    try {
+      const response = await this.stays.suggestDestinations(queryValue);
+      if (currentRequest !== this.requestSequence) {
+        return;
+      }
+      this.options = response.data || [];
+    } catch {
+      if (currentRequest !== this.requestSequence) {
+        return;
+      }
+      this.options = [];
+      this.errorMessage =
+        'No fue posible consultar destinos en Duffel. Intenta nuevamente.';
+    } finally {
+      if (currentRequest === this.requestSequence) {
+        this.loading = false;
+      }
+    }
   }
 }

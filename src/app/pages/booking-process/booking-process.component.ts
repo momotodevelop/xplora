@@ -1,33 +1,29 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatStepperModule} from '@angular/material/stepper';
 import { PassengerValue, PassengersComponent } from './passengers/passengers.component';
 import { BookingSidebarComponent } from './booking-sidebar/booking-sidebar.component';
 import { ActivatedRoute } from '@angular/router';
-import { XploraApiService } from '../../services/xplora-api.service';
 import { SharedDataService } from '../../services/shared-data.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { AmadeusSeatmapService } from '../../services/amadeus-seatmap.service';
 import { SeatPendingDialog, SeatsComponent } from './seats/seats.component';
-import { SeatMap, SeatMapSavingData, SelectedSeat } from '../../types/amadeus-seat-map.types';
+import { SeatMap, SeatMapSavingData } from '../../types/amadeus-seat-map.types';
 import { BookingHandlerService } from '../../services/booking-handler.service';
 import { AmadeusLocation } from '../../types/amadeus-airport-response.types';
-import { ExtrasComponent, ExtrasPrices } from './extras/extras.component';
+import { ExtrasComponent } from './extras/extras.component';
 import { ContactInfoComponent, ContactInfoValue } from './contact-info/contact-info.component';
 import { PaymentComponent, PaymentProceesData } from './payment/payment.component';
 import { XploraPromosService } from '../../services/xplora-promos.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { combineLatest, map, retry } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faSpinner, faChevronRight, faMoneyBill, faBank } from '@fortawesome/free-solid-svg-icons';
-import { GoogleMap } from '@angular/google-maps';
 import { FireBookingService } from '../../services/fire-booking.service';
 import { FlightFirebaseBooking, PaymentMethod } from '../../types/booking.types';
 import { BookingCreationLoaderComponent, Line, Step, StepTextElement } from '../../shared/booking-creation-loader/booking-creation-loader.component';
-import { trigger, style, animate, transition, group, query } from '@angular/animations';
 import { MatDialog } from '@angular/material/dialog';
 import { faCcVisa, faCcAmex, faCcDiscover, faCcJcb, faCcMastercard, faCcDinersClub } from '@fortawesome/free-brands-svg-icons';
 import { Analytics, logEvent } from '@angular/fire/analytics';
@@ -35,6 +31,8 @@ import { MetaHandlerService } from '../../services/meta-handler.service';
 import { FacebookPixelService } from '../../services/facebook-pixel.service';
 import { GoogleTagManagerService } from 'angular-google-tag-manager';
 import { sha256 } from 'js-sha256';
+import { XploraPaymentConfigService } from '../../services/xplora-payment-config.service';
+import { DEFAULT_PAYMENT_CONFIG } from '../../types/payment-config.types';
 
 declare const MercadoPago: any;
 declare const ClipSDK: any;
@@ -68,26 +66,6 @@ export type Steps = "PASSENGERS"|"SEATS"|"CONTACT"|"EXTRAS"|"PAYMENT";
     ],
     templateUrl: './booking-process.component.html',
     styleUrl: './booking-process.component.scss',
-    animations: [
-      trigger('slideHeader', [
-        transition(':enter', [
-          style({ transform: 'translateX(100%)', opacity: 0 }),
-          animate('300ms ease-out', style({ transform: 'translateX(0)', opacity: 1 }))
-        ]),
-        transition(':leave', [
-          animate('300ms ease-in', style({ transform: 'translateX(-100%)', opacity: 0 }))
-        ])
-      ]),
-      trigger('slideContent', [
-        transition(':enter', [
-          style({ transform: 'translateY(100%)', opacity: 0 }),
-          animate('300ms ease-out', style({ transform: 'translateY(0)', opacity: 1 }))
-        ]),
-        transition(':leave', [
-          animate('300ms ease-in', style({ transform: 'translateY(-100%)', opacity: 0 }))
-        ])
-      ])
-    ]
 })
 export class BookingProcessComponent implements OnInit {
   private getLastArrivalCode(segments: { arrival: { iataCode: string } }[]): string {
@@ -96,9 +74,7 @@ export class BookingProcessComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute, 
-    private xplora: XploraApiService, 
     private sharedService: SharedDataService,
-    private seatMapService: AmadeusSeatmapService,
     public bookingHandler: BookingHandlerService,
     private promos: XploraPromosService,
     private _sb: MatSnackBar,
@@ -108,7 +84,9 @@ export class BookingProcessComponent implements OnInit {
     private meta: MetaHandlerService,
     private gtag: Analytics,
     private fbp: FacebookPixelService,
-    private GoogleTagService: GoogleTagManagerService
+    private GoogleTagService: GoogleTagManagerService,
+    private changeDetector: ChangeDetectorRef,
+    private paymentConfigService: XploraPaymentConfigService
   ){}
   confirmationLoader:boolean=false;
   confirmationLoaderSteps:Step[]=[];
@@ -119,25 +97,37 @@ export class BookingProcessComponent implements OnInit {
   seatSelection?:SeatMapSavingData[];
   pendingSelectionSeats:number = 0;
   loadingSeats:boolean = false;
+  private savingSeats:boolean = false;
   contactInfo?: ContactInfoValue;
   activePromoCode?:string;
   spinnerIcon=faSpinner;
   nextIcon=faChevronRight;
   loadingProcess:boolean = false;
   paymentMethod:PaymentMethod="CARD";
+  speiPaymentTimeMinutes = DEFAULT_PAYMENT_CONFIG.speiPaymentTimeMinutes;
+  get speiPaymentTimeSeconds(): number {
+    return this.speiPaymentTimeMinutes * 60;
+  }
   passengersStepIcon = 'passengersStepIcon';
   steps = [
+    { title: 'Titular de la reservación', content: 'contact' },
     { title: 'Pasajeros', content: 'passengers' },
-    { title: 'Datos de Contacto', content: 'contact' },
     { title: 'Asientos', content: 'seats' },
     { title: 'Adicionales', content: 'extras' },
     { title: 'Pago', content: 'payment' }
   ];
   activeStep = 0;
-  @ViewChild(GoogleMap, { static: false }) map!: GoogleMap;
-  @ViewChild('extras') extras!: ExtrasComponent;
-  @ViewChild('stepperContainer') container!: ElementRef;
+  contactStepComplete = false;
+  passengersStepComplete = false;
+  seatsStepComplete = false;
+  extrasStepComplete = false;
+  @ViewChild(PassengersComponent) passengersForm?: PassengersComponent;
+  @ViewChild('extras') extras?: ExtrasComponent;
   ngOnInit():void {
+    this.paymentConfigService.watchPaymentConfig().subscribe(config => {
+      this.speiPaymentTimeMinutes = config.speiPaymentTimeMinutes;
+    });
+
     const baseDescription = 'Completa tu reservación de vuelo en Xplora Travel. Ingresa los datos de los pasajeros, selecciona asientos, agrega servicios adicionales y realiza el pago de forma segura y sencilla.';
     const baseImage = 'https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3';
     this.meta.setMeta({
@@ -151,7 +141,6 @@ export class BookingProcessComponent implements OnInit {
     combineLatest([this.route.params,this.route.queryParams]).subscribe(([p, q])=>{
       const params:{bookingID:string} = p as {bookingID:string, step: Steps};
       const bookingID:string = params.bookingID;
-      var actualStep:Steps="PASSENGERS";
       this.bookingID = bookingID;
       this.fireBooking.getBooking(bookingID).subscribe(booking=>{
         const passengersTotal = (booking.flightDetails?.passengers.counts.adults??0)+(booking.flightDetails?.passengers.counts.childrens??0)+(booking.flightDetails?.passengers.counts.infants??0);
@@ -163,55 +152,34 @@ export class BookingProcessComponent implements OnInit {
             this.getPromo(queryParams.promo);
           }
         }
+        this.contactStepComplete = this.isContactComplete(booking.contact);
+        this.passengersStepComplete = Boolean(
+          booking.flightDetails?.passengers.details?.length === passengersTotal
+          && booking.flightDetails.passengers.details.every(passenger =>
+            passenger.name && passenger.lastname && passenger.birth && passenger.gender
+          )
+        );
+        this.seatsStepComplete = booking.flightDetails?.seatMaps !== undefined;
+        this.extrasStepComplete = booking.flightDetails?.aditionalServices !== undefined;
+
+        if (this.contactStepComplete) this.contactInfo = booking.contact;
+        if (this.passengersStepComplete) this.passengers = booking.flightDetails?.passengers.details;
+
+        this.activeStep = this.extrasStepComplete
+          ? 4
+          : this.seatsStepComplete
+            ? 3
+            : this.contactStepComplete && this.passengersStepComplete
+              ? 2
+              : this.contactStepComplete
+                ? 1
+                : 0;
+
         this.meta.setMeta({
-          title: "Xplora Travel || Completar Reservación || Pasajeros",
+          title: `Xplora Travel || Completar Reservación || ${this.steps[this.activeStep].title}`,
           description: baseDescription,
           image: baseImage
         });
-        if(booking.flightDetails?.passengers.details!==undefined){
-          this.meta.setMeta({
-            title: "Xplora Travel || Completar Reservación || Datos de Contacto",
-            description: baseDescription,
-            image: baseImage
-          });
-          if(booking.flightDetails?.passengers.details.length===passengersTotal){
-            this.activeStep=1;
-            if(booking.contact){
-              if(booking.contact.email!==undefined&&booking.contact.phone!==undefined&&booking.contact.name!==undefined&&booking.contact.lastname!==undefined){
-                this.activeStep=2;
-                if(booking.flightDetails?.seatMaps!==undefined){
-                  this.activeStep = booking.flightDetails?.aditionalServices!==undefined ? 4 : 3;
-                }
-              }
-            }
-          }
-        }else{
-
-        }
-        if(booking.contact!==undefined){
-          this.meta.setMeta({
-            title: "Xplora Travel || Completar Reservación || Asientos",
-            description: baseDescription,
-            image: baseImage
-          });
-          actualStep="SEATS";
-        }
-        if(booking.flightDetails?.seatMaps!==undefined){
-          this.meta.setMeta({
-            title: "Xplora Travel || Completar Reservación || Realizar Pago",
-            description: baseDescription,
-            image: baseImage
-          });
-          actualStep = booking.flightDetails?.aditionalServices!==undefined ? "PAYMENT" : "EXTRAS";
-        }
-        if(booking.flightDetails?.aditionalServices!==undefined){
-          this.meta.setMeta({
-            title: "Xplora Travel || Completar Reservación || Realizar Pago",
-            description: baseDescription,
-            image: baseImage
-          });
-          actualStep="PAYMENT";
-        }
       });
       this.bookingHandler.booking.subscribe(booking=>{
         if(booking!==undefined){
@@ -231,6 +199,26 @@ export class BookingProcessComponent implements OnInit {
       this.scrollToTop();
       this.activeStep--;
     }
+  }
+  onStepSelectionChange(stepIndex: number): void {
+    if (stepIndex === this.activeStep) return;
+    this.activeStep = stepIndex;
+    this.scrollToTop();
+  }
+
+  onContactValidity(contact: ContactInfoValue | undefined): void {
+    this.contactInfo = contact;
+    this.contactStepComplete = this.contactMatchesBooking(contact);
+  }
+
+  onPassengersValidity(passengers: PassengerValue[] | undefined): void {
+    this.passengers = passengers;
+    this.passengersStepComplete = this.passengersMatchBooking(passengers);
+  }
+
+  completeExtrasStep(): void {
+    this.extrasStepComplete = true;
+    this.navigateAfterCompletingStep(4);
   }
   private scrollToTop() {
     if (typeof window !== 'undefined') {
@@ -482,180 +470,126 @@ export class BookingProcessComponent implements OnInit {
         title: 'Generando referencia de pago...',
         lines: paymentInfoLines
       });
+    }else if(paymentInfo.paymentMethod==="DEFERRED" && paymentInfo.deferredPlan){
+      steps.push({
+        duration: 1500,
+        title: 'Guardando calendario de pagos...',
+        lines: [
+          {
+            content: [
+              {type: 'icon', icon: faBank},
+              {type: 'text', text: 'Plan de pagos diferidos'}
+            ]
+          },
+          {
+            content: [
+              {type: 'text', text: 'Anticipo: '},
+              {type: 'currency', amount: paymentInfo.deferredPlan.downPaymentAmount}
+            ]
+          },
+          {
+            content: [
+              {type: 'text', text: `${paymentInfo.deferredPlan.installments.length} pagos programados`}
+            ]
+          }
+        ]
+      });
     }
     return steps;
   }
   completeLoader(){
     navigator.vibrate(400);
   }
-  processPassengers(){
-    if(this.passengers!==undefined){
-      this.sharedService.setLoading(true);
-      const passengersData = this.passengers.map((passenger, i) => {
-        return {
-          name: passenger.name,
-          lastname: passenger.lastname,
-          birth: passenger.birth,
-          gender: passenger.gender,
-          type: passenger.type,
-          id: i+1
-        }
-      });
-      let data:Partial<FlightFirebaseBooking> = {
+  async processPassengers(): Promise<void> {
+    if (!this.passengers || !this.bookingID || !this.booking?.flightDetails) return;
+
+    this.sharedService.setLoading(true);
+    try {
+      const passengerValues = this.passengersForm
+        ? await this.passengersForm.persistRequestedPassengers()
+        : this.passengers;
+      const passengersData: PassengerValue[] = passengerValues.map((passenger, index) => ({
+        name: passenger.name,
+        lastname: passenger.lastname,
+        birth: passenger.birth,
+        gender: passenger.gender,
+        type: passenger.type,
+        id: index + 1,
+        ...(passenger.savedPassengerRef ? { savedPassengerRef: passenger.savedPassengerRef } : {})
+      }));
+      const result = await this.fireBooking.updateBooking(this.bookingID, {
         flightDetails: {
-          ...this.booking!.flightDetails!,
+          ...this.booking.flightDetails,
           passengers: {
-            counts: this.booking!.flightDetails!.passengers.counts,
+            counts: this.booking.flightDetails.passengers.counts,
             details: passengersData
           }
         }
-      }
-      this.fireBooking.updateBooking(this.bookingID!, data).then((result)=>{
-        this.sharedService.setLoading(false);
-        this.next();
-        this.bookingHandler.setBookingInfo(result as FlightFirebaseBooking);
-      }).catch((err)=>{
-        //console.log(err);
-        this.sharedService.setLoading(false);
-        this._sb.open('Error al guardar los pasajeros. Intente nuevamente.', 'OK', {duration: 1500});
       });
-      if(!this.booking?.flightDetails){
-        this.fireBooking.nestedUpdateBooking(this.bookingID!, {
-          "flightDetails.aditionalServices": {
-            insurance: {
-              outbound: passengersData.map((p,i) => {
-                return {
-                  scope: "OUTBOUND",
-                  targetID: i,
-                  context: 'FLIGHT',
-                  type: 'INSURANCE',
-                  unitPrice: ExtrasPrices.insurance,
-                  active: false
-                }
-              }),
-              inbound: this.booking!.flightDetails.round?passengersData.map((p,i) => {
-                return {
-                  scope: "INBOUND",
-                  targetID: i,
-                  context: 'FLIGHT',
-                  type: 'INSURANCE',
-                  unitPrice: ExtrasPrices.insurance,
-                  active: false
-                }
-              }) : []
-            },
-            baggage: {
-              outbound: passengersData.map((p,i) => {
-                return {
-                  scope: "OUTBOUND",
-                  targetID: i,
-                  context: 'FLIGHT',
-                  type: 'BAGGAGE',
-                  unitPrice: ExtrasPrices.baggage,
-                  active: false,
-                  value: 0
-                }
-              }),
-              inbound: this.booking!.flightDetails.round?passengersData.map((p,i) => {
-                return {
-                  scope: "INBOUND",
-                  targetID: i,
-                  context: 'FLIGHT',
-                  type: 'BAGGAGE',
-                  unitPrice: ExtrasPrices.baggage,
-                  active: false,
-                  value: 0
-                }
-              }) : []
-            },
-            carryOn: {
-              outbound: passengersData.map((p,i) => {
-                return {
-                  scope: "OUTBOUND",
-                  targetID: i,
-                  context: 'FLIGHT',
-                  type: 'CARRYON',
-                  unitPrice: ExtrasPrices.carryon,
-                  active: false,
-                  value: 0
-                }
-              }),
-              inbound: this.booking!.flightDetails.round?passengersData.map((p,i) => {
-                return {
-                  scope: "INBOUND",
-                  targetID: i,
-                  context: 'FLIGHT',
-                  type: 'CARRYON',
-                  unitPrice: ExtrasPrices.carryon,
-                  active: false,
-                  value: 0
-                }
-              }) : []
-            },
-            flexpass: {
-              outbound: passengersData.map((p,i) => {
-                return {
-                  scope: "OUTBOUND",
-                  targetID: i,
-                  context: 'FLIGHT',
-                  type: 'FLEXPASS',
-                  unitPrice: ExtrasPrices.flexpass,
-                  active: false
-                }
-              }),
-              inbound: this.booking!.flightDetails.round?passengersData.map((p,i) => {
-                return {
-                  scope: "INBOUND",
-                  targetID: i,
-                  context: 'FLIGHT',
-                  type: 'FLEXPASS',
-                  unitPrice: ExtrasPrices.flexpass,
-                  active: false
-                }
-              }) : []
-            }
-          }
-        })
-      }
+      this.passengers = passengersData;
+      this.passengersStepComplete = true;
+      this.bookingHandler.setBookingInfo(result as FlightFirebaseBooking);
+      this.navigateAfterCompletingStep(2);
+    } catch (error) {
+      console.error('Error al guardar los pasajeros', error);
+      this._sb.open('Error al guardar los pasajeros. Intente nuevamente.', 'OK', { duration: 2000 });
+    } finally {
+      this.sharedService.setLoading(false);
     }
   }
   openInsuranceFromSidebar(){
+    if (!this.contactStepComplete || !this.passengersStepComplete || !this.seatsStepComplete) {
+      this._sb.open('Completa los pasos anteriores antes de agregar adicionales.', 'OK', { duration: 2000 });
+      return;
+    }
     this.activeStep=3;
-    this.extras.openInsurance();
+    setTimeout(() => this.extras?.openInsurance());
   }
   validContact(event:any){
     //console.log(event);
   }
   goToPassengers(){
-    this.activeStep=0;
+    this.activeStep=1;
   }
-  processContact(){
-    if(this.contactInfo){
-      this.sharedService.setLoading(true);
-      this.fireBooking.updateBooking(this.bookingID!, {
-        contact: this.contactInfo
-      }).then((result)=>{
-        this.next();
-        let total = this.booking!.flightDetails.flights.outbound!.offer.price.total as number;
-        if(this.booking?.flightDetails.flights.inbound){
-          total+=this.booking.flightDetails.flights.inbound.offer.price.total as number;
-        }
-        logEvent(this.gtag, 'add_shipping_info', {
-          currency: 'MXN',
-          value: total 
-        });
-        this.fbp.track('Lead', {
-          currency: 'MXN',
-          value: total
-        })
-        this.sharedService.setLoading(false);
-        //this.next();
-        this.bookingHandler.setBookingInfo(result as FlightFirebaseBooking);
-      }).catch((err)=>{
-        //console.log(err);
-        this.loadingProcess=false;
-        this._sb.open('Error al guardar los datos de contacto. Intente nuevamente.', 'OK', {duration: 1500});
+  async processContact(): Promise<void> {
+    if (!this.contactInfo || !this.bookingID || !this.booking || this.loadingProcess) return;
+
+    const contact = this.contactInfo;
+    this.loadingProcess = true;
+    this.sharedService.setLoading(true);
+
+    try {
+      const result = await this.fireBooking.updateBooking(this.bookingID, { contact });
+      this.bookingHandler.setBookingInfo(result as FlightFirebaseBooking);
+      this.contactInfo = contact;
+      this.contactStepComplete = true;
+      this.navigateAfterCompletingStep(1);
+      this.trackContactCompletion();
+    } catch (error) {
+      console.error('Error al guardar los datos de contacto', error);
+      this._sb.open('No pudimos guardar tus datos de contacto. Inténtalo nuevamente.', 'OK', { duration: 2500 });
+    } finally {
+      this.loadingProcess = false;
+      this.sharedService.setLoading(false);
+    }
+  }
+
+  private trackContactCompletion(): void {
+    const outboundTotal = Number(this.booking?.flightDetails.flights.outbound?.offer.price.total ?? 0);
+    const inboundTotal = Number(this.booking?.flightDetails.flights.inbound?.offer.price.total ?? 0);
+    const total = outboundTotal + inboundTotal;
+
+    try {
+      logEvent(this.gtag, 'add_shipping_info', {
+        currency: 'MXN',
+        value: total
       });
+      this.fbp.track('Lead', {
+        currency: 'MXN',
+        value: total
+      });
+    } catch (error) {
+      console.warn('No se pudo registrar la analítica de contacto', error);
     }
   }
   seatsHaveChanges(oldSeatMaps:SeatMapSavingData[], newSeatMaps:SeatMapSavingData[]) {
@@ -676,22 +610,10 @@ export class BookingProcessComponent implements OnInit {
     if(step==="EXTRAS"||step==="SEATS"){
       switch (step) {
         case "SEATS":
-          this.fireBooking.updateBooking(this.bookingID!, {
-            flightDetails: {
-              ...this.booking!.flightDetails!,
-              seatMaps: []
-            }
-          }).then(updated=>{
-            this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
-            this.activeStep = (updated as FlightFirebaseBooking).flightDetails?.aditionalServices!==undefined ? 4 : 3;
-          }).catch(err=>{
-            retry(3);
-            //console.log(err);
-            //this._sb.open('Error al guardar los asientos seleccionados. Intente nuevamente.', 'OK', {duration: 1500});
-          });
+          this.persistSeatMaps([]);
           break;
         case "EXTRAS":
-          this.activeStep=4;
+          this.completeExtrasStep();
           break;
       }
     }else{
@@ -699,19 +621,34 @@ export class BookingProcessComponent implements OnInit {
     }
   }
   saveSeats(){
+    this.persistSeatMaps(this.seatSelection ?? []);
+  }
+  private persistSeatMaps(seatMaps: SeatMapSavingData[]): void {
+    if(this.savingSeats){
+      return;
+    }
+    if(!this.bookingID){
+      this._sb.open('No se encontró la reservación. Recargue la página e intente nuevamente.', 'OK', {duration: 2500});
+      return;
+    }
+
+    this.savingSeats = true;
+    this.loadingSeats = true;
     this.sharedService.setLoading(true);
-    this.fireBooking.updateBooking(this.bookingID!, {
-      flightDetails: {
-        ...this.booking!.flightDetails!,
-        seatMaps: this.seatSelection ?? []
-      }
+    this.fireBooking.nestedUpdateBooking(this.bookingID, {
+      'flightDetails.seatMaps': seatMaps
     }).then(updated=>{
+      this.seatsStepComplete = true;
       this.bookingHandler.setBookingInfo(updated as FlightFirebaseBooking);
-      this.activeStep = (updated as FlightFirebaseBooking).flightDetails?.aditionalServices!==undefined ? 4 : 3;
+      const nextStep = (updated as FlightFirebaseBooking).flightDetails?.aditionalServices!==undefined ? 4 : 3;
+      this.navigateAfterCompletingStep(nextStep);
+    }).catch(err=>{
+      console.error('Error al guardar los asientos seleccionados', err);
+      this._sb.open('Error al guardar los asientos seleccionados. Intente nuevamente.', 'OK', {duration: 2500});
+    }).finally(()=>{
+      this.savingSeats = false;
+      this.loadingSeats = false;
       this.sharedService.setLoading(false);
-    }).catch(err=>{ 
-      //console.log(err);
-      this._sb.open('Error al guardar los asientos seleccionados. Intente nuevamente.', 'OK', {duration: 1500});
     });
   }
   processSeats(){
@@ -726,6 +663,41 @@ export class BookingProcessComponent implements OnInit {
     }else{
       this.saveSeats();
     }
+  }
+
+  private isContactComplete(contact: ContactInfoValue | undefined): contact is ContactInfoValue {
+    return Boolean(contact?.name && contact.lastname && contact.email && contact.phone && contact.country_code);
+  }
+
+  private navigateAfterCompletingStep(stepIndex: number): void {
+    // El stepper lineal debe recibir primero el estado completado del paso actual.
+    this.changeDetector.detectChanges();
+    this.activeStep = stepIndex;
+    this.scrollToTop();
+  }
+
+  private contactMatchesBooking(contact: ContactInfoValue | undefined): boolean {
+    if (!this.isContactComplete(contact) || !this.isContactComplete(this.booking?.contact)) return false;
+    return (Object.keys(contact) as Array<keyof ContactInfoValue>).every(key =>
+      String(contact[key] ?? '').trim() === String(this.booking!.contact![key] ?? '').trim()
+    );
+  }
+
+  private passengersMatchBooking(passengers: PassengerValue[] | undefined): boolean {
+    const savedPassengers = this.booking?.flightDetails?.passengers.details;
+    if (!passengers || !savedPassengers || passengers.length !== savedPassengers.length) return false;
+
+    return passengers.every((passenger, index) => {
+      const saved = savedPassengers[index];
+      const birth = passenger.birth instanceof Date ? passenger.birth : passenger.birth.toDate();
+      const savedBirth = saved.birth instanceof Date ? saved.birth : saved.birth.toDate();
+      return !passenger.saveToSavedPassengers
+        && passenger.name.trim() === saved.name.trim()
+        && passenger.lastname.trim() === saved.lastname.trim()
+        && passenger.gender === saved.gender
+        && birth.getTime() === savedBirth.getTime()
+        && (passenger.savedPassengerRef?.path ?? '') === (saved.savedPassengerRef?.path ?? '');
+    });
   }
     
 }

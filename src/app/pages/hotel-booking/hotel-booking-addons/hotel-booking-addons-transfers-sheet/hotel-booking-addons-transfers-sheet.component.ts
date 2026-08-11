@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MatBottomSheetRef, MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
-import { BottomSheetHeaderComponent } from '../../../../shared/bottom-sheet-header/bottom-sheet-header.component';
 import { HotelBookingAddonsTransfersComponent } from '../hotel-booking-addons-transfers/hotel-booking-addons-transfers.component';
+import { XploraBottomSheetComponent } from '../../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
 interface TransfersBottomSheetData{
   hotelName: string;
   lat: number;
@@ -10,7 +10,7 @@ interface TransfersBottomSheetData{
 }
 @Component({
   selector: 'app-hotel-booking-addons-transfers-sheet',
-  imports: [BottomSheetHeaderComponent, HotelBookingAddonsTransfersComponent],
+  imports: [HotelBookingAddonsTransfersComponent, XploraBottomSheetComponent],
   templateUrl: './hotel-booking-addons-transfers-sheet.component.html',
   styleUrl: './hotel-booking-addons-transfers-sheet.component.scss'
 })

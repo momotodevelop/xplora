@@ -15,6 +15,7 @@ import { Timestamp } from '@angular/fire/firestore';
 import { SharedDataService } from '../../../../services/shared-data.service';
 import { Promo, XploraPromosService } from '../../../../services/xplora-promos.service';
 import { UppercaseDirective } from '../../../../uppercase.directive';
+import { XploraBottomSheetComponent } from '../../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 export interface AdminPromoSheetData {
   promo?: Promo;
@@ -34,7 +35,8 @@ export interface AdminPromoSheetData {
     MatCheckboxModule,
     MatButtonModule,
     MatSnackBarModule,
-    UppercaseDirective
+    UppercaseDirective,
+    XploraBottomSheetComponent
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './admin-promos-form-sheet.component.html',

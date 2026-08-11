@@ -38,7 +38,10 @@ export class BookingQuickDetailsComponent implements OnChanges {
 
     this.summary = this.display.buildSummary(this.booking);
     this.paymentDeadline = this.summary.paymentDeadline;
-    this.activePayment = !!this.paymentDeadline && this.paymentDeadline > new Date() && this.summary.hasOutstandingBalance;
+    this.activePayment = this.booking.payment?.method !== 'DEFERRED'
+      && !!this.paymentDeadline
+      && this.paymentDeadline > new Date()
+      && this.summary.hasOutstandingBalance;
 
     if (this.paymentDeadline) {
       this.countdownConfig.leftTime = Math.floor((this.paymentDeadline.getTime() - new Date().getTime()) / 1000);
@@ -70,7 +73,9 @@ export class BookingQuickDetailsComponent implements OnChanges {
   }
 
   getPaymentUrl(): string {
-    return `/reservar/realizar-pago/${this.booking.bookingID}`;
+    return this.booking.payment?.deferredPlan
+      ? `/plan-pagos/${this.booking.bookingID}`
+      : `/reservar/realizar-pago/${this.booking.bookingID}`;
   }
 
   getDetailsUrl(): string {

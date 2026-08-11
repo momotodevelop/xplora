@@ -6,24 +6,32 @@ import { PassengerValue } from '../../pages/booking-process/passengers/passenger
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { SelectionDisplay } from '../../pages/booking-process/seats/seats.component';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
     selector: 'app-select-seat-map-bottomsheet',
-    imports: [SelectSeatMapComponent, CommonModule, MatButtonModule],
+    imports: [SelectSeatMapComponent, CommonModule, MatButtonModule, XploraBottomSheetComponent],
     templateUrl: './select-seat-map-bottomsheet.component.html',
     styleUrl: './select-seat-map-bottomsheet.component.scss'
 })
 export class SelectSeatMapBottomsheetComponent {
   seat?: SeatElement;
   constructor(
-    @Inject(MAT_BOTTOM_SHEET_DATA) public data: {deck: Deck, passenger: PassengerValue, selected:SelectionDisplay[]},
+    @Inject(MAT_BOTTOM_SHEET_DATA) public data: {decks: Deck[], passenger: PassengerValue, selected:SelectionDisplay[], travelerId?: string},
     private _bottomSheetRef: MatBottomSheetRef<SelectSeatMapBottomsheetComponent>
   ){
     //console.log(this.data);
   }
   selectedSeat(seat:SeatElement){
     this.seat=seat;
-    //console.log(seat);
+  }
+  selectedSeatPrice() {
+    const exactPricing = this.data.travelerId
+      ? this.seat?.travelerPricing.find(price => price.travelerId === this.data.travelerId)
+      : undefined;
+    const sharedPricing = this.seat?.travelerPricing.find(price => price.travelerId === 'all');
+    const pricing = exactPricing || sharedPricing || (this.seat?.provider === 'DUFFEL' ? undefined : this.seat?.travelerPricing[0]);
+    return pricing?.price;
   }
   close(){
     this._bottomSheetRef.dismiss();

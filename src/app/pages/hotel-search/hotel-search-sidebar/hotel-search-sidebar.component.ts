@@ -35,8 +35,8 @@ export class HotelSearchSidebarComponent {
   }
   filter(){
     //console.log(this.hotel);
-    const checkIn:string = this.datePipe.transform(this.checkIn, "YYYY-MM-dd")!;
-    const checkOut:string = this.datePipe.transform(this.checkOut, "YYYY-MM-dd")!;
+    const checkIn:string = this.datePipe.transform(this.checkIn, "yyyy-MM-dd")!;
+    const checkOut:string = this.datePipe.transform(this.checkOut, "yyyy-MM-dd")!;
     const roomString:string = this.rooms.map(pair => pair.join(',')).join('_');
     let url:string = "resultados/hoteles/"+this.destination?.id+"/"+roomString+"/"+checkIn+"/"+checkOut+"?";
     if(this.amenitiesList.length>0){

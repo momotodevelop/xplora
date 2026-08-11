@@ -1,0 +1,131 @@
+.selected-outbound {
+  min-height: 92px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(150px, .8fr) minmax(150px, .8fr) auto;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid #d8e2f5;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff 0%, #f5f8ff 100%);
+  box-shadow: 0 8px 25px rgba(37, 68, 135, .08);
+}
+
+.selected-outbound__status {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.selected-outbound__check {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #2b4ba8;
+}
+
+.selected-outbound__eyebrow {
+  color: #68748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.selected-outbound__airline {
+  overflow: hidden;
+  color: #17233c;
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-outbound__route {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #17233c;
+  font-size: 18px;
+}
+
+.selected-outbound__line {
+  min-width: 54px;
+  color: #2b4ba8;
+  text-align: center;
+}
+
+.selected-outbound__meta {
+  display: flex;
+  flex-direction: column;
+  color: #68748b;
+  font-size: 13px;
+}
+
+.selected-outbound__price {
+  color: #17233c;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.selected-outbound__remove {
+  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #dbe2ed;
+  border-radius: 10px;
+  color: #6b7588;
+  background: #fff;
+}
+
+.selected-outbound__remove:hover {
+  color: #c43a4f;
+  border-color: #efcbd1;
+}
+
+.selected-outbound__next {
+  margin: 9px 4px 0;
+  color: #68748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.selected-outbound__spacer {
+  height: 28px;
+}
+
+@media (max-width: 767px) {
+  .selected-outbound {
+    grid-template-columns: 1fr auto;
+    gap: 13px 16px;
+    padding: 14px;
+  }
+
+  .selected-outbound__status {
+    grid-column: 1 / -1;
+  }
+
+  .selected-outbound__route {
+    justify-content: flex-start;
+  }
+
+  .selected-outbound__meta {
+    align-items: flex-end;
+  }
+
+  .selected-outbound__remove {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .selected-outbound__spacer {
+    height: 18px;
+  }
+}

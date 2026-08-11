@@ -1,11 +1,26 @@
-@if(offer&&dictionaries){
-    <h5 class="text-16 fw-500 mb-20">Tu vuelo de ida:</h5>
-    <div class="pb-50">
-        <app-flight-offer 
-                [offer]="offer" 
-                [dictionaries]="dictionaries"
-                [selected]="true"
-                (removedFlight)="removeFlight()">
-            </app-flight-offer>
-    </div>
+@if(offer&&dictionaries&&firstSegment&&lastSegment){
+    <section class="selected-outbound" aria-label="Vuelo de ida seleccionado">
+        <div class="selected-outbound__status">
+            <span class="selected-outbound__check"><i class="icon-check"></i></span>
+            <div>
+                <div class="selected-outbound__eyebrow">Vuelo de ida seleccionado</div>
+                <div class="selected-outbound__airline">{{airlineName}}</div>
+            </div>
+        </div>
+        <div class="selected-outbound__route">
+            <strong>{{firstSegment.departure.iataCode}}</strong>
+            <span class="selected-outbound__line"><i class="icon-arrow-right"></i></span>
+            <strong>{{lastSegment.arrival.iataCode}}</strong>
+        </div>
+        <div class="selected-outbound__meta">
+            <span>{{offer.itineraries[0].duration|duration}}</span>
+            <span class="selected-outbound__price">{{displayPrice|currency:offer.price.currency}}</span>
+        </div>
+        <button (click)="removeFlight()" type="button" class="selected-outbound__remove" aria-label="Eliminar vuelo de ida">
+            <i class="icon-trash-2"></i>
+            <span>Eliminar</span>
+        </button>
+    </section>
+    <div class="selected-outbound__next">Ahora elige tu vuelo de regreso</div>
+    <div class="selected-outbound__spacer"></div>
 }

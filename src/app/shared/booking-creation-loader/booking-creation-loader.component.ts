@@ -154,6 +154,8 @@ export class BookingCreationLoaderComponent implements OnInit, OnChanges {
       if(this.paymentMethod==='SPEI'){
         this.countdownConfig.leftTime = this.speiPaymentTime; // Tiempo en segundos para SPEI
         this.status = 'pending';
+      }else if(this.paymentMethod==='DEFERRED'){
+        this.status = 'pending';
       }else{
         this.countdownConfig.leftTime = this.cashPaymentTime; // Tiempo en segundos para pago en efectivo
         this.status = 'pending';

@@ -1,0 +1,46 @@
+.deferred-plan-page {
+  background: #f8fafc;
+  min-height: 70vh;
+  padding: 44px 0 64px;
+}
+
+.deferred-plan-page__heading {
+  align-items: flex-end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.deferred-plan-page__heading span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.deferred-plan-page__heading h1 {
+  color: #123a72;
+  margin: 4px 0;
+}
+
+.deferred-plan-page__heading p {
+  color: #64748b;
+  margin: 0;
+}
+
+.deferred-plan-page__error {
+  background: #fff;
+  border: 1px solid #fee2e2;
+  border-radius: 12px;
+  color: #991b1b;
+  padding: 24px;
+}
+
+@media (max-width: 767px) {
+  .deferred-plan-page__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -37,7 +37,7 @@
         }
       </div>
       <div class="text-right">
-        <div class="text-14 mb-5">{{toDate(booking.created)|date:'dd MMM YYYY HH:mm'|titlecase}}</div>
+        <div class="text-14 mb-5">{{toDate(booking.created)|date:'dd MMM yyyy HH:mm'|titlecase}}</div>
         <div class="px-12 py-6 rounded-8 bg-light">
           Estado: <span style="font-weight: bold;">{{booking.status | bookingStatus}}</span>
         </div>
@@ -201,6 +201,70 @@
       </div>
     </div>
 
+    @if(booking.payment?.deferredPlan; as deferredPlan){
+      <mat-card class="info-card mt-20 booking-admin__deferred-plan">
+        <mat-card-header>
+          <mat-card-title>Plan de pagos diferidos</mat-card-title>
+          <mat-card-subtitle>{{getDeferredFrequencyLabel()}} · {{deferredPlan.installments.length}} pagos</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="booking-admin__deferred-summary">
+            <div>
+              <span>Estatus</span>
+              <strong>{{getDeferredPlanStatusLabel()}}</strong>
+            </div>
+            <div>
+              <span>Anticipo</span>
+              <strong>{{deferredPlan.downPaymentAmount|currency:'MXN'}} ({{deferredPlan.downPaymentPercentage}}%)</strong>
+            </div>
+            <div>
+              <span>Liquidación</span>
+              <strong>{{deferredPlan.payoffDate.toDate()|date:'dd MMM y'|titlecase}}</strong>
+            </div>
+            <div>
+              <span>Términos aceptados</span>
+              <strong>{{deferredPlan.termsAccepted ? 'Sí' : 'No'}} · v{{deferredPlan.termsVersion}}</strong>
+            </div>
+          </div>
+
+          <div class="booking-admin__deferred-table-wrap">
+            <div class="booking-admin__deferred-table">
+              <div class="booking-admin__deferred-row booking-admin__deferred-row--header">
+                <span>Pago</span>
+                <span>Fecha</span>
+                <span>Monto</span>
+                <span>Saldo después</span>
+              </div>
+              @for(installment of deferredPlan.installments; track installment.id){
+                <div class="booking-admin__deferred-row">
+                  <span>{{installment.type === 'DOWN_PAYMENT' ? 'Anticipo' : 'Pago ' + installment.number}}</span>
+                  <span>{{installment.dueDate.toDate()|date:'dd MMM y'|titlecase}}</span>
+                  <span>{{installment.amount|currency:'MXN'}}</span>
+                  <span>{{installment.balanceAfter|currency:'MXN'}}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          @if(
+            (deferredPlan.status === 'PREAPPROVED' || deferredPlan.status === 'PENDING_APPROVAL')
+            && (booking.payment?.payed ?? 0) < deferredPlan.downPaymentAmount
+          ){
+            <div class="booking-admin__deferred-actions">
+              <button mat-stroked-button color="warn" type="button" (click)="rejectDeferredPlan()">Retirar preaprobación</button>
+            </div>
+            <div class="booking-admin__note mt-15">
+              El plan ya está preaprobado y se activará cuando el anticipo de {{deferredPlan.downPaymentAmount|currency:'MXN'}} aparezca aplicado.
+            </div>
+          }@else if(deferredPlan.status === 'REJECTED' && deferredPlan.refundStatus === 'PENDING'){
+            <div class="booking-admin__note mt-15">
+              El reembolso total del anticipo está pendiente de completarse.
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
     @if(summary){
       <div class="row y-gap-20 mt-10">
         <div class="col-lg-6">
@@ -334,7 +398,7 @@
           <app-upload-payment-receipt
             [bookingID]="booking.bookingID!"
             [total]="summary.pricing.confirmedTotal"
-            [paymentMethod]="booking.payment.method"
+            [paymentMethod]="booking.payment.method === 'DEFERRED' ? 'SPEI' : booking.payment.method"
             title="Registrar comprobante manual"
             helperText="Carga comprobantes manuales para conciliación y seguimiento operativo. Después puedes ajustar el estatus del pago si corresponde."
           ></app-upload-payment-receipt>
@@ -353,9 +417,9 @@
                 {{booking.flightDetails?.origin?.address?.cityName|titlecase}} →
                 {{booking.flightDetails?.destination?.address?.cityName|titlecase}}
               </div>
-              <div class="text-14">Salida: {{toDate(booking.flightDetails?.departure)|date:'dd MMM YYYY HH:mm'|titlecase}}</div>
+              <div class="text-14">Salida: {{toDate(booking.flightDetails?.departure)|date:'dd MMM yyyy HH:mm'|titlecase}}</div>
               @if(booking.flightDetails?.round && booking.flightDetails?.return){
-                <div class="text-14">Regreso: {{toDate(booking.flightDetails?.return)|date:'dd MMM YYYY HH:mm'|titlecase}}</div>
+                <div class="text-14">Regreso: {{toDate(booking.flightDetails?.return)|date:'dd MMM yyyy HH:mm'|titlecase}}</div>
               }
               <div class="text-14 mt-5">
                 Pasajeros:

@@ -1,79 +1,153 @@
-<div style="height: 50px; border-bottom: 1px solid #dddddd; padding: 8px 16px; background: #fff;">
-    <div class="text-20 fw-500 mb-0 d-inline-block">Equipaje de mano adicional</div>
-    <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
-</div>
-<div class="scrollable-content">
-    <div class="row px-15 x-gap-0 m-0">
-        <div class="col-12">
-            <img src="/assets/img/tamanos-maleta/carryon.jpg" style="width: 80%; margin: auto; display: block;">
-        </div>
-        <div class="col-12">
-            <div class="text-14 lh-16 text-light-1 text-center mt-10">
-                55 cm x 40 cm x 25 cm - Hasta <b>10 Kgs</b>
-            </div>
-            <div class="text-14 lh-16 text-dark-1 text-center mt-10 fw-500 xplora">
-                <fa-icon [icon]="includedIcon"></fa-icon> 1 pieza incluida por pasajero.
+<ng-template #carryOnHeader let-close="close">
+    <div class="service-sheet__header">
+        <div class="service-sheet__brand">
+            <span class="service-sheet__mark service-sheet__mark--carry-on">
+                <mat-icon>flight_takeoff</mat-icon>
+            </span>
+            <div>
+                <span class="service-sheet__eyebrow">Tu equipaje a bordo</span>
+                <h2>Equipaje de mano</h2>
             </div>
         </div>
+        <button (click)="close()" type="button" class="service-sheet__close" aria-label="Cerrar equipaje de mano">
+            <mat-icon>close</mat-icon>
+        </button>
     </div>
-    <mat-tab-group>
+</ng-template>
 
-        <mat-tab [label]="data.flights[0].departure.iataCode+' - '+data.flights[0].arrival.iataCode">
-            @for (passenger of data.passengers; track passenger; let i = $index) {
-                <div class="row y-gap-10 justify-between items-center m-0">
-                    <div class="col-auto">
-                        <div class="text-15 fw-500">{{passenger.name}}</div>
-                        <div class="text-14 lh-12 text-light-1 mt-5">{{outboundPrice|currency:'MXN'}}/Pieza adicional</div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="d-flex items-center">
-                            <button [disabled]="extraBaggage.outbound[i].value!<=1" (click)="removePiece('OUTBOUND', i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
-                                <i class="icon-minus text-12"></i>
-                            </button>
-                            <div class="flex-center size-20 ml-10 mr-10">
-                                <div class="text-15">{{extraBaggage.outbound[i].value}}</div>
-                            </div>
-                            <button [disabled]="extraBaggage.outbound[i].value!>4" (click)="addPiece('OUTBOUND', i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
-                                <i class="icon-plus text-12"></i>
-                            </button>
-                        </div>
-                    </div>
+<ng-template #carryOnFooter>
+    <footer class="service-sheet__footer">
+        <div class="service-sheet__total">
+            <span>Total adicional</span>
+            <strong>{{total|currency:'MXN'}}</strong>
+            <small>Tu pieza incluida no genera costo</small>
+        </div>
+        <button (click)="save()" mat-flat-button color="primary">
+            Guardar equipaje
+            <mat-icon>arrow_forward</mat-icon>
+        </button>
+    </footer>
+</ng-template>
+
+<app-xplora-bottom-sheet
+    class="additional-service-sheet"
+    [headerTemplate]="carryOnHeader"
+    [footerTemplate]="carryOnFooter"
+    [contentPadding]="false"
+    [footerPadding]="false">
+    <div class="service-sheet__content">
+        <section class="service-hero service-hero--carry-on">
+            <div>
+                <span class="service-hero__badge"><mat-icon>verified</mat-icon>Una pieza incluida</span>
+                <h3>Lleva contigo lo que necesitas</h3>
+                <p>Cada pasajero cuenta con una pieza sin costo. Agrega más equipaje solo donde lo necesites.</p>
+                <div class="service-hero__facts">
+                    <span class="service-hero__fact"><mat-icon>straighten</mat-icon>55 × 40 × 25 cm</span>
+                    <span class="service-hero__fact"><mat-icon>scale</mat-icon>Hasta 10 kg</span>
                 </div>
-            }
-        </mat-tab>
-        @if(data.flights.length>1){
-            <mat-tab [label]="data.flights[1].departure.iataCode+' - '+data.flights[1].arrival.iataCode">
-                @for (passenger of data.passengers; track passenger; let i = $index) {
-                    <div class="row y-gap-10 justify-between items-center m-0">
-                        <div class="col-auto">
-                            <div class="text-15 fw-500">{{passenger.name}}</div>
-                        <div class="text-14 lh-12 text-light-1 mt-5">{{inboundPrice|currency:'MXN'}}/Pieza adicional</div>
+            </div>
+            <div class="service-hero__visual">
+                <img src="/assets/img/tamanos-maleta/carryon.jpg" alt="Maleta de mano de referencia">
+            </div>
+        </section>
+
+        <section class="service-selector">
+            <div class="service-section-heading">
+                <div>
+                    <span class="service-section-heading__eyebrow">Personaliza tu viaje</span>
+                    <h3>¿Cuántas piezas llevará cada pasajero?</h3>
+                </div>
+                <span class="service-section-heading__note">Por trayecto</span>
+            </div>
+
+            <mat-tab-group class="service-tabs" animationDuration="250ms">
+                <mat-tab [label]="data.flights[0].departure.iataCode+' → '+data.flights[0].arrival.iataCode">
+                    <div class="passenger-stepper-list">
+                        @for (passenger of data.passengers; track passenger.name; let i = $index) {
+                            <article class="passenger-stepper" [class.passenger-stepper--active]="extraBaggage.outbound[i].value! > includedQuantity(extraBaggage.outbound[i])">
+                                <div class="passenger-stepper__identity">
+                                    <span class="passenger-stepper__avatar"><mat-icon>person</mat-icon></span>
+                                    <div class="passenger-stepper__copy">
+                                        <strong>{{passenger.name}}</strong>
+                                        <div class="passenger-stepper__meta">
+                                            <span>{{passenger.type}}</span>
+                                            <span>·</span>
+                                            <span>{{outboundPrice|currency:'MXN'}} por pieza adicional</span>
+                                            <span class="passenger-stepper__included">{{includedQuantity(extraBaggage.outbound[i])}} incluida{{includedQuantity(extraBaggage.outbound[i]) === 1 ? '' : 's'}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="passenger-stepper__controls">
+                                    <button
+                                        type="button"
+                                        class="passenger-stepper__button"
+                                        [attr.aria-label]="'Quitar una pieza a '+passenger.name"
+                                        [disabled]="extraBaggage.outbound[i].value! <= includedQuantity(extraBaggage.outbound[i])"
+                                        (click)="removePiece('OUTBOUND', i)">
+                                        <mat-icon>remove</mat-icon>
+                                    </button>
+                                    <span class="passenger-stepper__quantity">
+                                        {{extraBaggage.outbound[i].value}}
+                                        <small>piezas</small>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="passenger-stepper__button"
+                                        [attr.aria-label]="'Agregar una pieza a '+passenger.name"
+                                        (click)="addPiece('OUTBOUND', i)">
+                                        <mat-icon>add</mat-icon>
+                                    </button>
+                                </div>
+                            </article>
+                        }
                     </div>
-                    <div class="col-auto">
-                        <div class="d-flex items-center">
-                            <button [disabled]="extraBaggage.inbound[i].value!<=1" (click)="removePiece('INBOUND', i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
-                                <i class="icon-minus text-12"></i>
-                            </button>
-                            <div class="flex-center size-20 ml-10 mr-10">
-                                <div class="text-15">{{extraBaggage.inbound[i].value}}</div>
-                            </div>
-                            <button [disabled]="extraBaggage.inbound[i].value!>4" (click)="addPiece('INBOUND', i)" class="button -outline-blue-1 text-blue-1 size-30 rounded-5">
-                                <i class="icon-plus text-12"></i>
-                            </button>
+                </mat-tab>
+                @if(data.flights.length > 1){
+                    <mat-tab [label]="data.flights[1].departure.iataCode+' → '+data.flights[1].arrival.iataCode">
+                        <div class="passenger-stepper-list">
+                            @for (passenger of data.passengers; track passenger.name; let i = $index) {
+                                <article class="passenger-stepper" [class.passenger-stepper--active]="extraBaggage.inbound[i].value! > includedQuantity(extraBaggage.inbound[i])">
+                                    <div class="passenger-stepper__identity">
+                                        <span class="passenger-stepper__avatar"><mat-icon>person</mat-icon></span>
+                                        <div class="passenger-stepper__copy">
+                                            <strong>{{passenger.name}}</strong>
+                                            <div class="passenger-stepper__meta">
+                                                <span>{{passenger.type}}</span>
+                                                <span>·</span>
+                                                <span>{{inboundPrice|currency:'MXN'}} por pieza adicional</span>
+                                                <span class="passenger-stepper__included">{{includedQuantity(extraBaggage.inbound[i])}} incluida{{includedQuantity(extraBaggage.inbound[i]) === 1 ? '' : 's'}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="passenger-stepper__controls">
+                                        <button
+                                            type="button"
+                                            class="passenger-stepper__button"
+                                            [attr.aria-label]="'Quitar una pieza a '+passenger.name"
+                                            [disabled]="extraBaggage.inbound[i].value! <= includedQuantity(extraBaggage.inbound[i])"
+                                            (click)="removePiece('INBOUND', i)">
+                                            <mat-icon>remove</mat-icon>
+                                        </button>
+                                        <span class="passenger-stepper__quantity">
+                                            {{extraBaggage.inbound[i].value}}
+                                            <small>piezas</small>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            class="passenger-stepper__button"
+                                            [attr.aria-label]="'Agregar una pieza a '+passenger.name"
+                                            (click)="addPiece('INBOUND', i)">
+                                            <mat-icon>add</mat-icon>
+                                        </button>
+                                    </div>
+                                </article>
+                            }
                         </div>
-                    </div>
-                    </div>
+                    </mat-tab>
                 }
-            </mat-tab>
-        }
-    </mat-tab-group>
-</div>
-<div style="height: 70px;border-top: 1px solid #dddddd;padding: 8px 16px;display: flex;justify-content: space-between; background: #fff; align-items: center;">
-    <div>
-        <div class="text-20 fw-500 mb-0" style="height: 25px;">{{total|currency:'MXN'}}</div>
-        <div class="text-16 fw-200 text-light-1">Total adicional</div>
+            </mat-tab-group>
+        </section>
+
+        <p class="service-sheet__disclaimer">Verifica que cada pieza cumpla con las dimensiones y el peso indicados por la aerolínea.</p>
     </div>
-    <div>
-        <button (click)="save()" mat-flat-button color="primary">Guardar</button>
-    </div>
-</div>
+</app-xplora-bottom-sheet>

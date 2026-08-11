@@ -1,11 +1,11 @@
 <h1 mat-dialog-title>Asientos Pendientes</h1>
 <mat-dialog-content>
     @if(data===1){
-        <p>Aún hay un vuelo con <b>asientos pendientes</b> por asignar.</p>
-        <p>¿Desea continuar <b>sin asignar</b> los asientos de este vuelo?</p>
+        <p>Aún hay un <b>asiento pendiente</b> por asignar.</p>
+        <p>¿Desea continuar <b>sin asignarlo</b>?</p>
     }@else{
-        <p>Aún hay {{data}} vuelo{{data > 1 ? 's' : ''}} con <b>asientos pendientes</b> por asignar.</p>
-        <p>¿Desea continuar <b>sin asignar</b> los asientos de estos vuelos?</p>
+        <p>Aún hay <b>{{data}} asientos pendientes</b> por asignar.</p>
+        <p>¿Desea continuar <b>sin asignarlos</b>?</p>
     }
 </mat-dialog-content>
 <mat-dialog-actions align="end">

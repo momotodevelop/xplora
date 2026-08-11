@@ -1,69 +1,169 @@
-<div>
-                <div class="col-xl-9">
-                  <div class="row x-gap-20 y-gap-20">
-                    <div class="col-12">
+<section class="saved-passengers" aria-labelledby="saved-passengers-title">
+  <div class="saved-passengers__header">
+    <div>
+      <h2 id="saved-passengers-title" class="text-22 fw-600">Pasajeros guardados</h2>
+      <p class="text-15 text-light-1 mt-5">
+        Guarda los datos de tus acompañantes para completar más rápido una reservación.
+      </p>
+    </div>
 
-                      <div class="form-input ">
-                        <input type="text" required>
-                        <label class="lh-1 text-16 text-light-1">Address Line 1</label>
-                      </div>
+    @if (!formVisible) {
+      <button mat-flat-button color="primary" type="button" (click)="createPassenger()">
+        <mat-icon>person_add</mat-icon>
+        Agregar pasajero
+      </button>
+    }
+  </div>
 
-                    </div>
+  @if (formVisible) {
+    <form class="passenger-form" [formGroup]="passengerForm" (ngSubmit)="savePassenger()">
+      <div class="passenger-form__heading">
+        <div>
+          <h3 class="text-18 fw-600">
+            {{ editingPassengerId ? 'Editar pasajero' : 'Nuevo pasajero' }}
+          </h3>
+          <p class="text-14 text-light-1 mt-5">Ingresa los datos tal como aparecen en su identificación.</p>
+        </div>
+        <button mat-icon-button type="button" aria-label="Cerrar formulario" (click)="cancelForm()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
 
-                    <div class="col-12">
+      <div class="passenger-form__grid">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Nombre(s)</mat-label>
+          <input matInput formControlName="name" autocomplete="given-name">
+          @if (passengerForm.controls.name.hasError('required')) {
+            <mat-error>El nombre es obligatorio.</mat-error>
+          } @else if (passengerForm.controls.name.invalid) {
+            <mat-error>Ingresa entre 2 y 80 caracteres.</mat-error>
+          }
+        </mat-form-field>
 
-                      <div class="form-input ">
-                        <input type="text" required>
-                        <label class="lh-1 text-16 text-light-1">Address Line 2</label>
-                      </div>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Apellido(s)</mat-label>
+          <input matInput formControlName="lastName" autocomplete="family-name">
+          @if (passengerForm.controls.lastName.hasError('required')) {
+            <mat-error>El apellido es obligatorio.</mat-error>
+          } @else if (passengerForm.controls.lastName.invalid) {
+            <mat-error>Ingresa entre 2 y 100 caracteres.</mat-error>
+          }
+        </mat-form-field>
 
-                    </div>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Fecha de nacimiento</mat-label>
+          <input
+            matInput
+            formControlName="birthDate"
+            [matDatepicker]="birthDatePicker"
+            [min]="earliestBirthDate"
+            [max]="today"
+            readonly
+            (click)="birthDatePicker.open()"
+            (focus)="birthDatePicker.open()">
+          <mat-datepicker-toggle matIconSuffix [for]="birthDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker startView="multi-year" #birthDatePicker></mat-datepicker>
+          @if (passengerForm.controls.birthDate.invalid) {
+            <mat-error>Selecciona una fecha de nacimiento válida.</mat-error>
+          }
+        </mat-form-field>
 
-                    <div class="col-md-6">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Género</mat-label>
+          <mat-select formControlName="gender">
+            <mat-option value="MALE">Masculino</mat-option>
+            <mat-option value="FEMALE">Femenino</mat-option>
+            <mat-option value="OTHER">Otro</mat-option>
+          </mat-select>
+          @if (passengerForm.controls.gender.invalid) {
+            <mat-error>Selecciona una opción.</mat-error>
+          }
+        </mat-form-field>
+      </div>
 
-                      <div class="form-input ">
-                        <input type="text" required>
-                        <label class="lh-1 text-16 text-light-1">City</label>
-                      </div>
+      <div class="passenger-form__actions">
+        <button mat-button type="button" (click)="cancelForm()" [disabled]="saving">Cancelar</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving">
+          @if (saving) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>save</mat-icon>
+          }
+          {{ editingPassengerId ? 'Guardar cambios' : 'Guardar pasajero' }}
+        </button>
+      </div>
+    </form>
+  }
 
-                    </div>
+  @if (loadError) {
+    <div class="saved-passengers__message saved-passengers__message--error" role="alert">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ loadError }}</span>
+    </div>
+  } @else if (loading) {
+    <div class="saved-passengers__loading" aria-label="Cargando pasajeros guardados">
+      <mat-spinner diameter="36"></mat-spinner>
+    </div>
+  } @else if (passengers.length === 0) {
+    <div class="saved-passengers__empty">
+      <div class="saved-passengers__empty-icon">
+        <mat-icon>group</mat-icon>
+      </div>
+      <h3 class="text-18 fw-600">Aún no tienes pasajeros guardados</h3>
+      <p class="text-14 text-light-1 mt-5">
+        Agrégalos una sola vez y selecciónalos al capturar los datos de tu próximo viaje.
+      </p>
+      @if (!formVisible) {
+        <button mat-stroked-button color="primary" type="button" class="mt-20" (click)="createPassenger()">
+          Agregar mi primer pasajero
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="saved-passengers__list">
+      @for (passenger of passengers; track passenger.id) {
+        <article class="passenger-card">
+          <div class="passenger-card__avatar" aria-hidden="true">
+            {{ passenger.name.charAt(0) }}{{ passenger.lastName.charAt(0) }}
+          </div>
 
-                    <div class="col-md-6">
+          <div class="passenger-card__content">
+            <div class="passenger-card__title-row">
+              <h3 class="text-17 fw-600">{{ fullName(passenger) }}</h3>
+              <span class="passenger-card__type">{{ passengerType(passenger) }}</span>
+            </div>
+            <div class="passenger-card__details">
+              <span>
+                <mat-icon>cake</mat-icon>
+                {{ birthDate(passenger) | date:'longDate' }}
+              </span>
+              <span>
+                <mat-icon>person</mat-icon>
+                {{ genderLabel(passenger.gender) }}
+              </span>
+            </div>
+          </div>
 
-                      <div class="form-input ">
-                        <input type="text" required>
-                        <label class="lh-1 text-16 text-light-1">State</label>
-                      </div>
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                      <div class="form-input ">
-                        <input type="text" required>
-                        <label class="lh-1 text-16 text-light-1">Select Country</label>
-                      </div>
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                      <div class="form-input ">
-                        <input type="text" required>
-                        <label class="lh-1 text-16 text-light-1">ZIP Code</label>
-                      </div>
-
-                    </div>
-
-                    <div class="col-12">
-                      <div class="d-inline-block">
-
-                        <a href="#" class="button h-50 px-24 -dark-1 bg-blue-1 text-white">
-                          Save Changes <div class="icon-arrow-top-right ml-15"></div>
-                        </a>
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div class="passenger-card__actions">
+            <button
+              mat-icon-button
+              color="primary"
+              type="button"
+              [attr.aria-label]="'Editar a ' + fullName(passenger)"
+              (click)="editPassenger(passenger)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="warn"
+              type="button"
+              [attr.aria-label]="'Eliminar a ' + fullName(passenger)"
+              (click)="deletePassenger(passenger)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

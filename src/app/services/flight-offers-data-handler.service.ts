@@ -61,16 +61,24 @@ export class FlightOffersDataHandlerService {
   }
 
   setData(offers:FlightOffer[], dictionaries:Dictionaries, pageSize:number, filters?:FilterOptions, sorting?:SortOptions){
-    this._unfiltered.next(offers);
+    const nextFilters = filters ?? {};
+    const nextSorting: SortOptions = sorting ?? ['precio', 'asc'];
+    this._filters.next(nextFilters);
+    this._sorting.next(nextSorting);
+    this._filterFormValue.next(undefined);
     this.dictionaries=dictionaries;
     this._carriers.next(this.getCarrierOptions(this.dictionaries));
-    this._filtered.next(filters?this.getFilterOffers(filters, sorting):this._unfiltered.value);
+    this._unfiltered.next(offers);
+    this._filtered.next(this.getFilterOffers(nextFilters, nextSorting));
     this._pageSize.next(pageSize);
     this._page.next(1);
   }
 
   selectFlight(flight:FlightOffer, dictionaries:Dictionaries, inbound:boolean=false, round:boolean=false){
     if(!inbound){
+      if (round) {
+        this.resetFilters();
+      }
       this._selected.next({
         outbound: {
           offer: flight,
@@ -105,6 +113,12 @@ export class FlightOffersDataHandlerService {
     this._flightSelectionStatus.next("OUTBOUND");
   }
 
+  resetFilters():void {
+    this._filters.next({});
+    this._sorting.next(['precio', 'asc']);
+    this._filterFormValue.next(undefined);
+    this._page.next(1);
+  }
 
   filterOffers(filters:FilterOptions, sorting:SortOptions=["precio", "asc"]):void{
     this._filtered.next(this.getFilterOffers(filters, sorting));

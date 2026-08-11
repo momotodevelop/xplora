@@ -1,7 +1,16 @@
+<ng-template #locationFooter>
+    <button (click)="close()" class="button -md -outline-blue-1 text-blue-1 w-100">Cancelar</button>
+</ng-template>
+
+<app-xplora-bottom-sheet
+    [title]="data.isOrigin ? 'Selecciona tu origen' : 'Selecciona tu destino'"
+    [subtitle]="data.isOrigin ? 'Comienza tu viaje' : 'Encuentra tu próxima experiencia'"
+    [contentPadding]="false"
+    [footerTemplate]="locationFooter">
 <div class="px-15 py-15 mat-elevation-z1">
     <div class="form-input">
         <input [formControl]="searchInput" #search type="text">
-        <label class="lh-1 text-16 text-light-1">{{data.isOrigin?'¿De donde salimos?':'¿A donde vamos?'}}</label>
+        <label class="lh-1 text-16 text-light-1">{{data.isOrigin?'¿De dónde salimos?':'¿A dónde vamos?'}}</label>
     </div>
 </div>
 @if(!loading){
@@ -13,8 +22,8 @@
                         <div class="d-flex">
                         <div class="icon-airplane text-light-1 text-20 pt-4"></div>
                         <div class="ml-10">
-                            <div class="text-15 lh-12 fw-500">Aeropuertos Cercanos</div>
-                            <div class="text-14 lh-12 text-light-1 mt-5">Ver los aeropuertos cerca de mi</div>
+                            <div class="text-15 lh-12 fw-500">Aeropuertos cercanos</div>
+                            <div class="text-14 lh-12 text-light-1 mt-5">Ver los aeropuertos cerca de mí</div>
                         </div>
                         </div>
                     </button>
@@ -112,6 +121,4 @@
         </div>
     </div>
 }
-<div class="px-15 py-15 mat-elevation-z1 cancel-button">
-    <button (click)="close()" class="button -md -outline-blue-1 text-blue-1" style="width: 100%;">Cancelar</button>
-</div>
+</app-xplora-bottom-sheet>

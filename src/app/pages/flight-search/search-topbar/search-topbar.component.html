@@ -1,11 +1,17 @@
 <div #scrollTarget></div>
-<div>
+<div class="search-topbar-shell">
     @if(!minimized){
-        <div class="container d-md-none" style="position: absolute;text-align: end;margin-top: 15px;">
-            <mat-icon (click)="toggleMinimized()">arrow_drop_up</mat-icon>
-        </div>
-        <section class="pt-40 pb-40">
+        <section @searchPanel class="search-editor pt-40 pb-40">
             <div class="container">
+                <div class="mobile-editor-heading d-md-none">
+                    <div>
+                        <div class="mobile-editor-heading__eyebrow">Resultados de vuelo</div>
+                        <h2>Editar búsqueda</h2>
+                    </div>
+                    <button (click)="toggleMinimized()" type="button" class="mobile-editor-heading__close" aria-label="Contraer búsqueda">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
                 <div class="row y-gap-20 items-center">
                     <div class="col-auto">
                         <div class="dropdown js-dropdown js-return-active">
@@ -77,14 +83,14 @@
                             <div (click)="openDateSelection()" class="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar">
                                 <h4 class="text-15 fw-500 ls-2 lh-16">Fechas</h4>
                                 <div class="text-15 text-light-1 ls-2 lh-16">
-                                    <span class="js-first-date"> {{departure|date:'dd MMM YYYY'|titlecase}} - {{return|date:'dd MMM YYYY'|titlecase}}</span>
+                                    <span class="js-first-date"> {{departure|date:'dd MMM yyyy'|titlecase}} - {{return|date:'dd MMM yyyy'|titlecase}}</span>
                                 </div>
                             </div>
                         }@else{
                             <div (click)="openDateSelection()" class="searchMenu-date px-30 lg:py-20 lg:px-0">
                                 <h4 class="text-15 fw-500 ls-2 lh-16">Fecha</h4>
                                 <div class="text-15 text-light-1 ls-2 lh-16">
-                                    <span>{{departure|date:'dd MMM YYYY'|titlecase}}</span>
+                                    <span>{{departure|date:'dd MMM yyyy'|titlecase}}</span>
                                 </div>
                             </div>
                         }
@@ -113,51 +119,47 @@
             </div>
         </section>
     }@else{
-        <div class="py-10">
+        <div @searchSummary class="mobile-search-summary-wrap">
             <div class="container">
-                <div class="row x-gap-15 items-center flex-nowrap no-overflow">
-                    <div class="col-6 shrinkable">
-                        <div class="row d-flex flex-nowrap x-gap-15 shrinkable">
-                            <div class="col-auto d-flex items-center no-shrink">
-                                @if(return){
-                                    <mat-icon>sync_alt</mat-icon>
-                                }@else{
-                                    <mat-icon>arrow_right_alt</mat-icon>
-                                }
-                            </div>
-                            <div class="col-auto shrinkable">
-                                <div class="location-label truncate">
-                                    {{origin.address.cityName|location:origin.id}}
-                                </div>
-                                <div class="location-label truncate">
-                                    {{destination.address.cityName|location:destination.id}}
-                                </div>
-                            </div>
+                <button (click)="toggleMinimized()" type="button" class="mobile-search-summary" aria-label="Editar búsqueda" [attr.aria-expanded]="!minimized">
+                    <div class="mobile-search-summary__route">
+                        <div class="mobile-search-summary__airport">
+                            <strong>{{origin.iataCode}}</strong>
+                            <span>{{origin.address.cityName|location:origin.id}}</span>
+                        </div>
+                        <div class="mobile-search-summary__direction">
+                            @if(return){
+                                <mat-icon>sync_alt</mat-icon>
+                            }@else{
+                                <mat-icon>arrow_forward</mat-icon>
+                            }
+                        </div>
+                        <div class="mobile-search-summary__airport mobile-search-summary__airport--end">
+                            <strong>{{destination.iataCode}}</strong>
+                            <span>{{destination.address.cityName|location:destination.id}}</span>
                         </div>
                     </div>
-                    <div class="col-6 shrinkable">
-                        <div class="row x-gap-15 flex-nowrap shrinkable">
-                            <div class="col-auto col-sm shrinkable">
-                                <div class="column-center">
-                                    <div class="truncate">
-                                        {{departure|date:'mediumDate'|titlecase}}
-                                    </div>
-                                    @if(return){
-                                        <div class="truncate">
-                                            {{return|date:'mediumDate'|titlecase}}
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-auto col-sm d-flex items-center no-shrink">
-                                <mat-icon>hail</mat-icon> {{totalPassengers}}
-                            </div>
-                            <div (click)="toggleMinimized()" class="col-auto col-sm d-flex items-center justify-end no-shrink">
-                                <mat-icon>arrow_drop_down</mat-icon>
-                            </div>
-                        </div>
+                    <div class="mobile-search-summary__divider"></div>
+                    <div class="mobile-search-summary__details">
+                        <span>
+                            <mat-icon>calendar_today</mat-icon>
+                            {{departure|date:'dd MMM'|titlecase}}
+                            @if(return){ – {{return|date:'dd MMM'|titlecase}} }
+                        </span>
+                        <span>
+                            <mat-icon>person_outline</mat-icon>
+                            {{totalPassengers}}
+                        </span>
+                        <span>
+                            <mat-icon>airline_seat_recline_normal</mat-icon>
+                            {{selectedFlightClass.name}}
+                        </span>
                     </div>
-                </div>
+                    <span class="mobile-search-summary__edit">
+                        Editar
+                        <mat-icon>tune</mat-icon>
+                    </span>
+                </button>
             </div>
         </div>
     }

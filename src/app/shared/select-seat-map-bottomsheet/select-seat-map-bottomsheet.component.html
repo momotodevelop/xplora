@@ -1,15 +1,22 @@
-<div style="height: 50px; border-bottom: 1px solid #dddddd; padding: 8px 16px; background: #fff;">
-    <div class="text-20 fw-500 mb-0 d-inline-block">Selecciona tu asiento</div>
-    <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
-</div>
-<div style="max-height: calc(80vh - 120px); overflow: auto;">
-    <app-select-seat-map (selected)="selectedSeat($event)" [deck]="data.deck" [passenger]="data.passenger" [selection]="data.selected"></app-select-seat-map>
-</div>
-<div style="height: 70px;border-top: 1px solid #dddddd;padding: 8px 16px;display: flex;justify-content: space-between; background: #fff; align-items: center;">
+<ng-template #seatFooter>
+<div class="seat-sheet__footer">
     <div>
         <div class="text-20 fw-500 mb-0" style="height: 25px;">{{data.passenger.name}} {{data.passenger.lastname}}</div>
         @if(seat!==undefined){
-            <div class="text-16 fw-200 text-light-1">{{seat.number}} - Asiento sin costo</div>
+            <div class="text-16 fw-200 text-light-1">
+                {{seat.number}}
+                @if(selectedSeatPrice()){
+                    - {{selectedSeatPrice()!.total|currency:selectedSeatPrice()!.currency}}
+                }@else{
+                    - Asiento sin costo
+                }
+            </div>
+            @if(seat.name){
+                <div class="text-12 text-light-1">{{seat.name}}</div>
+            }
+            @for(disclosure of seat.disclosures ?? []; track disclosure){
+                <div class="text-11 text-light-1">{{disclosure}}</div>
+            }
         }@else{
             <div class="text-16 fw-200 text-light-1">Sin selección</div>
         }
@@ -18,3 +25,13 @@
         <button [disabled]="!seat" (click)="saveSelection()" mat-flat-button color="primary">Seleccionar</button>
     </div>
 </div>
+</ng-template>
+
+<app-xplora-bottom-sheet
+    title="Selecciona tu asiento"
+    subtitle="Personaliza tu experiencia a bordo"
+    [contentPadding]="false"
+    [footerPadding]="false"
+    [footerTemplate]="seatFooter">
+    <app-select-seat-map (selected)="selectedSeat($event)" [decks]="data.decks" [passenger]="data.passenger" [selection]="data.selected" [travelerId]="data.travelerId"></app-select-seat-map>
+</app-xplora-bottom-sheet>

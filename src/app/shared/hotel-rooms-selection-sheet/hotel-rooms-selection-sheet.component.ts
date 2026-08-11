@@ -5,15 +5,15 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { BottomSheetHeaderComponent } from '../bottom-sheet-header/bottom-sheet-header.component';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { faAdd } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
   selector: 'app-hotel-rooms-selection-sheet',
   imports: [
-    BottomSheetHeaderComponent, 
+    XploraBottomSheetComponent,
     MatExpansionModule, 
     MatIconModule, 
     MatFormFieldModule, 

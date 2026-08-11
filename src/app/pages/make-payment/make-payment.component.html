@@ -16,9 +16,9 @@
             </div>
             <div class="col-xl-5 col-lg-4">
                 @if(booking!==undefined){
-                    @if(booking.payment&&!shouldShowCardPayment){
+                    @if(booking.payment&&shouldShowOfflineReceipt){
                         <app-upload-payment-receipt [paymentMethod]="booking.payment!.method" [total]="booking.payment!.totalDue" [bookingID]="booking.bookingID!"></app-upload-payment-receipt>
-                    }@else{
+                    }@else if(shouldShowCardPayment){
                         @if(!validating) {
                             <app-card-transaction-list [payed]="booking.payment!.payed" [total]="booking.payment!.totalDue" [bookingId]="booking.bookingID!"></app-card-transaction-list>
                         }
@@ -27,6 +27,6 @@
             </div>
         </div>
     }@else{
-        <app-validating-payment></app-validating-payment>
+        <app-validating-payment [booking]="booking"></app-validating-payment>
     }
 </div>

@@ -1,79 +1,123 @@
-<div style="height: 50px; border-bottom: 1px solid #dddddd; padding: 8px 16px; background: #fff;">
-    <div class="text-20 fw-500 mb-0 d-inline-block">FlexPass</div>
-    <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
-</div>
-<div class="scrollable-content">
-    <div style="padding: 12px 16px 0 16px;">
-        <div class="row y-gap-10 x-gap-0">
-            <div class="col-6">
-                <img src="/assets/img/flexpass-benefits/Cambio-sin-costo.svg" style="width: 60%; margin: auto; display: block;">
-                <div class="fw-500 lh-14 text-14 text-dark-1 xplora items-center" style="text-align: center;">
-                    <fa-icon [icon]="includedIcon"></fa-icon> Cambios ilimitados
-                </div>
-                <div class="text-12 text-light-1" style="text-align: center;">
-                    Sin costo adicional
-                </div>
-            </div>
-            <div class="col-6">
-                <img src="/assets/img/flexpass-benefits/Adelantar-Vuelo.svg" style="width: 60%; margin: auto; display: block;">
-                <div class="fw-500 lh-14 text-14 text-dark-1 xplora items-center" style="text-align: center;">
-                    <fa-icon [icon]="includedIcon"></fa-icon> Adelantar tu vuelo
-                </div>
-                <div class="text-12 text-light-1" style="text-align: center;">
-                    Sin costo adicional
-                </div>
-            </div>
-            <div class="col-6">
-                <img src="/assets/img/flexpass-benefits/Atencion-Prioritaria.svg" style="width: 60%; margin: auto; display: block;">
-                <div class="fw-500 lh-14 text-14 text-dark-1 xplora items-center" style="text-align: center;">
-                    <fa-icon [icon]="includedIcon"></fa-icon> Atención prioritaria
-                </div>
-                <div class="text-12 text-light-1" style="text-align: center;">
-                    24 Horas 7 Días a la semana
-                </div>
-            </div>
-            <div class="col-6">
-                <img src="/assets/img/flexpass-benefits/Asiento-garantizado.svg" style="width: 60%; margin: auto; display: block;">
-                <div class="fw-500 lh-14 text-14 text-dark-1 xplora items-center" style="text-align: center;">
-                    <fa-icon [icon]="includedIcon"></fa-icon> Asiento Garantizado
-                </div>
-                <div class="text-12 text-light-1" style="text-align: center;">
-                    Si llegas tarde
-                </div>
+<ng-template #flexPassHeader let-close="close">
+    <div class="service-sheet__header">
+        <div class="service-sheet__brand">
+            <span class="service-sheet__mark service-sheet__mark--flexpass">
+                <mat-icon>published_with_changes</mat-icon>
+            </span>
+            <div>
+                <span class="service-sheet__eyebrow">Viaja a tu ritmo</span>
+                <h2>FlexPass</h2>
             </div>
         </div>
+        <button (click)="close()" type="button" class="service-sheet__close" aria-label="Cerrar FlexPass">
+            <mat-icon>close</mat-icon>
+        </button>
     </div>
-    <mat-tab-group>
-        <mat-tab [label]="data.flights[0].departure.iataCode+' - '+data.flights[0].arrival.iataCode">
-            <mat-selection-list #outbound color="primary" (selectionChange)="change()">
-                @for (passenger of data.passengers; track passenger; let i = $index) {
-                    <mat-list-option [value]="i">
-                        <span matListItemTitle style="font-weight: 500;">{{passenger.name}}</span>
-                        <span matListItemLine>{{passenger.type}} - {{outboundPrice|currency:'MXN'}}</span>
-                    </mat-list-option>
+</ng-template>
+
+<ng-template #flexPassFooter>
+    <footer class="service-sheet__footer">
+        <div class="service-sheet__total">
+            <span>Total adicional</span>
+            <strong>{{total|currency:'MXN'}}</strong>
+            <small>Solo por las selecciones activas</small>
+        </div>
+        <button (click)="save()" mat-flat-button color="primary">
+            Guardar FlexPass
+            <mat-icon>arrow_forward</mat-icon>
+        </button>
+    </footer>
+</ng-template>
+
+<app-xplora-bottom-sheet
+    class="additional-service-sheet"
+    [headerTemplate]="flexPassHeader"
+    [footerTemplate]="flexPassFooter"
+    [contentPadding]="false"
+    [footerPadding]="false">
+    <div class="service-sheet__content">
+        <section class="service-hero service-hero--flexpass">
+            <div>
+                <span class="service-hero__badge"><mat-icon>bolt</mat-icon>Más libertad en cada trayecto</span>
+                <h3>Cambia tus planes con mayor tranquilidad</h3>
+                <p>Agrega FlexPass a quienes lo necesiten y disfruta una experiencia de viaje más flexible.</p>
+            </div>
+            <div class="service-hero__visual service-hero__visual--icon" aria-hidden="true">
+                <mat-icon>connecting_airports</mat-icon>
+            </div>
+        </section>
+
+        <section class="service-benefits" aria-label="Beneficios de FlexPass">
+            <article class="service-benefit">
+                <span class="service-benefit__visual"><img src="/assets/img/flexpass-benefits/Cambio-sin-costo.svg" alt=""></span>
+                <strong>Cambios ilimitados</strong>
+                <span>Sin cargo por cambio</span>
+            </article>
+            <article class="service-benefit">
+                <span class="service-benefit__visual"><img src="/assets/img/flexpass-benefits/Adelantar-Vuelo.svg" alt=""></span>
+                <strong>Adelanta tu vuelo</strong>
+                <span>Mayor libertad de horario</span>
+            </article>
+            <article class="service-benefit">
+                <span class="service-benefit__visual"><img src="/assets/img/flexpass-benefits/Atencion-Prioritaria.svg" alt=""></span>
+                <strong>Atención prioritaria</strong>
+                <span>Acompañamiento 24/7</span>
+            </article>
+            <article class="service-benefit">
+                <span class="service-benefit__visual"><img src="/assets/img/flexpass-benefits/Asiento-garantizado.svg" alt=""></span>
+                <strong>Respaldo de viaje</strong>
+                <span>Si pierdes tu vuelo</span>
+            </article>
+        </section>
+
+        <section class="service-selector">
+            <div class="service-section-heading service-section-heading--with-action">
+                <div>
+                    <span class="service-section-heading__eyebrow">Personaliza la flexibilidad</span>
+                    <h3>¿Quiénes viajarán con FlexPass?</h3>
+                </div>
+                <button
+                    type="button"
+                    class="service-select-all"
+                    [class.service-select-all--active]="allPassengersSelected"
+                    [attr.aria-label]="allPassengersSelected ? 'Quitar FlexPass a todos los pasajeros y trayectos' : 'Agregar FlexPass a todos los pasajeros y trayectos'"
+                    (click)="toggleAllPassengers()">
+                    <mat-icon>{{allPassengersSelected ? 'remove_done' : 'group_add'}}</mat-icon>
+                    {{allPassengersSelected ? 'Quitar a todos' : 'Agregar a todos'}}
+                </button>
+            </div>
+
+            <div class="service-selection-status" aria-live="polite">
+                <mat-icon>info</mat-icon>
+                <span>{{selectedPassengerCount}} de {{totalPassengerOptions}} selecciones activas entre todos los trayectos</span>
+            </div>
+
+            <mat-tab-group class="service-tabs" animationDuration="250ms">
+                <mat-tab [label]="data.flights[0].departure.iataCode+' → '+data.flights[0].arrival.iataCode">
+                    <mat-selection-list #outbound color="primary" (selectionChange)="change()" class="service-passenger-list">
+                        @for (passenger of data.passengers; track passenger.name; let i = $index) {
+                            <mat-list-option [value]="i">
+                                <span matListItemTitle>{{passenger.name}}</span>
+                                <span matListItemLine>{{passenger.type}} · {{outboundPrice|currency:'MXN'}} por este trayecto</span>
+                            </mat-list-option>
+                        }
+                    </mat-selection-list>
+                </mat-tab>
+                @if(data.flights.length > 1){
+                    <mat-tab [label]="data.flights[1].departure.iataCode+' → '+data.flights[1].arrival.iataCode">
+                        <mat-selection-list #inbound color="primary" (selectionChange)="change()" class="service-passenger-list">
+                            @for (passenger of data.passengers; track passenger.name; let i = $index) {
+                                <mat-list-option [value]="i">
+                                    <span matListItemTitle>{{passenger.name}}</span>
+                                    <span matListItemLine>{{passenger.type}} · {{inboundPrice|currency:'MXN'}} por este trayecto</span>
+                                </mat-list-option>
+                            }
+                        </mat-selection-list>
+                    </mat-tab>
                 }
-            </mat-selection-list>
-        </mat-tab>
-        @if(data.flights.length>1){
-            <mat-tab [label]="data.flights[1].departure.iataCode+' - '+data.flights[1].arrival.iataCode">
-                <mat-selection-list #inbound color="primary" (selectionChange)="change()">
-                    @for (passenger of data.passengers; track passenger; let i = $index) {
-                        <mat-list-option [value]="i">
-                        <span matListItemTitle style="font-weight: 500;">{{passenger.name}}</span>
-                        <span matListItemLine>{{passenger.type}} - {{inboundPrice|currency:'MXN'}}</span>
-                        </mat-list-option>
-                    }
-                </mat-selection-list>
-            </mat-tab>
-        }
-    </mat-tab-group>
-</div>
-<div style="height: 70px;border-top: 1px solid #dddddd;padding: 8px 16px;display: flex;justify-content: space-between; background: #fff; align-items: center;">
-    <div>
-        <div class="text-20 fw-500 mb-0" style="height: 25px;">{{total|currency:'MXN'}}</div>
-        <div class="text-16 fw-200 text-light-1">Total adicional</div>
+            </mat-tab-group>
+        </section>
+
+        <p class="service-sheet__disclaimer">Los cambios están sujetos a disponibilidad y pueden generar diferencia de tarifa.</p>
     </div>
-    <div>
-        <button (click)="save()" mat-flat-button color="primary">Guardar</button>
-    </div>
-</div>
+</app-xplora-bottom-sheet>

@@ -9,6 +9,7 @@ import { AmadeusAuthService } from '../../services/amadeus-auth.service';
 import { AirportSearchService } from '../../services/airport-search.service';
 import { AmadeusLocation } from '../../types/amadeus-airport-response.types';
 import { TitleCasePipe } from '@angular/common';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 interface TourDestinationSuggestion {
   label: string;
@@ -31,7 +32,8 @@ const TOUR_DESTINATIONS: TourDestinationSuggestion[] = [
     ScrollingModule,
     ReactiveFormsModule,
     TitleCasePipe,
-    MatSnackBarModule
+    MatSnackBarModule,
+    XploraBottomSheetComponent
   ],
   templateUrl: './tour-location-selection-sheet.component.html',
   styleUrl: './tour-location-selection-sheet.component.scss'

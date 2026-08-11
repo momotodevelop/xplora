@@ -112,16 +112,24 @@
         <div class="text-20 fw-500 mb-20">Tu calendario de pagos</div>
         <div class="row y-gap-5 justify-between">
             <div class="col-auto">
-                @if(paymentType==='NOW'){
+                @if(paymentMethod==='DEFERRED' && deferredPlan){
+                    <div class="text-15">Anticipo para solicitar el plan</div>
+                }@else if(paymentType==='NOW'){
                     <div class="text-15">Pagarás antes de tu estancia</div>
                 }@else{
                     <div class="text-15">Pagarás al check-in</div>
                 }
             </div>
             <div class="col-auto">
-                <div class="text-15">{{total|currency:'MXN'}}</div>
+                <div class="text-15">{{paymentMethod === 'DEFERRED' && deferredPlan ? deferredPlan.downPaymentAmount : total|currency:'MXN'}}</div>
             </div>
         </div>
+        @if(paymentMethod==='DEFERRED' && deferredPlan){
+            <div class="border-top-light mt-15 mb-15"></div>
+            <div class="text-14">
+                {{deferredPlan.installments.length}} pagos · Liquidación máxima {{deferredPlan.payoffDate.toDate()|date:'mediumDate'}}
+            </div>
+        }
     </div>  
     @if(promo){
         <div class="px-30 py-30 border-light rounded-4 mt-30">

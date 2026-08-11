@@ -10,7 +10,6 @@ import { Passengers } from '../../home/search/search.component';
 import { CommonModule, DatePipe, TitleCasePipe } from '@angular/common';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { LocationSelectionSheetComponent } from '../../../shared/location-selection-sheet/location-selection-sheet.component';
-import { AmadeusAuthService } from '../../../services/amadeus-auth.service';
 import { AirportSearchService } from '../../../services/airport-search.service';
 import { DirectDestination } from '../../../types/amadeus-direct-airport-response.types';
 import { PaxSelectionSheetComponent } from '../../../shared/pax-selection-sheet/pax-selection-sheet.component';
@@ -23,7 +22,7 @@ import { Analytics, logEvent } from '@angular/fire/analytics';
 import { FacebookPixelService } from '../../../services/facebook-pixel.service';
 import { SharedDataService } from '../../../services/shared-data.service';
 import { Router } from '@angular/router';
-import { on } from 'events';
+import { animate, style, transition, trigger } from '@angular/animations';
 export type FlightClassType = "ECONOMY"|"PREMIUM_ECONOMY"|"BUSINESS"|"FIRST";
 export interface FlightClass {
   name: string, 
@@ -41,7 +40,24 @@ export const flightClasses:FlightClass[]=[
     imports: [MatMenuModule, MatIconModule, MatCheckboxModule, FormsModule, MatDialogModule, DatePipe, TitleCasePipe, LocationNamePipe, CommonModule],
     templateUrl: './search-topbar.component.html',
     styleUrl: './search-topbar.component.scss',
-    providers: [DatePipe, TitleCasePipe]
+    providers: [DatePipe, TitleCasePipe],
+    animations: [
+      trigger('searchPanel', [
+        transition(':enter', [
+          style({opacity: 0, transform: 'translateY(-14px)'}),
+          animate('280ms cubic-bezier(.2,.8,.2,1)', style({opacity: 1, transform: 'translateY(0)'}))
+        ]),
+        transition(':leave', [
+          animate('180ms ease-in', style({opacity: 0, transform: 'translateY(-10px)'}))
+        ])
+      ]),
+      trigger('searchSummary', [
+        transition(':enter', [
+          style({opacity: 0, transform: 'translateY(-8px) scale(.985)'}),
+          animate('240ms ease-out', style({opacity: 1, transform: 'translateY(0) scale(1)'}))
+        ])
+      ])
+    ]
 })
 export class SearchTopbarComponent implements OnInit {
   @Input() origin!: AmadeusLocation;
@@ -74,7 +90,6 @@ export class SearchTopbarComponent implements OnInit {
     private snackBar: MatSnackBar,
     private gtag: Analytics,
     private bottomSheet: MatBottomSheet,
-    private token: AmadeusAuthService,
     private titlecase: TitleCasePipe,
     private locations: AirportSearchService,
     private fbp: FacebookPixelService,
@@ -138,29 +153,20 @@ export class SearchTopbarComponent implements OnInit {
     return this.passengers.adults+this.passengers.childrens+this.passengers.infants;
   }
   openLocationBottomSheet(isOrigin:boolean): void {
-    this.bottomSheet.open(LocationSelectionSheetComponent, {data: {isOrigin, suggestedDestinations: this.suggestedDestinations}, panelClass: "locationSelectionSheet"}).afterDismissed().subscribe((location:AmadeusLocation)=>{
+    this.bottomSheet.open(LocationSelectionSheetComponent, {
+      data: {
+        isOrigin,
+        suggestedDestinations: this.suggestedDestinations,
+        excludedIataCode: isOrigin ? undefined : this.origin?.iataCode
+      },
+      panelClass: "locationSelectionSheet"
+    }).afterDismissed().subscribe((location:AmadeusLocation)=>{
       if(location!==undefined){
         if(isOrigin){
           this.origin=location;
           this.originInput.setValue((location.subType==="AIRPORT"?("Aeropuerto de "+this.titlecase.transform(location.address.cityName)+" ("+location.iataCode+")"):(this.titlecase.transform(location.address.cityName)+", "+this.titlecase.transform(location.address.countryName)+" (Todos los aeropuertos)")));
-          this.token.getToken().subscribe({
-            next: (token) => {
-              if(token!==null){
-                this.locations.searchDirectDestinations(location.iataCode, token).subscribe({
-                  next: (directDestinations) => {
-                    this.suggestedDestinations = directDestinations.data;
-                    this.destinationInput.enable();
-                  },
-                  error: (err) => {
-                    this.destinationInput.enable();
-                  }
-                })
-              }
-            },
-            error: (err) => {
-              this.destinationInput.enable();
-            }
-          });
+          this.suggestedDestinations = [];
+          this.destinationInput.enable();
         }else{
           this.destination=location;
           this.destinationInput.setValue((location.subType==="AIRPORT"?("Aeropuerto de "+this.titlecase.transform(location.address.cityName)+" ("+location.iataCode+")"):(this.titlecase.transform(location.address.cityName)+", "+this.titlecase.transform(location.address.countryName)+" (Todos los aeropuertos)")));
@@ -211,22 +217,22 @@ export class SearchTopbarComponent implements OnInit {
         let searchEventData:any = {
           search_term: this.destination!.address.cityName, // Término de búsqueda principal
           location: this.destination, // Puede ser el mismo o más específico
-          date: this.datepipe.transform(this.dates[0], "YYYY-MM-dd"),
+          date: this.datepipe.transform(this.dates[0], "yyyy-MM-dd"),
           round: this.round,
           adults: this.passengers.adults,
           childrens: this.passengers.childrens,
           infants: this.passengers.infants
         }
         if(this.round){
-          searchEventData.return_date = this.datepipe.transform(this.dates[1], "YYYY-MM-dd");
+          searchEventData.return_date = this.datepipe.transform(this.dates[1], "yyyy-MM-dd");
         }
         logEvent(this.gtag,'search', searchEventData);
         this.fbp.track('Search');
         const url:string = "/resultados/vuelos/"
         +(this.origin?.subType==="AIRPORT"?'A':'C')+this.origin?.iataCode+"/"
         +(this.destination?.subType==="AIRPORT"?'A':'C')+this.destination?.iataCode+"/"
-        +this.datepipe.transform(this.dates[0], "YYYY-MM-dd")+"/"
-        +(this.round?this.datepipe.transform(this.dates[1], "YYYY-MM-dd"):"NA")+"/"
+        +this.datepipe.transform(this.dates[0], "yyyy-MM-dd")+"/"
+        +(this.round?this.datepipe.transform(this.dates[1], "yyyy-MM-dd"):"NA")+"/"
         +this.passengers.adults.toString()+"/"
         +(this.passengers.childrens.toString())+"/"
         +this.passengers.infants.toString()+"/"

@@ -10,16 +10,30 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { MetaHandlerService } from '../../../../services/meta-handler.service';
 import { SharedDataService } from '../../../../services/shared-data.service';
 import { DEFAULT_TOUR_CONFIG, TourConfig, XploraTourConfigService } from '../../../../services/xplora-tour-config.service';
 import { XploraPaymentOfficeTypesService } from '../../../../services/xplora-payment-office-types.service';
 import { XploraPaymentOfficesService } from '../../../../services/xplora-payment-offices.service';
+import { XploraPaymentConfigService } from '../../../../services/xplora-payment-config.service';
 import { XploraSpeiAccountsService } from '../../../../services/xplora-spei-accounts.service';
+import { DuffelStaysService } from '../../../../services/duffel-stays.service';
+import {
+  DuffelEnvironment,
+  FlightAdminConfig,
+  XploraFlightConfigService
+} from '../../../../services/xplora-flight-config.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../shared/confirm-dialog/confirm-dialog.component';
-import { PaymentOffice, PaymentOfficeType, SpeiAccount } from '../../../../types/payment-config.types';
+import {
+  DEFAULT_PAYMENT_CONFIG,
+  PaymentOffice,
+  PaymentOfficeType,
+  SpeiAccount
+} from '../../../../types/payment-config.types';
 import { AdminPaymentOfficeFormDialogComponent } from './admin-payment-office-form-dialog.component';
 import { AdminPaymentOfficeTypeFormDialogComponent } from './admin-payment-office-type-form-dialog.component';
 import { AdminSpeiAccountFormDialogComponent } from './admin-spei-account-form-dialog.component';
@@ -33,6 +47,7 @@ import { computeSpeiCoverageWarnings } from './admin-payment-config-form.utils';
     MatTabsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatCheckboxModule,
     MatButtonModule,
     MatChipsModule,
@@ -45,6 +60,7 @@ import { computeSpeiCoverageWarnings } from './admin-payment-config-form.utils';
 })
 export class AdminLiteVouchersComponent implements OnInit {
   private tourLoaded = false;
+  private paymentConfigLoaded = false;
   private readonly currencyFormatter = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
   readonly separatorKeys = [ENTER, COMMA];
 
@@ -58,6 +74,61 @@ export class AdminLiteVouchersComponent implements OnInit {
     excludeSuggestions: this.fb.control<string[]>([...DEFAULT_TOUR_CONFIG.excludeSuggestions], { nonNullable: true })
   });
 
+  readonly flightConfigForm = this.fb.group({
+    environment: this.fb.control<DuffelEnvironment>('test', {
+      nonNullable: true,
+      validators: [Validators.required]
+    }),
+    productionToken: this.fb.control('', { nonNullable: true }),
+    testToken: this.fb.control('', { nonNullable: true }),
+    usdExchangeRate: this.fb.control(18, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(0.0001)]
+    }),
+    flightsPercent: this.fb.control(0, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(-100), Validators.max(1000)]
+    }),
+    ancillariesPercent: this.fb.control(0, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(-100), Validators.max(1000)]
+    }),
+    seatsPercent: this.fb.control(0, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(-100), Validators.max(1000)]
+    })
+  });
+
+  flightSecrets = {
+    productionConfigured: false,
+    testConfigured: false
+  };
+  flightConfigLoading = false;
+  flightConnectionStatus: 'unverified' | 'checking' | 'connected' | 'failed' = 'unverified';
+
+  readonly staysConfigForm = this.fb.group({
+    enabled: this.fb.control(false, { nonNullable: true }),
+    environment: this.fb.control<DuffelEnvironment>('test', {
+      nonNullable: true,
+      validators: [Validators.required]
+    }),
+    productionToken: this.fb.control('', { nonNullable: true }),
+    testToken: this.fb.control('', { nonNullable: true })
+  });
+  staysSecrets = {
+    productionConfigured: false,
+    testConfigured: false
+  };
+  staysConfigLoading = false;
+  staysConnectionStatus: 'unverified' | 'checking' | 'connected' | 'failed' = 'unverified';
+
+  readonly paymentConfigForm = this.fb.group({
+    speiPaymentTimeMinutes: this.fb.control(DEFAULT_PAYMENT_CONFIG.speiPaymentTimeMinutes, {
+      nonNullable: true,
+      validators: [Validators.required, Validators.min(1), Validators.pattern(/^\d+$/)]
+    })
+  });
+
   speiAccounts: SpeiAccount[] = [];
   officeTypeOptions: PaymentOfficeType[] = [];
   paymentOffices: PaymentOffice[] = [];
@@ -68,6 +139,9 @@ export class AdminLiteVouchersComponent implements OnInit {
     private fb: FormBuilder,
     private dialog: MatDialog,
     private configService: XploraTourConfigService,
+    private flightConfigService: XploraFlightConfigService,
+    private staysService: DuffelStaysService,
+    private paymentConfigService: XploraPaymentConfigService,
     private speiAccountsService: XploraSpeiAccountsService,
     private officeTypesService: XploraPaymentOfficeTypesService,
     private officesService: XploraPaymentOfficesService,
@@ -96,6 +170,21 @@ export class AdminLiteVouchersComponent implements OnInit {
       this.configForm.get('priceMultiplierPercent')?.disable({ emitEvent: false });
     }
 
+    const connectionControls = this.flightConfigForm.controls;
+    [
+      connectionControls.environment,
+      connectionControls.productionToken,
+      connectionControls.testToken
+    ].forEach(control => {
+      control.valueChanges.subscribe(() => {
+        this.flightConnectionStatus = 'unverified';
+      });
+    });
+
+    this.staysConfigForm.valueChanges.subscribe(() => {
+      this.staysConnectionStatus = 'unverified';
+    });
+
     this.configService.watchTourConfig().subscribe((config) => {
       if (this.tourLoaded && this.configForm.dirty) {
         return;
@@ -112,6 +201,17 @@ export class AdminLiteVouchersComponent implements OnInit {
       this.speiCoverageWarnings = computeSpeiCoverageWarnings(this.speiAccounts);
     });
 
+    this.paymentConfigService.watchPaymentConfig().subscribe(config => {
+      if (this.paymentConfigLoaded && this.paymentConfigForm.dirty) {
+        return;
+      }
+      this.paymentConfigForm.patchValue({
+        speiPaymentTimeMinutes: config.speiPaymentTimeMinutes
+      }, { emitEvent: false });
+      this.paymentConfigForm.markAsPristine();
+      this.paymentConfigLoaded = true;
+    });
+
     this.officeTypesService.watchOfficeTypes().subscribe((types) => {
       this.officeTypeOptions = [...(types ?? [])].sort((a, b) => a.name.localeCompare(b.name));
     });
@@ -119,6 +219,30 @@ export class AdminLiteVouchersComponent implements OnInit {
     this.officesService.watchOffices().subscribe((offices) => {
       this.paymentOffices = [...(offices ?? [])].sort((a, b) => a.name.localeCompare(b.name));
     });
+
+    void this.loadFlightConfig();
+    void this.loadStaysConfig();
+  }
+
+  async savePaymentConfig(): Promise<void> {
+    if (this.paymentConfigForm.invalid) {
+      this.paymentConfigForm.markAllAsTouched();
+      this.snackBar.open('Ingresa un plazo válido en minutos.', 'OK', { duration: 2000 });
+      return;
+    }
+
+    this.shared.setLoading(true);
+    try {
+      await this.paymentConfigService.savePaymentConfig({
+        speiPaymentTimeMinutes: Number(this.paymentConfigForm.controls.speiPaymentTimeMinutes.value)
+      });
+      this.paymentConfigForm.markAsPristine();
+      this.snackBar.open('Plazo de pago por SPEI actualizado.', 'OK', { duration: 1800 });
+    } catch (error) {
+      this.snackBar.open('No fue posible actualizar el plazo de pago por SPEI.', 'OK', { duration: 2400 });
+    } finally {
+      this.shared.setLoading(false);
+    }
   }
 
   async saveConfig(): Promise<void> {
@@ -147,6 +271,246 @@ export class AdminLiteVouchersComponent implements OnInit {
       this.snackBar.open('No se pudo guardar la configuracion.', 'OK', { duration: 1800 });
     } finally {
       this.shared.setLoading(false);
+    }
+  }
+
+  async loadFlightConfig(): Promise<void> {
+    this.flightConfigLoading = true;
+    try {
+      const config = await this.flightConfigService.getAdminConfig();
+      this.patchFlightConfigForm(config);
+    } catch (error) {
+      this.snackBar.open(
+        'No se pudo cargar la configuracion de vuelos.',
+        'OK',
+        { duration: 2400 }
+      );
+    } finally {
+      this.flightConfigLoading = false;
+    }
+  }
+
+  async saveDuffelConnectionConfig(): Promise<void> {
+    const controls = this.flightConfigForm.controls;
+    if (controls.environment.invalid) {
+      controls.environment.markAsTouched();
+      this.snackBar.open('Selecciona el entorno de Duffel.', 'OK', {
+        duration: 2200
+      });
+      return;
+    }
+
+    const value = this.flightConfigForm.getRawValue();
+
+    this.flightConfigLoading = true;
+    this.shared.setLoading(true);
+    try {
+      const saved = await this.flightConfigService.saveAdminConfig({
+        section: 'connection',
+        config: {
+          environment: value.environment
+        },
+        productionToken: value.productionToken.trim() || undefined,
+        testToken: value.testToken.trim() || undefined
+      });
+      this.flightConfigForm.patchValue({
+        environment: saved.environment,
+        productionToken: '',
+        testToken: ''
+      }, { emitEvent: false });
+      this.flightSecrets = { ...saved.secrets };
+      controls.environment.markAsPristine();
+      controls.productionToken.markAsPristine();
+      controls.testToken.markAsPristine();
+      this.flightConnectionStatus = 'unverified';
+      this.snackBar.open('Tokens y entorno de Duffel guardados.', 'OK', {
+        duration: 1800
+      });
+    } catch (error) {
+      this.snackBar.open(this.getFlightConfigError(error), 'OK', {
+        duration: 3000
+      });
+    } finally {
+      this.flightConfigLoading = false;
+      this.shared.setLoading(false);
+    }
+  }
+
+  async saveFlightPricingConfig(): Promise<void> {
+    const controls = this.flightConfigForm.controls;
+    const pricingControls = [
+      controls.usdExchangeRate,
+      controls.flightsPercent,
+      controls.ancillariesPercent,
+      controls.seatsPercent
+    ];
+    if (pricingControls.some(control => control.invalid)) {
+      pricingControls.forEach(control => control.markAsTouched());
+      this.snackBar.open('Revisa los valores de tarifas y pagos.', 'OK', {
+        duration: 2200
+      });
+      return;
+    }
+
+    const value = this.flightConfigForm.getRawValue();
+    this.flightConfigLoading = true;
+    this.shared.setLoading(true);
+    try {
+      const saved = await this.flightConfigService.saveAdminConfig({
+        section: 'pricing',
+        config: {
+          usdExchangeRate: Number(value.usdExchangeRate),
+          modifiers: {
+            flightsPercent: Number(value.flightsPercent),
+            ancillariesPercent: Number(value.ancillariesPercent),
+            seatsPercent: Number(value.seatsPercent)
+          }
+        }
+      });
+      this.flightConfigForm.patchValue({
+        usdExchangeRate: saved.usdExchangeRate,
+        flightsPercent: saved.modifiers.flightsPercent,
+        ancillariesPercent: saved.modifiers.ancillariesPercent,
+        seatsPercent: saved.modifiers.seatsPercent
+      }, { emitEvent: false });
+      pricingControls.forEach(control => control.markAsPristine());
+      this.snackBar.open('Tarifas y pagos de vuelos guardados.', 'OK', {
+        duration: 1800
+      });
+    } catch (error) {
+      this.snackBar.open(this.getFlightConfigError(error), 'OK', {
+        duration: 3000
+      });
+    } finally {
+      this.flightConfigLoading = false;
+      this.shared.setLoading(false);
+    }
+  }
+
+  async verifyDuffelConnection(): Promise<void> {
+    const controls = this.flightConfigForm.controls;
+    if (
+      controls.environment.dirty ||
+      controls.productionToken.dirty ||
+      controls.testToken.dirty
+    ) {
+      this.snackBar.open(
+        'Guarda los tokens y el entorno antes de verificar la conexion.',
+        'OK',
+        { duration: 2600 }
+      );
+      return;
+    }
+
+    this.flightConnectionStatus = 'checking';
+    try {
+      const status = await this.flightConfigService.verifyConnection();
+      this.flightConnectionStatus = status.connected ? 'connected' : 'failed';
+      this.snackBar.open(
+        `Conexion con Duffel verificada en el entorno de ${
+          status.environment === 'production' ? 'produccion' : 'pruebas'
+        }.`,
+        'OK',
+        { duration: 2400 }
+      );
+    } catch (error) {
+      this.flightConnectionStatus = 'failed';
+      this.snackBar.open(this.getFlightConnectionError(error), 'OK', {
+        duration: 3000
+      });
+    }
+  }
+
+  async loadStaysConfig(): Promise<void> {
+    this.staysConfigLoading = true;
+    try {
+      const config = await this.staysService.getAdminConfig();
+      this.staysConfigForm.patchValue({
+        enabled: config.enabled,
+        environment: config.environment,
+        productionToken: '',
+        testToken: ''
+      }, { emitEvent: false });
+      this.staysSecrets = { ...config.secrets };
+      this.staysConfigForm.markAsPristine();
+    } catch (error) {
+      this.snackBar.open(
+        'No se pudo cargar la configuracion de Duffel Stays.',
+        'OK',
+        { duration: 2600 }
+      );
+    } finally {
+      this.staysConfigLoading = false;
+    }
+  }
+
+  async saveStaysConfig(): Promise<void> {
+    if (this.staysConfigForm.invalid) {
+      this.staysConfigForm.markAllAsTouched();
+      this.snackBar.open('Revisa la configuracion de hoteles.', 'OK', {
+        duration: 2200
+      });
+      return;
+    }
+    const value = this.staysConfigForm.getRawValue();
+    this.staysConfigLoading = true;
+    this.shared.setLoading(true);
+    try {
+      const saved = await this.staysService.saveAdminConfig({
+        config: {
+          enabled: value.enabled,
+          environment: value.environment
+        },
+        productionToken: value.productionToken.trim() || undefined,
+        testToken: value.testToken.trim() || undefined
+      });
+      this.staysConfigForm.patchValue({
+        enabled: saved.enabled,
+        environment: saved.environment,
+        productionToken: '',
+        testToken: ''
+      }, { emitEvent: false });
+      this.staysSecrets = { ...saved.secrets };
+      this.staysConfigForm.markAsPristine();
+      this.staysConnectionStatus = 'unverified';
+      this.snackBar.open('Configuracion de Duffel Stays guardada.', 'OK', {
+        duration: 2000
+      });
+    } catch (error) {
+      this.snackBar.open(this.getStaysConfigError(error), 'OK', {
+        duration: 3200
+      });
+    } finally {
+      this.staysConfigLoading = false;
+      this.shared.setLoading(false);
+    }
+  }
+
+  async verifyStaysConnection(): Promise<void> {
+    if (this.staysConfigForm.dirty) {
+      this.snackBar.open(
+        'Guarda la configuracion de hoteles antes de verificar la conexion.',
+        'OK',
+        { duration: 2800 }
+      );
+      return;
+    }
+    this.staysConnectionStatus = 'checking';
+    try {
+      const status = await this.staysService.verifyConnection();
+      this.staysConnectionStatus = status.connected ? 'connected' : 'failed';
+      this.snackBar.open(
+        `Duffel Stays verificado en el entorno de ${
+          status.environment === 'production' ? 'produccion' : 'pruebas'
+        }.`,
+        'OK',
+        { duration: 2600 }
+      );
+    } catch (error) {
+      this.staysConnectionStatus = 'failed';
+      this.snackBar.open(this.getStaysConnectionError(error), 'OK', {
+        duration: 3600
+      });
     }
   }
 
@@ -342,6 +706,87 @@ export class AdminLiteVouchersComponent implements OnInit {
     } else {
       multiplier.disable({ emitEvent: false });
     }
+  }
+
+  private patchFlightConfigForm(config: FlightAdminConfig): void {
+    this.flightConfigForm.patchValue({
+      environment: config.environment,
+      productionToken: '',
+      testToken: '',
+      usdExchangeRate: config.usdExchangeRate,
+      flightsPercent: config.modifiers.flightsPercent,
+      ancillariesPercent: config.modifiers.ancillariesPercent,
+      seatsPercent: config.modifiers.seatsPercent
+    }, { emitEvent: false });
+    this.flightSecrets = { ...config.secrets };
+    this.flightConfigForm.markAsPristine();
+  }
+
+  private getFlightConfigError(error: unknown): string {
+    const code = error instanceof HttpErrorResponse
+      ? String(error.error?.error || error.error?.message || '')
+      : String((error as Error)?.message || '');
+    if (code.includes('DUFFEL_LIVE_TOKEN_MISSING')) {
+      return 'Agrega el token de produccion antes de activar ese entorno.';
+    }
+    if (code.includes('DUFFEL_TEST_TOKEN_MISSING')) {
+      return 'Agrega el token de pruebas antes de activar ese entorno.';
+    }
+    if (code.includes('DUFFEL_LIVE_TOKEN_INVALID')) {
+      return 'El token de produccion no tiene el formato esperado de Duffel.';
+    }
+    if (code.includes('DUFFEL_TEST_TOKEN_INVALID')) {
+      return 'El token de pruebas no tiene el formato esperado de Duffel.';
+    }
+    return 'No se pudo guardar la configuracion de vuelos.';
+  }
+
+  private getFlightConnectionError(error: unknown): string {
+    const code = error instanceof HttpErrorResponse
+      ? String(error.error?.error || error.error?.message || '')
+      : String((error as Error)?.message || '');
+    if (code.includes('DUFFEL_LIVE_TOKEN_MISSING')) {
+      return 'No hay un token de produccion guardado para verificar.';
+    }
+    if (code.includes('DUFFEL_TEST_TOKEN_MISSING')) {
+      return 'No hay un token de pruebas guardado para verificar.';
+    }
+    return 'No fue posible conectar con Duffel usando el entorno activo.';
+  }
+
+  private getStaysConfigError(error: unknown): string {
+    const code = error instanceof HttpErrorResponse
+      ? String(error.error?.error || error.error?.message || '')
+      : String((error as Error)?.message || '');
+    if (code.includes('DUFFEL_STAYS_LIVE_TOKEN_MISSING')) {
+      return 'Agrega el token de produccion antes de activar hoteles.';
+    }
+    if (code.includes('DUFFEL_STAYS_TEST_TOKEN_MISSING')) {
+      return 'Agrega el token de pruebas antes de activar hoteles.';
+    }
+    if (code.includes('DUFFEL_LIVE_TOKEN_INVALID')) {
+      return 'El token de produccion no tiene el formato esperado de Duffel.';
+    }
+    if (code.includes('DUFFEL_TEST_TOKEN_INVALID')) {
+      return 'El token de pruebas no tiene el formato esperado de Duffel.';
+    }
+    return 'No se pudo guardar la configuracion de Duffel Stays.';
+  }
+
+  private getStaysConnectionError(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const code = String(error.error?.error || error.error?.message || '');
+      if (code.includes('DUFFEL_STAYS_LIVE_TOKEN_MISSING')) {
+        return 'No hay un token de produccion de Stays guardado.';
+      }
+      if (code.includes('DUFFEL_STAYS_TEST_TOKEN_MISSING')) {
+        return 'No hay un token de pruebas de Stays guardado.';
+      }
+      if (error.status === 401 || error.status === 403) {
+        return 'Duffel rechazo el acceso a Stays. Confirma que el producto este habilitado en tu cuenta.';
+      }
+    }
+    return 'No fue posible verificar Duffel Stays con el entorno activo.';
   }
 
   private async confirmDelete(data: ConfirmDialogData): Promise<boolean> {

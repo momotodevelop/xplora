@@ -1,58 +1,146 @@
-@if((auth.user | async)){
-    <div class="d-flex items-center justify-start bg-success-1 pl-20 pr-20 py-20 rounded-8 mb-30">
-        @if((auth.user | async)?.photoURL){
-            <img [src]="(auth.user | async)?.photoURL" alt="Avatar" class="size-40 rounded-full">
-        }@else {
-            <img src="assets/img/dashboard/icons/xplora_coin.svg" alt="logo" class="size-40">
-        }
-        <div class="text-success-2 lh-1 fw-500 ml-10">
-            <div class="fw-700 text-success-2 mb-10">Bienvenido {{(auth.user | async)?.displayName!}}</div>
-            <div class="text-15 text-success-2">Al confirmar esta reservación acumularás el 10% del total en Xplorer Points.</div>
-        </div>
-    </div>
-}
+<section class="passengers-step">
+    @if(passengers.controls.length > 0){
+        <form [formGroup]="form">
+            <div formArrayName="passengers">
+                <mat-accordion class="passenger-accordion" [multi]="false">
+                    @for(passenger of passengers.controls; track passenger; let i = $index){
+                        <mat-expansion-panel
+                            class="passenger-panel"
+                            [class.passenger-panel--completed]="passengerCompleted[i]"
+                            [expanded]="expandedPassengerIndex === i"
+                            (opened)="expandedPassengerIndex = i"
+                            (closed)="onPanelClosed(i)">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    <span class="passenger-panel__number">
+                                        @if(passengerCompleted[i]){
+                                            <mat-icon>check</mat-icon>
+                                        }@else{
+                                            {{i + 1}}
+                                        }
+                                    </span>
+                                    <span class="passenger-panel__title">
+                                        <strong>{{passengerTitles[i]}}</strong>
+                                        <small>
+                                            @if(passengerCompleted[i]){
+                                                {{passenger.get('name')?.value}} {{passenger.get('lastname')?.value}}
+                                            }@else{
+                                                Pendiente de completar
+                                            }
+                                        </small>
+                                    </span>
+                                </mat-panel-title>
+                                @if(passengerCompleted[i]){
+                                    <button
+                                        type="button"
+                                        mat-icon-button
+                                        class="passenger-panel__edit"
+                                        aria-label="Editar pasajero"
+                                        (click)="editPassenger(i, $event)">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                }
+                            </mat-expansion-panel-header>
 
-@if(passengers.controls.length > 0){
-    <form [formGroup]="form">
-        <div formArrayName="passengers">
-            @for(passenger of passengers.controls; track passenger; let i = $index){
-                <div class="d-flex items-center justify-between" [formGroupName]="i">
-                    <p class="text-18 fw-700">{{passengerTitles[i]}}</p>
-                    <!-- <mat-checkbox>Guardar Pasajero</mat-checkbox> -->
-                </div>
-                <div class="row x-gap-10 y-gap-10 pb-20" [formGroupName]="i">
-                    <div class="col-md-6">
-                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
-                            <mat-label>Nombre(s)</mat-label>
-                            <input matInput placeholder="Nombre(s)" formControlName="name">
-                        </mat-form-field>
-                    </div>
-                    <div class="col-md-6">
-                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
-                            <mat-label>Apellido(s)</mat-label>
-                            <input matInput placeholder="Apellido(s)" formControlName="lastname">
-                        </mat-form-field>
-                    </div>
-                    <div class="col-md-6">
-                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
-                            <mat-label>Fecha Nacimiento</mat-label>
-                            <input [min]="passengerDetails[i].minDate" [max]="passengerDetails[i].maxDate" matInput [matDatepicker]="picker" readonly (click)="picker.open()" (focus)="picker.open()" formControlName="birth">
-                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                            <mat-datepicker startView="multi-year" #picker></mat-datepicker>
-                        </mat-form-field>
-                    </div>
-                    <div class="col-md-6">
-                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
-                            <mat-label>Genero</mat-label>
-                            <mat-select formControlName="gender">
-                                <mat-option value="MALE">Masculino</mat-option>
-                                <mat-option value="FEMALE">Femenino</mat-option>
-                                <mat-option value="OTHER">Otro</mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
-                </div>
-            }
+                            <div class="passenger-form" [formGroupName]="i">
+                                @if(passengerSuggestions(i); as suggestions){
+                                    @if(suggestions.length){
+                                        <mat-chip-listbox
+                                            class="passenger-suggestions"
+                                            [attr.aria-label]="'Pasajeros disponibles para ' + passengerTitles[i]">
+                                            @for(suggestion of suggestions; track suggestion.id){
+                                                <mat-chip-option
+                                                    class="passenger-suggestion"
+                                                    [disabled]="isPassengerSuggestionUsed(suggestion.id)"
+                                                    [attr.aria-label]="'Usar los datos de ' + suggestion.name + ' ' + suggestion.lastName + ', ' + suggestion.typeLabel"
+                                                    (click)="applyPassengerSuggestion(i, suggestion)">
+                                                    <mat-icon
+                                                        matChipAvatar
+                                                        [attr.title]="suggestion.typeLabel"
+                                                        [attr.aria-label]="suggestion.typeLabel">
+                                                        {{suggestion.icon}}
+                                                    </mat-icon>
+                                                    {{suggestion.name}} {{suggestion.lastName}}
+                                                </mat-chip-option>
+                                            }
+                                        </mat-chip-listbox>
+                                    }
+                                }
+
+                                <div class="row x-gap-15 passenger-form__fields">
+                                    <div class="col-md-6">
+                                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                                            <mat-label>Nombre(s)</mat-label>
+                                            <input matInput autocomplete="given-name" formControlName="name" (input)="markPassengerDirty(i)">
+                                        </mat-form-field>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                                            <mat-label>Apellido(s)</mat-label>
+                                            <input matInput autocomplete="family-name" formControlName="lastname" (input)="markPassengerDirty(i)">
+                                        </mat-form-field>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                                            <mat-label>Fecha de nacimiento</mat-label>
+                                            <input
+                                                matInput
+                                                readonly
+                                                formControlName="birth"
+                                                [min]="passengerDetails[i].minDate"
+                                                [max]="passengerDetails[i].maxDate"
+                                                [matDatepicker]="picker"
+                                                (click)="picker.open()"
+                                                (focus)="picker.open()"
+                                                (dateChange)="markPassengerDirty(i)">
+                                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                                            <mat-datepicker startView="multi-year" #picker></mat-datepicker>
+                                        </mat-form-field>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                                            <mat-label>Género</mat-label>
+                                            <mat-select formControlName="gender" (selectionChange)="markPassengerDirty(i)">
+                                                <mat-option value="MALE">Masculino</mat-option>
+                                                <mat-option value="FEMALE">Femenino</mat-option>
+                                                <mat-option value="OTHER">Otro</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+
+                                @if(isLoggedIn){
+                                    <div class="save-passenger-row">
+                                        <mat-checkbox color="primary" formControlName="savePassenger">
+                                            Guardar pasajero
+                                        </mat-checkbox>
+                                    </div>
+                                }
+
+                                <div class="passenger-form__actions">
+                                    <button
+                                        type="button"
+                                        mat-flat-button
+                                        color="primary"
+                                        [disabled]="passenger.invalid"
+                                        (click)="savePassengerPanel(i)">
+                                        Guardar pasajero
+                                        <mat-icon>arrow_forward</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </mat-expansion-panel>
+                    }
+                </mat-accordion>
+            </div>
+        </form>
+    }
+
+    @if(allPassengersCompleted){
+        <div class="passengers-complete">
+            <mat-icon>task_alt</mat-icon>
+            <span>Todos los pasajeros están completos. Ya puedes continuar.</span>
         </div>
-    </form>
-}
+    }
+</section>

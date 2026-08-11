@@ -8,8 +8,9 @@ import { faPaperPlane } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FireAuthService } from '../../services/fire-auth.service';
-import { MatDialogRef } from '@angular/material/dialog';
+import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { RecaptchaVerifier } from 'firebase/auth';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
     selector: 'app-phone-login-bottom-sheet',
@@ -19,13 +20,14 @@ import { RecaptchaVerifier } from 'firebase/auth';
       MatIconModule, 
       MatSelectModule, 
       FontAwesomeModule, 
-      ReactiveFormsModule
+      ReactiveFormsModule,
+      XploraBottomSheetComponent
     ],
     templateUrl: './phone-login-bottom-sheet.component.html',
     styleUrl: './phone-login-bottom-sheet.component.scss'
 })
 export class PhoneLoginBottomSheetComponent implements OnInit {
-  constructor(private _dialogRef: MatDialogRef<PhoneLoginBottomSheetComponent>, private auth: FireAuthService, private zone: NgZone){}
+  constructor(private bottomSheetRef: MatBottomSheetRef<PhoneLoginBottomSheetComponent>, private auth: FireAuthService, private zone: NgZone){}
   countries=countries;
   country:string="52";
   phone:FormControl = new FormControl('', [Validators.required, Validators.minLength(10), Validators.maxLength(10)]);
@@ -50,7 +52,7 @@ export class PhoneLoginBottomSheetComponent implements OnInit {
     })
   }
   close(logged:boolean=false){
-    this._dialogRef.close(logged);
+    this.bottomSheetRef.dismiss(logged);
   }
 
 }

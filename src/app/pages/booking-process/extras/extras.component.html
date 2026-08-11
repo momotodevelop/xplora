@@ -1,195 +1,136 @@
-<div class="row x-gap-20 y-gap-20">
-    <div class="col-md-6">
-        <mat-card>
-            <mat-card-header>
-                <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/seguro.png');"></div>
-                <mat-card-title class="extra-service-title">Viaja Seguro</mat-card-title>
-                <mat-card-subtitle style="margin-top: -7px;"><small>Seguro de viajero</small></mat-card-subtitle>
-            </mat-card-header>
-            <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/seguro.jpg" alt="Photo of a Shiba Inu">
+<section class="extras">
+    <div class="extras__intro">
+        <div class="extras__included-icon">
+            <fa-icon [icon]="carryOnIcon"></fa-icon>
+        </div>
+        <div>
+            <span>Incluido con Xplora Travel</span>
+            <strong>Una pieza de equipaje de mano sin costo por pasajero</strong>
+            <p>Ya está considerada en tu reservación. Si necesitas más, puedes agregar todas las piezas que requieras.</p>
+        </div>
+    </div>
+
+    <div class="extras__grid">
+        <mat-card class="extra-card" appearance="outlined">
+            <div class="extra-card__heading">
+                <div class="extra-card__avatar extra-card__avatar--insurance"></div>
+                <div>
+                    <span>Protección</span>
+                    <h3>Viaja Seguro</h3>
+                </div>
+            </div>
             <mat-card-content>
-                <ul class="font-14" style="text-align: left; line-height: 1.5em; margin: 0; padding: 0; list-style: none;">
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="insuranceShieldIcon"></fa-icon>
-                        <span>Allianz Travel Basico <b>incluido</b>.</span>
-                    </li>
-                    <li class="text-12 fw-500 text-light-1">
-                        Sube tu protección a <i>Allianz Travel Premium</i> y obten:
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="premiumIcon"></fa-icon>
-                        <span>Cobertura Global (Incluye Europa)</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="premiumIcon"></fa-icon>
-                        <span>Poliza por hasta 1,000,000 USD</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="premiumIcon"></fa-icon>
-                        <span>Seguro de equipaje hasta $2,000 USD</span>
-                    </li>
+                <p class="extra-card__description">El plan Allianz Travel Básico ya está incluido. Amplía la cobertura cuando lo necesites.</p>
+                <ul class="extra-card__features">
+                    <li><fa-icon [icon]="premiumIcon"></fa-icon> Cobertura global, incluida Europa</li>
+                    <li><fa-icon [icon]="insuranceShieldIcon"></fa-icon> Protección de hasta 1,000,000 USD</li>
+                    <li><fa-icon [icon]="carryOnIcon"></fa-icon> Cobertura de equipaje de hasta 2,000 USD</li>
                 </ul>
             </mat-card-content>
-            <mat-card-actions class="d-flex justify-between" style="padding: 16px;">
-                <div style="text-align: left;">
-                    <p class="mb-0 text-14 lh-14 fw-500">{{insuranceTotal|currency:'MXN'}}</p>
-                    <p class="mb-0 text-12 lh-12">Impuestos Incluidos</p>
+            <mat-card-actions class="extra-card__actions">
+                <div class="extra-card__price">
+                    <strong>{{insuranceTotal|currency:'MXN'}}</strong>
+                    <span>Adicionales seleccionados</span>
                 </div>
-                @if(insuranceTotal<=0){
+                @if(insuranceTotal <= 0){
                     <button (click)="openInsurance()" mat-stroked-button color="primary">Agregar</button>
                 }@else{
                     <button (click)="openInsurance()" mat-flat-button color="primary">Editar</button>
                 }
             </mat-card-actions>
         </mat-card>
-    </div>
-    <div class="col-md-6">
-        <mat-card>
-            <mat-card-header>
-                <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/flexpass.png');"></div>
-                <mat-card-title class="extra-service-title">FlexPass</mat-card-title>
-                <mat-card-subtitle style="margin-top: -7px;"><small>Flexibilidad absoluta</small></mat-card-subtitle>
-            </mat-card-header>
-            <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/flexpass.jpg" alt="Photo of a Shiba Inu">
+
+        <mat-card class="extra-card" appearance="outlined">
+            <div class="extra-card__heading">
+                <div class="extra-card__avatar extra-card__avatar--flexpass"></div>
+                <div>
+                    <span>Flexibilidad</span>
+                    <h3>FlexPass</h3>
+                </div>
+            </div>
             <mat-card-content>
-                <ul class="font-14" style="text-align: left; line-height: 1.5em; margin: 0; padding: 0; list-style: none;">
-                    <li class="text-12 fw-500 text-light-1">
-                        Agrega <i>FlexPass</i> a tu reservación y obten:
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="flexpassExchangeIcon"></fa-icon>
-                        <span>Cambios ilimitados sin cargo.</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="flexpassFastIcon"></fa-icon>
-                        <span>Adelanta tu vuelo en el aeropuerto.</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="flexpassSeatIcon"></fa-icon>
-                        <span>Garantía en caso de pérdida del vuelo.</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="flexpassCreditIcon"></fa-icon>
-                        <span>Cancela sin penalización.</span>
-                    </li>
+                <p class="extra-card__description">Más libertad para ajustar tus planes después de reservar.</p>
+                <ul class="extra-card__features">
+                    <li><fa-icon [icon]="flexpassExchangeIcon"></fa-icon> Cambios ilimitados sin cargo</li>
+                    <li><fa-icon [icon]="flexpassFastIcon"></fa-icon> Opción de adelantar tu vuelo</li>
+                    <li><fa-icon [icon]="flexpassSeatIcon"></fa-icon> Respaldo ante la pérdida del vuelo</li>
                 </ul>
             </mat-card-content>
-            <mat-card-actions class="d-flex justify-between" style="padding: 16px;">
-                <div style="text-align: left;">
-                    <p class="mb-0 text-14 lh-14 fw-500">{{flexpassTotal|currency:'MXN'}}</p>
-                    <p class="mb-0 text-12 lh-12">Impuestos Incluidos</p>
+            <mat-card-actions class="extra-card__actions">
+                <div class="extra-card__price">
+                    <strong>{{flexpassTotal|currency:'MXN'}}</strong>
+                    <span>Adicionales seleccionados</span>
                 </div>
-                <div>
-                    @if(flexpassTotal<=0){
-                        <button (click)="openFlexPass()" mat-stroked-button color="primary">Agregar</button>
-                    }@else{
-                        <button (click)="openFlexPass()" mat-flat-button color="primary">Editar</button>
-                    }
-                </div>
+                @if(flexpassTotal <= 0){
+                    <button (click)="openFlexPass()" mat-stroked-button color="primary">Agregar</button>
+                }@else{
+                    <button (click)="openFlexPass()" mat-flat-button color="primary">Editar</button>
+                }
             </mat-card-actions>
         </mat-card>
-    </div>
-    <div class="col-md-6">
-        <mat-card>
-            <mat-card-header>
-                <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/carryon.png');"></div>
-                <mat-card-title class="extra-service-title">Equipaje de Mano</mat-card-title>
-                <mat-card-subtitle style="margin-top: -7px;"><small>Equipaje en cabina</small></mat-card-subtitle>
-            </mat-card-header>
-            <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/carryon.jpg" alt="Photo of a Shiba Inu">
+
+        <mat-card class="extra-card" appearance="outlined">
+            <div class="extra-card__heading">
+                <div class="extra-card__avatar extra-card__avatar--carryon"></div>
+                <div>
+                    <span>Cabina</span>
+                    <h3>Equipaje de mano</h3>
+                </div>
+                <span class="extra-card__included">1 incluida</span>
+            </div>
             <mat-card-content>
-                <ul class="font-14" style="text-align: left; line-height: 1.5em; margin: 0; padding: 0; list-style: none;">
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="carryOnIcon"></fa-icon>
-                        <span>Incluye una pieza por pasajero.</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="carryOnWeightIcon"></fa-icon>
-                        <span>Hasta 15 Kg por pieza.</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="carryOnSizeIcon"></fa-icon>
-                        <span>Medidas autorizadas: 55 x 40 x 25 cm.</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="carryOnDealIcon"></fa-icon>
-                        <span>Agrega piezas por un precio preferencial.</span>
-                    </li>
+                <p class="extra-card__description">Lleva tu pieza incluida o agrega equipaje adicional sin límite de cantidad.</p>
+                <ul class="extra-card__features">
+                    <li><fa-icon [icon]="carryOnWeightIcon"></fa-icon> Hasta 10 kg por pieza</li>
+                    <li><fa-icon [icon]="carryOnSizeIcon"></fa-icon> Medidas de 55 × 40 × 25 cm</li>
+                    <li><fa-icon [icon]="carryOnDealIcon"></fa-icon> Selección individual por pasajero</li>
                 </ul>
             </mat-card-content>
-            <mat-card-actions class="d-flex justify-between" style="padding: 16px;">
-                <div style="text-align: left;">
-                    <p class="mb-0 text-14 lh-14 fw-500">{{carryOnTotal|currency:'MXN'}}</p>
-                    <p class="mb-0 text-12 lh-12">Impuesto Incluidos</p>
+            <mat-card-actions class="extra-card__actions">
+                <div class="extra-card__price">
+                    <strong>{{carryOnTotal|currency:'MXN'}}</strong>
+                    <span>Equipaje adicional</span>
                 </div>
-                @if(carryOnTotal<=0){
-                    <button (click)="openCarryOn()" mat-stroked-button color="primary">Agregar</button>
+                @if(carryOnTotal <= 0){
+                    <button (click)="openCarryOn()" mat-stroked-button color="primary">Agregar piezas</button>
                 }@else{
                     <button (click)="openCarryOn()" mat-flat-button color="primary">Editar</button>
                 }
             </mat-card-actions>
         </mat-card>
-    </div>
-    <div class="col-md-6">
-        <mat-card>
-            <mat-card-header>
-                <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/baggage.png');"></div>
-                <mat-card-title class="extra-service-title">Equipaje Documentado</mat-card-title>
-                <mat-card-subtitle style="margin-top: -7px;"><small>Equipaje en bodega</small></mat-card-subtitle>
-            </mat-card-header>
-            <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/baggage.jpg" alt="Photo of a Shiba Inu">
+
+        <mat-card class="extra-card" appearance="outlined">
+            <div class="extra-card__heading">
+                <div class="extra-card__avatar extra-card__avatar--baggage"></div>
+                <div>
+                    <span>Bodega</span>
+                    <h3>Equipaje documentado</h3>
+                </div>
+            </div>
             <mat-card-content>
-                <ul class="font-14" style="text-align: left; line-height: 1.5em; margin: 0; padding: 0; list-style: none;">
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="baggageWeightIcon"></fa-icon>
-                        <span>Hasta 25 kg por pieza.</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="baggageSizeIcon"></fa-icon>
-                        <span>Medidas autorizadas: 76 x 52 x 30 cm.</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="baggageCarryIcon"></fa-icon>
-                        <span>Lleva todo lo que necesitas contigo.</span>
-                    </li>
-                    <li style="display: flex; gap: 8px; align-items: flex-start;">
-                        <fa-icon class="text-12 text-blue-1" [icon]="baggageDealIcon"></fa-icon>
-                        <span>Agrega piezas por un precio preferencial.</span>
-                    </li>
+                <p class="extra-card__description">Agrega las piezas que necesites para viajar con mayor comodidad.</p>
+                <ul class="extra-card__features">
+                    <li><fa-icon [icon]="baggageWeightIcon"></fa-icon> Hasta 25 kg por pieza</li>
+                    <li><fa-icon [icon]="baggageSizeIcon"></fa-icon> Medidas de 76 × 52 × 30 cm</li>
+                    <li><fa-icon [icon]="baggageCarryIcon"></fa-icon> Selección por pasajero y trayecto</li>
                 </ul>
             </mat-card-content>
-            <mat-card-actions class="d-flex justify-between" style="padding: 16px;">
-                <div style="text-align: left;">
-                    <p class="mb-0 text-14 lh-14 fw-500">{{baggageTotal|currency:'MXN'}}</p>
-                    <p class="mb-0 text-12 lh-12">Impuestos Incluidos</p>
+            <mat-card-actions class="extra-card__actions">
+                <div class="extra-card__price">
+                    <strong>{{baggageTotal|currency:'MXN'}}</strong>
+                    <span>Equipaje seleccionado</span>
                 </div>
-                <div>
-                    @if(baggageTotal<=0){
-                        <button (click)="openBaggage()" mat-stroked-button color="primary">Agregar</button>
-                    }@else{
-                        <button (click)="openBaggage()" mat-flat-button color="primary">Editar</button>
-                    }
-                </div>
+                @if(baggageTotal <= 0){
+                    <button (click)="openBaggage()" mat-stroked-button color="primary">Agregar</button>
+                }@else{
+                    <button (click)="openBaggage()" mat-flat-button color="primary">Editar</button>
+                }
             </mat-card-actions>
         </mat-card>
     </div>
-    <div class="col-12">
-        <div class="text-18 fw-500 my-3">Total adicionales: {{total|currency:'MXN'}}</div>
+
+    <div class="extras__total">
+        <span>Total de adicionales</span>
+        <strong>{{total|currency:'MXN'}}</strong>
     </div>
-    <!--<mat-card class="col-md-6">
-        <mat-card-header>
-            <div mat-card-avatar style="background-size: cover; background-image: url('assets/img/extra-services/avatars/pets.png');"></div>
-            <mat-card-title class="extra-service-title">Viaja con tu Mascota</mat-card-title>
-            <mat-card-subtitle style="margin-top: -7px;"><small>Compañeros de Vuelo</small></mat-card-subtitle>
-        </mat-card-header>
-        <img mat-card-image style="margin-bottom: 1rem;" src="assets/img/extra-services/pets.jpg" alt="Photo of a Shiba Inu">
-        <mat-card-content>
-            <p style="text-align: justify; line-height: 1.5em;">
-                No dejes a tu mejor amigo en casa cuando viajes. Nuestro servicio "Viaja con tu Mascota" te permite llevar a tu perro o gato contigo en la cabina. Viaja con la tranquilidad de tener cerca a tu compañero peludo, asegurando su comodidad y seguridad durante el vuelo.
-            </p>
-        </mat-card-content>
-        <mat-card-actions align="end">
-            <button (click)="openPets()" mat-stroked-button color="primary">Agregar</button>
-        </mat-card-actions>
-    </mat-card>-->
-</div>
+</section>

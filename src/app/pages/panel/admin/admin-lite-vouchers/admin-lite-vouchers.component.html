@@ -2,11 +2,11 @@
   <div class="row y-gap-20 justify-between items-end pb-30">
     <div class="col-auto">
       <h1 class="text-30 lh-14 fw-600">Configuracion</h1>
-      <div class="text-15 text-light-1">Administra valores globales, pagos y sugerencias para tours.</div>
+      <div class="text-15 text-light-1">Administra vuelos, hoteles, valores globales, pagos y sugerencias para tours.</div>
     </div>
   </div>
 
-  <mat-tab-group>
+  <mat-tab-group [selectedIndex]="1">
     <mat-tab label="Tours">
       <form [formGroup]="configForm" class="config-form">
         <div class="config-section">
@@ -139,8 +139,328 @@
       </form>
     </mat-tab>
 
+    <mat-tab label="Vuelos">
+      <form [formGroup]="flightConfigForm" class="config-form">
+        <div class="config-section">
+          <div class="config-section__header">
+            <div>
+              <div class="config-section__title">Conexion con Duffel</div>
+              <div class="text-13 text-light-1">
+                Los tokens se guardan como versiones cifradas en Secret Manager y nunca en Firestore.
+              </div>
+            </div>
+            <div class="config-section__header-actions">
+              <span
+                class="status-badge"
+                [class.status-badge--inactive]="flightConnectionStatus !== 'connected'">
+                {{
+                  flightConnectionStatus === 'connected'
+                    ? 'Conexion verificada'
+                    : flightConnectionStatus === 'checking'
+                      ? 'Verificando...'
+                      : flightConnectionStatus === 'failed'
+                        ? 'Conexion fallida'
+                        : 'Sin verificar'
+                }}
+              </span>
+              <button
+                mat-stroked-button
+                color="primary"
+                type="button"
+                (click)="verifyDuffelConnection()"
+                [disabled]="flightConfigLoading || flightConnectionStatus === 'checking'">
+                <mat-icon>refresh</mat-icon>
+                Verificar conexion
+              </button>
+            </div>
+          </div>
+
+          <div class="row y-gap-15">
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Entorno activo</mat-label>
+                <mat-select formControlName="environment">
+                  <mat-option value="test">Pruebas</mat-option>
+                  <mat-option value="production">Produccion</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="row y-gap-15">
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Token de produccion</mat-label>
+                <input
+                  matInput
+                  formControlName="productionToken"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Dejar vacio para conservar el actual" />
+                <mat-hint>
+                  {{ flightSecrets.productionConfigured ? 'Configurado en Secret Manager' : 'Aun no configurado' }}
+                </mat-hint>
+              </mat-form-field>
+            </div>
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Token de pruebas</mat-label>
+                <input
+                  matInput
+                  formControlName="testToken"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Dejar vacio para conservar el actual" />
+                <mat-hint>
+                  {{ flightSecrets.testConfigured ? 'Configurado en Secret Manager' : 'Aun no configurado' }}
+                </mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="alert alert-info mt-20" role="status">
+            El entorno seleccionado determina automaticamente cual token usa el gateway en cada solicitud a Duffel.
+          </div>
+
+          <div class="config-actions mt-20">
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="saveDuffelConnectionConfig()"
+              [disabled]="flightConfigForm.controls.environment.invalid || flightConfigLoading">
+              {{ flightConfigLoading ? 'Guardando...' : 'Guardar tokens y entorno' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-section__title">Tarifas y pagos de vuelos</div>
+          <div class="text-13 text-light-1 mb-20">
+            Duffel entrega importes en USD. Primero se convierten a MXN y despues se aplica el mutador correspondiente para obtener la tarifa publica.
+          </div>
+
+          <div class="row y-gap-15 flight-exchange-row">
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100 flight-exchange-field">
+                <mat-label>Tipo de cambio USD a MXN</mat-label>
+                <input
+                  matInput
+                  formControlName="usdExchangeRate"
+                  type="number"
+                  min="0.0001"
+                  step="0.0001" />
+                <mat-hint>Se aplica globalmente a vuelos, adicionales y asientos.</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="row y-gap-15">
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Mutador de vuelos (%)</mat-label>
+                <input
+                  matInput
+                  formControlName="flightsPercent"
+                  type="number"
+                  min="-100"
+                  max="1000"
+                  step="0.01" />
+              </mat-form-field>
+            </div>
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Mutador de servicios adicionales (%)</mat-label>
+                <input
+                  matInput
+                  formControlName="ancillariesPercent"
+                  type="number"
+                  min="-100"
+                  max="1000"
+                  step="0.01" />
+              </mat-form-field>
+            </div>
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Mutador de asientos (%)</mat-label>
+                <input
+                  matInput
+                  formControlName="seatsPercent"
+                  type="number"
+                  min="-100"
+                  max="1000"
+                  step="0.01" />
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="config-price-order">
+            <span>Tarifa Duffel (USD)</span>
+            <mat-icon>arrow_forward</mat-icon>
+            <span>Tipo de cambio</span>
+            <mat-icon>arrow_forward</mat-icon>
+            <span>Mutador</span>
+            <mat-icon>arrow_forward</mat-icon>
+            <span>Tarifa publica</span>
+          </div>
+
+          <div class="config-actions mt-20">
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="saveFlightPricingConfig()"
+              [disabled]="
+                flightConfigLoading ||
+                flightConfigForm.controls.usdExchangeRate.invalid ||
+                flightConfigForm.controls.flightsPercent.invalid ||
+                flightConfigForm.controls.ancillariesPercent.invalid ||
+                flightConfigForm.controls.seatsPercent.invalid
+              ">
+              {{ flightConfigLoading ? 'Guardando...' : 'Guardar tarifas y pagos' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </mat-tab>
+
+    <mat-tab label="Hoteles">
+      <form [formGroup]="staysConfigForm" class="config-form">
+        <div class="config-section">
+          <div class="config-section__header">
+            <div>
+              <div class="config-section__title">Conexion con Duffel Stays</div>
+              <div class="text-13 text-light-1">
+                Los tokens de hoteles se conservan cifrados en Secret Manager y no se exponen al navegador.
+              </div>
+            </div>
+            <div class="config-section__header-actions">
+              <span
+                class="status-badge"
+                [class.status-badge--inactive]="staysConnectionStatus !== 'connected'">
+                {{
+                  staysConnectionStatus === 'connected'
+                    ? 'Stays verificado'
+                    : staysConnectionStatus === 'checking'
+                      ? 'Verificando...'
+                      : staysConnectionStatus === 'failed'
+                        ? 'Acceso no verificado'
+                        : 'Sin verificar'
+                }}
+              </span>
+              <button
+                mat-stroked-button
+                color="primary"
+                type="button"
+                (click)="verifyStaysConnection()"
+                [disabled]="staysConfigLoading || staysConnectionStatus === 'checking'">
+                <mat-icon>refresh</mat-icon>
+                Verificar Stays
+              </button>
+            </div>
+          </div>
+
+          <div class="row y-gap-15 items-center">
+            <div class="col-md-4">
+              <mat-checkbox formControlName="enabled">
+                Activar buscador de hoteles
+              </mat-checkbox>
+            </div>
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Entorno activo</mat-label>
+                <mat-select formControlName="environment">
+                  <mat-option value="test">Pruebas</mat-option>
+                  <mat-option value="production">Produccion</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="row y-gap-15">
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Token Stays de produccion</mat-label>
+                <input
+                  matInput
+                  formControlName="productionToken"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Dejar vacio para conservar el actual" />
+                <mat-hint>
+                  {{ staysSecrets.productionConfigured ? 'Configurado en Secret Manager' : 'Aun no configurado' }}
+                </mat-hint>
+              </mat-form-field>
+            </div>
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Token Stays de pruebas</mat-label>
+                <input
+                  matInput
+                  formControlName="testToken"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Dejar vacio para conservar el actual" />
+                <mat-hint>
+                  {{ staysSecrets.testConfigured ? 'Configurado en Secret Manager' : 'Aun no configurado' }}
+                </mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="alert alert-info mt-20" role="status">
+            Duffel requiere solicitar acceso a Stays por separado. El boton de verificacion confirmara si el token activo puede consultar alojamientos.
+          </div>
+
+          <div class="config-actions mt-20">
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="saveStaysConfig()"
+              [disabled]="staysConfigForm.invalid || staysConfigLoading">
+              {{ staysConfigLoading ? 'Guardando...' : 'Guardar configuracion de hoteles' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </mat-tab>
+
     <mat-tab label="Pagos y Cuentas">
       <div class="config-form">
+        <form [formGroup]="paymentConfigForm" class="config-section" (ngSubmit)="savePaymentConfig()">
+          <div class="config-section__header">
+            <div>
+              <div class="config-section__title">Plazo para transferencias SPEI</div>
+              <div class="text-13 text-light-1">
+                Define el tiempo disponible para completar el pago de una nueva reservación mediante transferencia SPEI.
+              </div>
+            </div>
+          </div>
+          <div class="row y-gap-15 items-start">
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Tiempo disponible</mat-label>
+                <input
+                  matInput
+                  formControlName="speiPaymentTimeMinutes"
+                  type="number"
+                  min="1"
+                  step="1" />
+                <span matTextSuffix>minutos</span>
+                @if(paymentConfigForm.controls.speiPaymentTimeMinutes.invalid){
+                  <mat-error>Ingresa un número entero mayor o igual a 1.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="config-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="paymentConfigForm.invalid">
+              Guardar plazo SPEI
+            </button>
+          </div>
+        </form>
+
         <div class="config-section">
           <div class="config-section__header">
             <div>

@@ -2,10 +2,11 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetModule, MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
     selector: 'app-pax-selection-sheet',
-    imports: [MatBottomSheetModule, MatButtonModule, ScrollingModule],
+    imports: [MatBottomSheetModule, MatButtonModule, ScrollingModule, XploraBottomSheetComponent],
     templateUrl: './pax-selection-sheet.component.html',
     styleUrl: './pax-selection-sheet.component.scss'
 })

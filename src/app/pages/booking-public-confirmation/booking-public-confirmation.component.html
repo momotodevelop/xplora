@@ -146,7 +146,63 @@
                     </div>
                 }
 
-                @if(summary.canPay || booking.status==='VALIDATING'){
+                @if(deferredPlan){
+                    <div class="border-light rounded-8 px-50 py-40 mt-30 deferred-confirmation">
+                        <div class="deferred-confirmation__header">
+                            <div>
+                                <span>Pagos diferidos</span>
+                                <h4>Calendario {{getDeferredFrequencyLabel()}}</h4>
+                                <p>
+                                    Anticipo del {{deferredPlan.downPaymentPercentage}}% y liquidación total
+                                    a más tardar el {{deferredPlan.payoffDate.toDate()|date:'dd MMM y'|titlecase}}.
+                                </p>
+                            </div>
+                            <span class="deferred-confirmation__status" [attr.data-status]="getDeferredPlanVisualStatus()">
+                                {{getDeferredPlanStatusLabel()}}
+                            </span>
+                        </div>
+
+                        <div class="deferred-confirmation__metrics">
+                            <div>
+                                <small>Total</small>
+                                <strong>{{deferredPlan.purchaseAmount|currency:'MXN'}}</strong>
+                            </div>
+                            <div>
+                                <small>Anticipo</small>
+                                <strong>{{deferredPlan.downPaymentAmount|currency:'MXN'}}</strong>
+                            </div>
+                            <div>
+                                <small>Saldo financiado</small>
+                                <strong>{{deferredPlan.financedAmount|currency:'MXN'}}</strong>
+                            </div>
+                        </div>
+
+                        <div class="deferred-confirmation__table-wrap">
+                            <div class="deferred-confirmation__table">
+                                <div class="deferred-confirmation__row deferred-confirmation__row--header">
+                                    <span>Pago</span>
+                                    <span>Fecha</span>
+                                    <span>Monto</span>
+                                    <span>Saldo después</span>
+                                </div>
+                                @for(installment of deferredPlan.installments; track installment.id){
+                                    <div class="deferred-confirmation__row">
+                                        <span>{{installment.type === 'DOWN_PAYMENT' ? 'Anticipo' : 'Pago ' + installment.number}}</span>
+                                        <span>{{installment.dueDate.toDate()|date:'dd MMM y'|titlecase}}</span>
+                                        <span>{{installment.amount|currency:'MXN'}}</span>
+                                        <span>{{installment.balanceAfter|currency:'MXN'}}</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <a class="button -md -blue-1 bg-dark-3 text-white mt-20" [href]="getPaymentUrl()">
+                            Ver pagos y hacer un abono
+                        </a>
+                    </div>
+                }
+
+                @if(summary.canPay || booking.status==='VALIDATING' || booking.payment?.status==='VALIDATING'){
                     <div class="confirmation-callout mt-30">
                         <div>
                             <h5>{{summary.lifecycleLabel}}</h5>
@@ -154,6 +210,15 @@
                         </div>
                         @if(summary.canPay){
                             <a class="button w-100 -md -dark-1 bg-yellow-1 text-dark-1 confirmation-callout__button" [href]="getPaymentUrl()">Pagar ahora</a>
+                        }@else if(booking.payment?.flowCheckout?.kyc?.url){
+                            <a
+                                class="button w-100 -md -dark-1 bg-blue-1 text-white confirmation-callout__button"
+                                [href]="booking.payment!.flowCheckout!.kyc!.url"
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                Completar validación de identidad
+                            </a>
                         }
                     </div>
                 }

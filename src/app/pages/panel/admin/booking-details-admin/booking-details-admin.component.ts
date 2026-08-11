@@ -34,6 +34,7 @@ import { Promo, XploraPromosService } from '../../../../services/xplora-promos.s
 import { FireAuthService, UserData } from '../../../../services/fire-auth.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { firstValueFrom } from 'rxjs';
+import { XploraBottomSheetComponent } from '../../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 const EXPIRATION_HOURS = 6;
 const LINKED_SERVICE_TYPES = ['FLIGHT', 'HOTEL', 'TRANSPORTATION', 'ACTIVITY', 'PACKAGE', 'INSURANCE', 'BAGGAGE', 'SEAT', 'EXTRA'] as const;
@@ -187,7 +188,7 @@ export class BookingDetailsAdminComponent implements OnInit {
   pnr?: string;
   passengersForm?: FormArray;
   statusOptions: BookingStatus[] = ['CONFIRMED', 'PENDING', 'HOLD', 'CANCELED', 'REJECTED', 'VALIDATING'];
-  paymentMethods: PaymentMethod[] = ['CARD', 'CASH', 'SPEI', 'PAYPAL'];
+  paymentMethods: PaymentMethod[] = ['CARD', 'CASH', 'SPEI', 'PAYPAL', 'DEFERRED'];
   paymentStatusOptions: PaymentStatus[] = ['PENDING', 'COMPLETED', 'FAILED', 'CANCELED', 'VALIDATING'];
   generatedMessage: string = '';
   messageTemplateSelector: FormControl = new FormControl({value: 'booking_received', disabled: false});
@@ -262,6 +263,50 @@ export class BookingDetailsAdminComponent implements OnInit {
     });
   }
 
+  rejectDeferredPlan(): void {
+    if (!this.booking.payment?.deferredPlan) return;
+    this.bookings.nestedUpdateBooking(this.booking.bookingID!, {
+      status: 'REJECTED',
+      'payment.status': 'CANCELED',
+      'payment.deferredPlan.status': 'REJECTED',
+      'payment.deferredPlan.refundStatus': (this.booking.payment.payed ?? 0) > 0 ? 'PENDING' : 'NOT_APPLICABLE'
+    });
+  }
+
+  getDeferredFrequencyLabel(): string {
+    switch (this.booking.payment?.deferredPlan?.frequency) {
+      case 'WEEKLY':
+        return 'Semanal';
+      case 'BIWEEKLY':
+        return 'Quincenal';
+      case 'MONTHLY':
+        return 'Mensual';
+      default:
+        return '';
+    }
+  }
+
+  getDeferredPlanStatusLabel(): string {
+    switch (this.booking.payment?.deferredPlan?.status) {
+      case 'PREAPPROVED':
+      case 'PENDING_APPROVAL':
+        return (this.booking.payment?.payed ?? 0) >= this.booking.payment!.deferredPlan!.downPaymentAmount
+          ? 'Activo'
+          : 'Preaprobado · pendiente de anticipo';
+      case 'APPROVED':
+      case 'ACTIVE':
+        return 'Activo';
+      case 'COMPLETED':
+        return 'Liquidado';
+      case 'REJECTED':
+        return 'Preaprobación retirada';
+      case 'CANCELED':
+        return 'Cancelado';
+      default:
+        return '';
+    }
+  }
+
   copyToClipboard(text: string) {
     if (!text) return;
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
@@ -327,7 +372,8 @@ export class BookingDetailsAdminComponent implements OnInit {
     PaymentStatusPipe,
     PaymentMethodPipe,
     MatIconModule,
-    MatTimepickerModule
+    MatTimepickerModule,
+    XploraBottomSheetComponent
   ],
 })
 export class BookingDetailsAdminEditPaymentSheet implements OnInit {
@@ -342,7 +388,7 @@ export class BookingDetailsAdminEditPaymentSheet implements OnInit {
   form!: FormGroup;
   paymentLimitMin: Date = new Date();
   statusOptions: BookingStatus[] = ['CONFIRMED', 'PENDING', 'HOLD', 'CANCELED', 'REJECTED', 'VALIDATING'];
-  paymentMethods: PaymentMethod[] = ['CARD', 'CASH', 'SPEI', 'PAYPAL'];
+  paymentMethods: PaymentMethod[] = ['CARD', 'CASH', 'SPEI', 'PAYPAL', 'DEFERRED'];
   paymentStatusOptions: PaymentStatus[] = ['PENDING', 'COMPLETED', 'FAILED', 'CANCELED', 'VALIDATING'];
   paymentOffices: PaymentOffice[] = [];
   selectedPromo: Promo | null = null;
@@ -458,6 +504,7 @@ export class BookingDetailsAdminEditPaymentSheet implements OnInit {
       status: this.form.value.status ?? this.data.booking.status,
       charges,
       payment: {
+        ...this.data.booking.payment,
         type: this.data.booking.payment?.type ?? "NOW",
         method: this.form.value.paymentMethod ?? this.data.booking.payment?.method,
         office: this.form.value.paymentOffice ?? this.data.booking.payment?.office,
@@ -467,7 +514,10 @@ export class BookingDetailsAdminEditPaymentSheet implements OnInit {
         amount: confirmedTotal,
         totalDue: confirmedTotal,
         payed: amountPaid,
-        promo: this.selectedPromo ?? undefined
+        promo: this.selectedPromo ?? undefined,
+        ...(this.data.booking.payment?.deferredPlan
+          ? { deferredPlan: this.data.booking.payment.deferredPlan }
+          : {})
       }
     }).then(()=>{
       this._bottomSheetRef.dismiss();
@@ -485,7 +535,8 @@ export class BookingDetailsAdminEditPaymentSheet implements OnInit {
     MatBottomSheetModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    XploraBottomSheetComponent
   ]
 })
 export class BookingDetailsAdminEditContactSheet implements OnInit {
@@ -555,7 +606,8 @@ export class BookingDetailsAdminEditContactSheet implements OnInit {
     MatInputModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    XploraBottomSheetComponent
   ]
 })
 export class BookingDetailsAdminEditPassengersSheet implements OnInit {
@@ -645,7 +697,8 @@ export class BookingDetailsAdminEditPassengersSheet implements OnInit {
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    XploraBottomSheetComponent
   ]
 })
 export class BookingDetailsAdminEditServicesSheet implements OnInit {

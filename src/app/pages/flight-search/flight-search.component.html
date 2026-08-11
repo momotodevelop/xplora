@@ -17,7 +17,7 @@
             </div>
             @if(searchParams!==undefined){
                 <div class="col-xl-9 col-lg-8">
-                    <app-flight-search-results-view [origin]="searchParams.origin" [destination]="searchParams.destination" [departure]="searchParams.departure" [return]="searchParams.return!=='NA'?searchParams.return:undefined" [flightClass]="searchParams.flightClass" [round]="return!==undefined" [promo]="promo"></app-flight-search-results-view>
+                    <app-flight-search-results-view [origin]="searchParams.origin" [destination]="searchParams.destination" [departure]="searchParams.departure" [return]="searchParams.return!=='NA'?searchParams.return:undefined" [flightClass]="searchParams.flightClass" [round]="return!==undefined" [passengers]="passengers" [promo]="promo"></app-flight-search-results-view>
                 </div>
             }
         </div>

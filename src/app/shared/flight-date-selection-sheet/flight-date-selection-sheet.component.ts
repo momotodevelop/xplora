@@ -7,10 +7,11 @@ import { MatInputModule } from '@angular/material/input';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { PreventEditDirective } from '../../prevent-edit.directive';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
     selector: 'app-flight-date-selection-sheet',
-    imports: [MatDatepickerModule, MatTabsModule, MatInputModule, CommonModule, MatGridListModule, PreventEditDirective],
+    imports: [MatDatepickerModule, MatTabsModule, MatInputModule, CommonModule, MatGridListModule, PreventEditDirective, XploraBottomSheetComponent],
     templateUrl: './flight-date-selection-sheet.component.html',
     styleUrl: './flight-date-selection-sheet.component.scss',
     providers: [provideNativeDateAdapter(), DatePipe]

@@ -57,6 +57,7 @@ export class ResultsViewComponent implements OnInit, OnChanges {
   @Input() return:string|undefined;
   @Input() flightClass!:FlightClassType;
   @Input() round!:boolean;
+  @Input() passengers = {adults: 1, childrens: 0, infants: 0};
   @Input() promo?: Promo;
   @ViewChild('scrollTarget') scrollTarget!: ElementRef;
   results:FlightOffer[] = [];
@@ -101,7 +102,7 @@ export class ResultsViewComponent implements OnInit, OnChanges {
       if(status!=="FULL"){
         this.selectionStatus=status;
         if(status==="OUTBOUND"){
-          this.flightOffers.searchFlightOffers(this.origin, this.destination, this.departure, this.flightClass).pipe(first()).subscribe({
+          this.flightOffers.searchFlightOffers(this.origin, this.destination, this.departure, this.flightClass, this.passengers).pipe(first()).subscribe({
             next: (results)=>{
               if(results.data.length>0) {
                 this.rawOffers = results.data;
@@ -116,7 +117,7 @@ export class ResultsViewComponent implements OnInit, OnChanges {
             }
           });
         }else if(status==="INBOUND"&&this.return){
-          this.flightOffers.searchFlightOffers(this.destination, this.origin, this.return, this.flightClass).pipe(first()).subscribe({
+          this.flightOffers.searchFlightOffers(this.destination, this.origin, this.return, this.flightClass, this.passengers).pipe(first()).subscribe({
             next: (results)=>{
               if(results.data.length>0) {
                 this.rawOffers = results.data;
@@ -193,7 +194,7 @@ export class ResultsViewComponent implements OnInit, OnChanges {
         return {
           item_id: segment.id,
           item_name: segment.departure.iataCode+'-'+segment.arrival.iataCode,
-          affiliation: "Amadeus GDS",
+          affiliation: "Duffel",
           index: i,
           item_brand: segment.operating.carrierCode??segment.carrierCode,
           item_category: "Vuelo",

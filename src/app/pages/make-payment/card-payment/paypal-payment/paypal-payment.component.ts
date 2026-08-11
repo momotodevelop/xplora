@@ -4,6 +4,7 @@ import { PayPalService } from '../../../../services/paypal.service';
 import { debounceTime, firstValueFrom } from 'rxjs';
 import { FirebaseBooking, PayPalPaymentData } from '../../../../types/booking.types';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatInputModule } from '@angular/material/input';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,7 +12,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { WORLD_COUNTRIES } from '../../../../static/countries.static';
 import { CodigoPostalInfo, CopomexService } from '../../../../services/copomex.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { HttpErrorResponse } from '@angular/common/module.d-CnjH8Dlt';
 import { PaymentErrorService } from '../../../../services/payment-error.service';
 import { FireBookingService } from '../../../../services/fire-booking.service';
 import { TestMode, PayPalClientId } from '../../../../../environments/environment'

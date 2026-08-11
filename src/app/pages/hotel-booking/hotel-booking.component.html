@@ -33,14 +33,25 @@
                             <app-hotel-booking-addons [hotelName]="booking.hotelDetails!.hotel.name" [guests]="guests" [location]="{lat: booking.hotelDetails!.hotel.lat, lng: booking.hotelDetails!.hotel.lng}"></app-hotel-booking-addons>
                         </div> -->
                         <div class="col-12">
-                            <app-hotel-booking-payment-info [amount]="total" (paymentMethod)="paymentMethodChange($event)" (paymentType)="paymentTypeChange($event)" (cardData)="cardDataChange($event)"></app-hotel-booking-payment-info>
+                            <app-hotel-booking-payment-info
+                                [amount]="total"
+                                [tripStartDate]="dates[0]"
+                                [bookingId]="booking.bookingID"
+                                [speiPaymentTimeMinutes]="speiPaymentTimeMinutes"
+                                (paymentMethod)="paymentMethodChange($event)"
+                                (paymentType)="paymentTypeChange($event)"
+                                (cardData)="cardDataChange($event)"
+                                (deferredPlan)="deferredPlanChange($event)"
+                            ></app-hotel-booking-payment-info>
                         </div>
-                        <button (click)="confirmBooking()" mat-flat-button color="primary" class="w-100 h-60 mt-20 rounded-4">Reservar</button>
+                        <button [disabled]="!readyToBook()" (click)="confirmBooking()" mat-flat-button color="primary" class="w-100 h-60 mt-20 rounded-4">
+                            {{paymentMethod === 'DEFERRED' ? 'Preaprobar plan y continuar al anticipo' : 'Reservar'}}
+                        </button>
                     }
                 </div>
                 <div class="col-xl-5 col-lg-4">
                     @if(booking){
-                        <app-hotel-booking-sidebar [dN]="dN" [promo]="promo" [dates]="dates" [paymentType]="paymentType" [paymentMethod]="paymentMethod" [hotel]="booking.hotelDetails!.hotel" [charges]="charges" [total]="total" (verifyPromo)="verifyPromo($event)"></app-hotel-booking-sidebar>
+                        <app-hotel-booking-sidebar [deferredPlan]="deferredPlan" [dN]="dN" [promo]="promo" [dates]="dates" [paymentType]="paymentType" [paymentMethod]="paymentMethod" [hotel]="booking.hotelDetails!.hotel" [charges]="charges" [total]="total" (verifyPromo)="verifyPromo($event)"></app-hotel-booking-sidebar>
                     }
                 </div>
             </div>

@@ -64,7 +64,9 @@ export class AdminBookingQuickDetailsComponent implements OnChanges {
   }
 
   getPaymentUrl(): string {
-    return `/reservar/realizar-pago/${this.booking.bookingID}`;
+    return this.booking.payment?.deferredPlan
+      ? `/plan-pagos/${this.booking.bookingID}`
+      : `/reservar/realizar-pago/${this.booking.bookingID}`;
   }
 
   getAdminUrl(): string {

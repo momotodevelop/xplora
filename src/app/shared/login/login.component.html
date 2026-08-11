@@ -82,7 +82,7 @@
     }@else{
         <div class="row y-gap-10 x-gap-10">
             <div class="col-12 text-center">
-                <img [src]="profileAvatar" style="max-width: 100px;" class="rounded-full h-100" alt="User Photo">
+                <img [src]="profileAvatar" class="profile-avatar rounded-full" alt="Foto de perfil">
             </div>
             <div class="col-12 text-center">
                 <h1 class="text-22 fw-500">Bienvenido {{userData?.name ?? user.displayName?? 'viajero'}}</h1>
@@ -98,9 +98,9 @@
                 </a>
             </div>
             <div class="col-6" [ngClass]="{'col-md-4':!isBottomSheet}">
-                <button (click)="goTo('/mi-cuenta/reservaciones')" mat-stroked-button class="w-100" color="primary">
-                    <mat-icon>flight</mat-icon>
-                    Mis Viajes
+                <button (click)="goTo(isAdmin ? '/admin' : '/mi-cuenta/reservaciones')" mat-stroked-button class="w-100" color="primary">
+                    <mat-icon>{{isAdmin ? 'admin_panel_settings' : 'flight'}}</mat-icon>
+                    {{isAdmin ? 'Administración' : 'Mis Viajes'}}
                 </button>
             </div>
             <div [ngClass]="{'col-md-4':!isBottomSheet}" class="col-12">

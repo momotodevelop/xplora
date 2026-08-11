@@ -1,5 +1,14 @@
 import { Timestamp } from 'firebase/firestore';
 
+export interface PaymentConfig {
+  speiPaymentTimeMinutes: number;
+  updatedAt?: Date | Timestamp;
+}
+
+export const DEFAULT_PAYMENT_CONFIG: PaymentConfig = {
+  speiPaymentTimeMinutes: 10
+};
+
 export interface SpeiAccount {
   id: string;
   label: string;

@@ -6,7 +6,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, map } from 'rxjs';
 import { SharedDataService } from '../../services/shared-data.service';
 import { AirportSearchService } from '../../services/airport-search.service';
-import { AmadeusAuthService } from '../../services/amadeus-auth.service';
 import { AmadeusLocation } from '../../types/amadeus-airport-response.types';
 import { Passengers } from '../home/search/search.component';
 import { TranslateService } from '../../services/translate.service';
@@ -66,7 +65,6 @@ export class FlightSearchComponent implements OnInit {
     private route: ActivatedRoute, 
     private sharedService: SharedDataService, 
     private airports: AirportSearchService, 
-    private amadeusToken:AmadeusAuthService, 
     private translate: GoogleTranslationService,
     private fireBooking: FireBookingService,
     private flightOffersHandler: FlightOffersDataHandlerService,
@@ -126,21 +124,17 @@ export class FlightSearchComponent implements OnInit {
         childrens: parseInt(params.childrens),
         infants: parseInt(params.infants)
       }
-      this.amadeusToken.getToken().subscribe({
-        next: (token) => {
-          const originRequest = this.airports.getLocation(params.origin, token as string);
-          const destinationRequest = this.airports.getLocation(params.destination, token as string);
-          forkJoin([originRequest, destinationRequest]).subscribe(results=>{
-            this.origin = results[0].data;
-            this.destination = results[1].data;
-            this.sharedService.setLoading(false);
-            this.meta.setMeta({
-              title: "Xplora Travel || Vuelos "+this.titlecase.transform(this.origin.address.cityName)+" ✈ "+this.titlecase.transform(this.destination.address.cityName),
-              description: "Encuentra y compara vuelos baratos desde " + this.titlecase.transform(this.origin.address.cityName) + " hacia " + this.titlecase.transform(this.destination.address.cityName) + ". Explora las mejores opciones de aerolíneas, horarios y precios para tu próximo viaje con Xplora Travel.",
-              image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3"
-            });
-          })
-        }
+      const originRequest = this.airports.getLocation(params.origin);
+      const destinationRequest = this.airports.getLocation(params.destination);
+      forkJoin([originRequest, destinationRequest]).subscribe(results=>{
+        this.origin = results[0].data;
+        this.destination = results[1].data;
+        this.sharedService.setLoading(false);
+        this.meta.setMeta({
+          title: "Xplora Travel || Vuelos "+this.titlecase.transform(this.origin.address.cityName)+" ✈ "+this.titlecase.transform(this.destination.address.cityName),
+          description: "Encuentra y compara vuelos baratos desde " + this.titlecase.transform(this.origin.address.cityName) + " hacia " + this.titlecase.transform(this.destination.address.cityName) + ". Explora las mejores opciones de aerolíneas, horarios y precios para tu próximo viaje con Xplora Travel.",
+          image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3"
+        });
       });
     });
     this.flightOffersHandler.flightSelectionStatus.subscribe(status=>{

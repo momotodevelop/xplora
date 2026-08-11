@@ -1,11 +1,11 @@
 import { Component, Inject } from '@angular/core';
 import { GoogleMapComponent } from '../google-map/google-map.component';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { BottomSheetHeaderComponent } from '../bottom-sheet-header/bottom-sheet-header.component';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
   selector: 'app-google-map-bottomsheet',
-  imports: [GoogleMapComponent, BottomSheetHeaderComponent],
+  imports: [GoogleMapComponent, XploraBottomSheetComponent],
   templateUrl: './google-map-bottomsheet.component.html',
   styleUrl: './google-map-bottomsheet.component.scss'
 })

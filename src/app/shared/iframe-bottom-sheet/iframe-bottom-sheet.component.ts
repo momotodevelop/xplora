@@ -1,20 +1,25 @@
 import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { MAT_BOTTOM_SHEET_DATA, MatBottomSheetRef } from '@angular/material/bottom-sheet';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-iframe-bottom-sheet',
     templateUrl: './iframe-bottom-sheet.component.html',
-    styleUrls: ['./iframe-bottom-sheet.component.css'],
-    imports: []
+    styleUrl: './iframe-bottom-sheet.component.scss',
+    imports: [XploraBottomSheetComponent]
 })
 export class IframeBottomSheetComponent implements OnInit, OnDestroy {
   url: string;
+  safeUrl: SafeResourceUrl;
 
   constructor(
     private bottomSheetRef: MatBottomSheetRef<IframeBottomSheetComponent>,
-    @Inject(MAT_BOTTOM_SHEET_DATA) public data: { url: string, paymentId: string }
+    @Inject(MAT_BOTTOM_SHEET_DATA) public data: { url: string, paymentId: string },
+    sanitizer: DomSanitizer
   ) {
     this.url = data.url;  // La URL del iframe que recibimos como parámetro
+    this.safeUrl = sanitizer.bypassSecurityTrustResourceUrl(data.url);
   }
 
   ngOnInit() {

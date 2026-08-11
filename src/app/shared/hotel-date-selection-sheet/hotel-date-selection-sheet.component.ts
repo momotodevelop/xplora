@@ -5,10 +5,11 @@ import { DateRange, MatCalendarCellClassFunction, MatDatepickerModule } from '@a
 import { MatInputModule } from '@angular/material/input';
 import { PreventEditDirective } from '../../prevent-edit.directive';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { XploraBottomSheetComponent } from '../xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
   selector: 'app-hotel-date-selection-sheet',
-  imports: [MatDatepickerModule, MatInputModule, CommonModule, PreventEditDirective],
+  imports: [MatDatepickerModule, MatInputModule, CommonModule, PreventEditDirective, XploraBottomSheetComponent],
   templateUrl: './hotel-date-selection-sheet.component.html',
   styleUrl: './hotel-date-selection-sheet.component.scss',
   providers: [provideNativeDateAdapter(), DatePipe]
@@ -68,4 +69,3 @@ export class HotelDateSelectionSheetComponent implements OnInit {
     }
   }
 }
-

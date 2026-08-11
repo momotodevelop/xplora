@@ -1,0 +1,124 @@
+:host {
+  display: block;
+  width: 100%;
+  max-height: 95vh;
+  max-height: 95dvh;
+  overflow: hidden;
+}
+
+.xplora-sheet {
+  width: 100%;
+  max-height: inherit;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #17233c;
+  background: #fff;
+}
+
+.xplora-sheet__handle-area,
+.xplora-sheet__header,
+.xplora-sheet__footer {
+  flex: 0 0 auto;
+}
+
+.xplora-sheet__handle-area {
+  padding-top: max(12px, env(safe-area-inset-top));
+  background: #fff;
+}
+
+.xplora-sheet__handle {
+  width: 44px;
+  height: 5px;
+  margin: 0 auto 12px;
+  border-radius: 999px;
+  background: #ccd4e2;
+}
+
+.xplora-sheet__header {
+  min-height: 58px;
+  padding: 0 18px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #e8edf5;
+  background: #fff;
+}
+
+.xplora-sheet__header--custom {
+  min-height: 0;
+  padding: 0;
+  display: block;
+}
+
+.xplora-sheet__heading {
+  min-width: 0;
+}
+
+.xplora-sheet__subtitle {
+  overflow: hidden;
+  color: var(--primary-color, #2b4ba8);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.xplora-sheet__header h2 {
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: #17233c;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xplora-sheet__close {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  color: #536078;
+  background: #f1f4f9;
+}
+
+.xplora-sheet__content {
+  min-height: 0;
+  flex: 1 1 auto;
+  overscroll-behavior: contain;
+  background: #fff;
+}
+
+.xplora-sheet__content--scrollable {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.xplora-sheet__content--padded {
+  padding: 20px 18px;
+}
+
+.xplora-sheet__footer {
+  border-top: 1px solid #e1e6ef;
+  background: #fff;
+  box-shadow: 0 -7px 22px rgba(28, 45, 78, .08);
+}
+
+.xplora-sheet__footer--padded {
+  padding: 10px 16px max(10px, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 420px) {
+  .xplora-sheet__header {
+    padding-inline: 16px;
+  }
+
+  .xplora-sheet__content--padded {
+    padding-inline: 16px;
+  }
+}

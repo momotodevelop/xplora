@@ -2,11 +2,11 @@ import { Component } from '@angular/core';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 import { MatSliderModule } from '@angular/material/slider';
 import { NgxExtendedPdfViewerModule, pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
-import { BottomSheetHeaderComponent } from '../../../shared/bottom-sheet-header/bottom-sheet-header.component';
+import { XploraBottomSheetComponent } from '../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
     selector: 'app-iata',
-    imports: [NgxExtendedPdfViewerModule, BottomSheetHeaderComponent, MatSliderModule],
+    imports: [NgxExtendedPdfViewerModule, XploraBottomSheetComponent, MatSliderModule],
     templateUrl: './iata.component.html',
     styleUrl: './iata.component.scss'
 })

@@ -24,6 +24,8 @@ export interface FlightOffer {
     pricingOptions: PricingOptions;
     validatingAirlineCodes: string[];
     travelerPricings: TravelerPricing[];
+    airlineLogoUrl?: string;
+    conditions?: FlightOfferConditions;
     smartFare?: boolean;
     promoPrice?: PromoPrice;
 }
@@ -31,18 +33,43 @@ export interface FlightOffer {
 export interface Itinerary {
     duration: string;
     segments: Segment[];
+    conditions?: {
+        changeBeforeDeparture?: FlightChangeCondition | null;
+    };
 }
 export interface Segment {
     departure: DepartureArrival;
     arrival: DepartureArrival;
     carrierCode: string;
+    carrierLogoUrl?: string;
     number: string;
     aircraft: Aircraft;
     operating: Operating;
     duration: string;
     id: string;
     numberOfStops: number;
+    stops?: FlightStop[];
     blacklistedInEU: boolean;
+}
+export interface FlightStop {
+    id: string;
+    duration: string;
+    arrivingAt?: string;
+    departingAt?: string;
+    airport: {
+        iataCode: string;
+        name: string;
+        cityName?: string;
+    };
+}
+export interface FlightChangeCondition {
+    allowed: boolean;
+    penaltyAmount?: string | null;
+    penaltyCurrency?: string | null;
+}
+export interface FlightOfferConditions {
+    changeBeforeDeparture?: FlightChangeCondition | null;
+    refundBeforeDeparture?: FlightChangeCondition | null;
 }
 export interface DepartureArrival {
     iataCode: string;

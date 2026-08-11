@@ -1,15 +1,66 @@
-:host ::ng-deep .mat-mdc-list-item,
-:host ::ng-deep .mdc-list-item__content {
-  overflow: hidden;
+.service-section-heading--with-action {
+  align-items: center;
 }
 
-:host ::ng-deep .mat-mdc-list-item {
-  height: auto;
-  padding-top: 6px;
-  padding-bottom: 6px;
+.service-select-all {
+  min-height: 38px;
+  padding: 8px 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #c4cdef;
+  border-radius: 11px;
+  color: #443a9b;
+  background: #f2f0ff;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
 }
 
-:host ::ng-deep .mdc-list-item__primary-text,
-:host ::ng-deep .mdc-list-item__secondary-text {
-  white-space: normal;
+.service-select-all:hover,
+.service-select-all--active {
+  border-color: #4e43a8;
+  color: #fff;
+  background: #4e43a8;
+}
+
+.service-select-all mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.service-selection-status {
+  margin: -2px 0 12px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 10px;
+  color: #657188;
+  background: #f3f5f9;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.service-selection-status mat-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: #5147aa;
+  font-size: 16px;
+}
+
+@media (max-width: 420px) {
+  .service-section-heading--with-action {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .service-select-all {
+    width: 100%;
+  }
 }

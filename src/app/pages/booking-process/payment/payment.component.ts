@@ -1,14 +1,14 @@
-import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter, Input } from '@angular/core';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
 import { XploraPaymentsService } from '../../../services/xplora-payments.service';
-import { debounceTime, first } from 'rxjs';
+import { debounceTime, filter, first } from 'rxjs';
 import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe, UpperCasePipe } from '@angular/common';
 import { Promo } from '../../../services/xplora-promos.service';
 import { DiscountsMP, PaymentData } from '../../../types/mp.types';
 import { environment } from '../../../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faLock, faSpinner, faMoneyBillTransfer, faMoneyBills, faCreditCard } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faSpinner, faMoneyBillTransfer, faMoneyBills, faCreditCard, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import { faCircle, faCircleDot } from '@fortawesome/free-regular-svg-icons';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { v4 as uuid } from 'uuid';
@@ -32,7 +32,14 @@ import { MatInputModule } from '@angular/material/input';
 import { Installment, Issuer } from '../../../types/installments.clip.type';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { trigger, transition, style, stagger, animate, query } from '@angular/animations';
-import { BookingStatus, FirebaseBooking, FlightFirebaseBooking, PaymentMethod } from '../../../types/booking.types';
+import {
+  BookingStatus,
+  DeferredPaymentFrequency,
+  DeferredPaymentPlan,
+  FirebaseBooking,
+  FlightFirebaseBooking,
+  PaymentMethod
+} from '../../../types/booking.types';
 import { FireBookingService } from '../../../services/fire-booking.service';
 import { FireAuthService } from '../../../services/fire-auth.service';
 import { User } from '@angular/fire/auth';
@@ -43,11 +50,17 @@ import { Item, logEvent } from 'firebase/analytics';
 import { Analytics } from '@angular/fire/analytics';
 import { PendingPaymentEmailData } from '../../../types/email-data.types';
 import { WhatsAppUrlManagerService } from '../../../services/whatsapp-url-manager.service';
-import { PaymentOffice } from '../../../types/payment-config.types';
+import { DEFAULT_PAYMENT_CONFIG, PaymentOffice } from '../../../types/payment-config.types';
 import { XploraPaymentOfficesService } from '../../../services/xplora-payment-offices.service';
 import { LinkedInConversionsService } from '../../../services/linkedin-conversions.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import {
+  DeferredPaymentEligibility,
+  DeferredPaymentPlanService
+} from '../../../services/deferred-payment-plan.service';
+import { DeferredPaymentTermsDialogComponent } from './deferred-payment-terms-dialog.component';
 
-export type AvailablePaymentMethods = "CASH"|"CARD"|"SPEI";
+export type AvailablePaymentMethods = "CASH"|"CARD"|"SPEI"|"DEFERRED";
 
 export interface confirmationEmailData {
   pnr: string,
@@ -69,7 +82,8 @@ export interface PaymentProceesData{
   amount: number,
   office?: string,
   card?: PaymentDetails,
-  promo?: Promo
+  promo?: Promo,
+  deferredPlan?: DeferredPaymentPlan
 }
 
 
@@ -98,7 +112,8 @@ declare global {
         MatListModule,
         CreditCardDirectivesModule,
         ReactiveFormsModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatDialogModule
     ],
     templateUrl: './payment.component.html',
     styleUrl: './payment.component.scss',
@@ -120,9 +135,11 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   @ViewChild('panelTarjeta') panelTarjeta!:MatExpansionPanel;
   @ViewChild('panelEfectivo') panelEfectivo!:MatExpansionPanel;
   @ViewChild('panelSpei') panelSpei!:MatExpansionPanel;
+  @ViewChild('panelDeferred') panelDeferred!:MatExpansionPanel;
   @ViewChild('paymentOfficeList') list!: MatSelectionList;
   @ViewChild('installments') installmentsList?: MatSelectionList;
   @ViewChild('ccNumber') ccNumber!: CreditCardFormatDirective;
+  @Input() speiPaymentTimeMinutes = DEFAULT_PAYMENT_CONFIG.speiPaymentTimeMinutes;
   @Output() selectedPaymentMethod:EventEmitter<PaymentMethod> = new EventEmitter<PaymentMethod>(false);
   @Output() paymentProcessStart:EventEmitter<PaymentProceesData> = new EventEmitter<PaymentProceesData>()
   total:number=0;
@@ -133,6 +150,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   cardIcon=faCreditCard;
   speiIcon=faMoneyBillTransfer;
   cashIcon=faMoneyBills;
+  deferredIcon=faCalendarDays;
   loading:boolean=false;
   bookingID?:string;
   chargeResume?:Charge[];
@@ -154,6 +172,10 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   cardIssuer?:Issuer;
   activePromo?:Promo;
   discounted:number=0;
+  deferredEligibility?: DeferredPaymentEligibility;
+  deferredPlans: DeferredPaymentPlan[] = [];
+  selectedDeferredFrequency?: DeferredPaymentFrequency;
+  acceptedDeferredTerms = false;
   constructor(
     public bookingHandler: BookingHandlerService,
     private payments: XploraPaymentsService,
@@ -174,7 +196,9 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     private gtag: Analytics,
     private wa: WhatsAppUrlManagerService,
     private paymentOfficesService: XploraPaymentOfficesService,
-    private linkedInConversions: LinkedInConversionsService
+    private linkedInConversions: LinkedInConversionsService,
+    private deferredPaymentPlans: DeferredPaymentPlanService,
+    private dialog: MatDialog
   ){
     
   }
@@ -237,19 +261,22 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       this.total = prices[0];
       this.discounted = prices[1];
       if(prices[0]>0){
-        this.bookingHandler.booking.pipe(first()).subscribe(booking=>{
-          if(booking){
-            this.booking = booking;
-            this.bookingID=booking.bookingID;
-            if(booking.contact&&prices[0]>0){
-              const pnr:string = booking.bookingID!.slice(-6).toUpperCase();
+        this.bookingHandler.booking.pipe(
+          filter((booking): booking is FlightFirebaseBooking => !!booking),
+          first()
+        ).subscribe(booking=>{
+          this.booking = booking;
+          this.bookingID=booking.bookingID;
+          this.refreshDeferredPaymentPlans();
+          if(booking.contact&&prices[0]>0){
+            const pnr:string = booking.bookingID!.slice(-6).toUpperCase();
               /* this.payments.createPreferenceMP(preferenceData).subscribe(preference=>{
                 this.initializeMercadoPago(preference.id, [prices[0], prices[1]], preferenceData.contact_info, pnr, prices[2]);
               }); */
-              // this.initializeClipPayment(prices[0], true, true);
-              if(booking){}
+            // this.initializeClipPayment(prices[0], true, true);
+            if(booking){}
           }
-        }});
+        });
       }
     });
     this.bookingHandler.charges.subscribe(charges=>{
@@ -279,7 +306,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         return "";
     }
   }
-  changePayment(event:'CASH'|'CARD'|'SPEI'){
+  changePayment(event:AvailablePaymentMethods){
     this.selectedPayment=event;
     this.selectedPaymentMethod.emit(event);
     switch(event){
@@ -295,6 +322,10 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         this.panelSpei.open();
         this.panelSpei.toggle();
       break;
+      case 'DEFERRED':
+        this.panelDeferred.open();
+        this.panelDeferred.toggle();
+      break;
     }
   }
   initializeClipPayment(paymentAmount: number, termsEnabled:boolean, test:boolean){
@@ -309,6 +340,10 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     this.clipCard.mount('clip_checkout'); 
   }
   makePaymentFirebase(){
+    if (this.selectedPayment === 'DEFERRED' && !this.canConfirmDeferredPlan) {
+      this.snackbar.open('Selecciona un calendario y acepta los términos del plan de pagos.', 'OK', {duration: 2500});
+      return;
+    }
     //START PAYMENT
     const outboundFlight = this.booking!.flightDetails!.flights.outbound!;
     const inboundFlight = this.booking!.flightDetails!.flights.outbound!;
@@ -350,19 +385,24 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       paymentMethod: this.selectedPayment!,
       card: this.cardForm.value as PaymentDetails,
       promo: this.activePromo,
+      deferredPlan: this.selectedPayment === 'DEFERRED' ? this.selectedDeferredPlan : undefined
     });
     if(this.selectedPayment){
+      const selectedDeferredPlan = this.selectedPayment === 'DEFERRED'
+        ? this.createAcceptedDeferredPlan()
+        : undefined;
       let BookingUpdateData:Partial<FlightFirebaseBooking>={
         payment: {
           amount: this.total,
           originalAmount: this.total+this.discounted,
-          type: "NOW",
+          type: this.selectedPayment === 'DEFERRED' ? "DELAYED" : "NOW",
           office: this.selectedPaymentOffice ?? "NA",
           totalDue: this.total,
           method: this.selectedPayment,
           payed: 0,
           status: "PENDING",
-          paymentLimit: this.paymentLimitByPaymentType(this.selectedPayment),
+          paymentLimit: selectedDeferredPlan?.payoffDate ?? this.paymentLimitByPaymentType(this.selectedPayment),
+          ...(selectedDeferredPlan ? { deferredPlan: selectedDeferredPlan } : {})
         },
         charges: this.chargeResume,
         status: "PENDING",
@@ -395,7 +435,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       });
     }
   }
-  paymentLimitByPaymentType(paymentType: 'CASH' | 'CARD' | 'SPEI'): Timestamp {
+  paymentLimitByPaymentType(paymentType: AvailablePaymentMethods): Timestamp {
     const now = new Date();
     let secondsToAdd = 0;
 
@@ -407,8 +447,10 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
         secondsToAdd = 0; // no agrega tiempo
         break;
       case 'SPEI':
-        secondsToAdd = 600; // 10 minutos
+        secondsToAdd = this.speiPaymentTimeMinutes * 60;
         break;
+      case 'DEFERRED':
+        return this.selectedDeferredPlan?.payoffDate ?? Timestamp.fromDate(now);
       default:
         throw new Error('Invalid payment type');
     }
@@ -603,6 +645,9 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     );
   }
   async confirmBooking(booking:FlightFirebaseBooking, isCard:boolean){
+    const pendingPaymentUrl = booking.payment?.deferredPlan
+      ? `https://xploratravel.com.mx/plan-pagos/${booking.bookingID!}`
+      : `https://xploratravel.com.mx/reservar/realizar-pago/${booking.bookingID!}`;
     const personalizationData:PendingPaymentEmailData = {
       account_name: "Xplora Travel",
       service: "Transportación Aerea",
@@ -614,7 +659,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       status: this.getBookingStatusText(booking.status),
       whatsappURL: this.wa.getUrlFromTemplate('contactoDirecto'),
       bookingURL: "https://xploratravel.com.mx/confirmacion/"+booking.bookingID!,
-      paymentURL: "https://xploratravel.com.mx/reservar/realizar-pago/"+booking.bookingID!,
+      paymentURL: pendingPaymentUrl,
       receiptLink: "https://forms.gle/QwoGVQsU3sHwbhTz6",
     }
     const emailRequest = this.notifications.sendEmail({
@@ -638,7 +683,7 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       ]
     });
     const confirmationTextSms = `¡Hola ${this.title.transform(booking.contact!.name)}! Tu reservación con Xplora Travel ha sido confirmada. PNR: ${this.uppercase.transform(booking.bookingID!.slice(-6))}. Puedes consultar los detalles en: https://xploratravel.com.mx/confirmacion/${booking.bookingID!} ¡Gracias por viajar con nosotros!`;
-    const pendingTextSms = `¡Hola ${this.title.transform(booking.contact!.name)}! Tu reservación con Xplora Travel está pendiente de pago. PNR: ${this.uppercase.transform(booking.bookingID!.slice(-6))}. Realiza tu pago en: https://xploratravel.com.mx/reservar/realizar-pago/${booking.bookingID!} para confirmar tu lugar.`;
+    const pendingTextSms = `¡Hola ${this.title.transform(booking.contact!.name)}! Tu reservación con Xplora Travel está pendiente de pago. PNR: ${this.uppercase.transform(booking.bookingID!.slice(-6))}. Consulta los siguientes pasos en: ${pendingPaymentUrl}`;
     const smsRequest = this.notifications.sendSms(
       "+" + booking.contact!.country_code + booking.contact!.phone,
       pendingTextSms
@@ -783,5 +828,75 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   }
   closedPanel(event:any){
     if(this.selectedPayment===event)this.selectedPayment = undefined;
+  }
+
+  get selectedDeferredPlan(): DeferredPaymentPlan | undefined {
+    return this.deferredPlans.find(plan => plan.frequency === this.selectedDeferredFrequency);
+  }
+
+  get canConfirmDeferredPlan(): boolean {
+    return this.deferredEligibility?.eligible === true
+      && !!this.selectedDeferredPlan
+      && this.acceptedDeferredTerms;
+  }
+
+  selectDeferredFrequency(frequency: DeferredPaymentFrequency): void {
+    this.selectedDeferredFrequency = frequency;
+  }
+
+  getDeferredFrequencyLabel(frequency: DeferredPaymentFrequency): string {
+    return this.deferredPaymentPlans.getFrequencyLabel(frequency);
+  }
+
+  openDeferredTerms(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    this.dialog.open(DeferredPaymentTermsDialogComponent, {
+      width: '820px',
+      maxWidth: '95vw',
+      maxHeight: '90vh'
+    });
+  }
+
+  private refreshDeferredPaymentPlans(): void {
+    const departure = this.booking?.flightDetails?.departure?.toDate?.();
+    this.deferredEligibility = this.deferredPaymentPlans.evaluateEligibility(this.total, departure);
+    this.deferredPlans = [];
+    this.selectedDeferredFrequency = undefined;
+    this.acceptedDeferredTerms = false;
+
+    if (!this.deferredEligibility.eligible || !departure) {
+      return;
+    }
+
+    const requestedAt = new Date();
+    const basePlanId = `deferred-preview-${this.bookingID ?? 'booking'}-${requestedAt.getTime()}`;
+    this.deferredPlans = this.deferredEligibility.availableFrequencies.map(frequency =>
+      this.deferredPaymentPlans.buildPlan({
+        purchaseAmount: this.total,
+        tripStartDate: departure,
+        frequency,
+        requestedAt,
+        planId: `${basePlanId}-${frequency.toLowerCase()}`
+      })
+    );
+    this.selectedDeferredFrequency = this.deferredPlans[0]?.frequency;
+  }
+
+  private createAcceptedDeferredPlan(): DeferredPaymentPlan | undefined {
+    const departure = this.booking?.flightDetails?.departure?.toDate?.();
+    const preview = this.selectedDeferredPlan;
+    if (!departure || !preview || !this.acceptedDeferredTerms) {
+      return undefined;
+    }
+
+    return this.deferredPaymentPlans.buildPlan({
+      purchaseAmount: this.total,
+      tripStartDate: departure,
+      frequency: preview.frequency,
+      requestedAt: new Date(),
+      planId: preview.id,
+      termsAccepted: true
+    });
   }
 }

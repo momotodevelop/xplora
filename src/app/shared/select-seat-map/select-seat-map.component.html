@@ -1,21 +1,92 @@
 <div class="row-container">
-    <div *ngFor="let row of rows" class="plane-row" [class.emergency]="row.exitRow">
-        <mat-grid-list cols="{{deck.deckConfiguration.width}}" rowHeight="1:1">
-            <mat-grid-tile *ngFor="let item of row.items" [colspan]="1">
-                @if(item.type==='SEAT'&&item.seat){
-                    @if(!isSelected(item.seat.number)){
-                        <div (click)="selectSeat(item.seat)" class="seat-element text-12" [class.available]="item.seat!.travelerPricing[0].seatAvailabilityStatus==='AVAILABLE'" [class.selected]="item.seat===selectedSeat">
-                            {{ item.seat===selectedSeat? (passenger.name|initial)+(passenger.lastname|initial): item.seat.number }}
-                        </div>
-                    }@else{
-                        <div (click)="selectSeat(item.seat, true)" class="seat-element text-12 selected">
-                            {{ passengerInitial(item.seat.number) }}
+    @for(renderedDeck of renderedDecks; track renderedDeck.deck; let deckIndex = $index){
+        <section class="deck-container">
+            @if(renderedDecks.length > 1){
+                <div class="deck-title">
+                    {{renderedDeck.deck.cabinName || renderedDeck.deck.deckType | titlecase}}
+                    @if(renderedDeck.deck.deckType !== 'MAIN'){
+                        · Cubierta {{deckIndex + 1}}
+                    }
+                </div>
+            }
+
+            @if(renderedDeck.deck.layoutRows?.length){
+                <div class="duffel-map">
+                    @for(row of renderedDeck.deck.layoutRows; track row.index){
+                        <div
+                            class="duffel-row"
+                            [class.emergency]="row.hasExit"
+                            [class.wing]="row.isWing"
+                            [style.grid-template-columns]="'repeat(' + row.sections.length + ', minmax(0, 1fr))'">
+                            @for(section of row.sections; track $index){
+                                <div class="duffel-section">
+                                    @for(element of section.elements; track $index){
+                                        @if(element.type === 'seat' && element.seat){
+                                            @if(!isSelected(element.seat.number)){
+                                                <button
+                                                    type="button"
+                                                    (click)="selectSeat(element.seat)"
+                                                    class="seat-element text-12"
+                                                    [class.available]="isSeatAvailable(element.seat)"
+                                                    [class.selected]="element.seat === selectedSeat"
+                                                    [attr.title]="seatTooltip(element.seat) || null">
+                                                    {{element.seat === selectedSeat ? (passenger.name | initial) + (passenger.lastname | initial) : element.seat.number}}
+                                                </button>
+                                            }@else{
+                                                <button
+                                                    type="button"
+                                                    (click)="selectSeat(element.seat, true)"
+                                                    class="seat-element text-12 selected"
+                                                    [attr.title]="seatTooltip(element.seat) || null">
+                                                    {{passengerInitial(element.seat.number)}}
+                                                </button>
+                                            }
+                                        }@else if(element.type === 'empty'){
+                                            <div class="layout-element empty" aria-hidden="true"></div>
+                                        }@else if(element.type === 'bassinet'){
+                                            <div class="layout-element bassinet" [attr.title]="elementLabel(element)">
+                                                <mat-icon>{{elementIcon(element)}}</mat-icon>
+                                            </div>
+                                        }@else{
+                                            <div class="layout-element facility" [class.exit]="element.type === 'exit_row'" [attr.title]="elementLabel(element)">
+                                                <mat-icon>{{elementIcon(element)}}</mat-icon>
+                                                <span>{{elementLabel(element)}}</span>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
                         </div>
                     }
-                }@else{
-                    <div></div>
+                </div>
+            }@else{
+                @for(row of renderedDeck.rows; track row.number){
+                    <div class="plane-row" [class.emergency]="row.exitRow">
+                        <mat-grid-list [cols]="renderedDeck.deck.deckConfiguration.width" rowHeight="1:1">
+                            @for(item of row.items; track $index){
+                                <mat-grid-tile [colspan]="1">
+                                    @if(item.type === 'SEAT' && item.seat){
+                                        @if(!isSelected(item.seat.number)){
+                                            <button
+                                                type="button"
+                                                (click)="selectSeat(item.seat)"
+                                                class="seat-element text-12"
+                                                [class.available]="isSeatAvailable(item.seat)"
+                                                [class.selected]="item.seat === selectedSeat">
+                                                {{item.seat === selectedSeat ? (passenger.name | initial) + (passenger.lastname | initial) : item.seat.number}}
+                                            </button>
+                                        }@else{
+                                            <button type="button" (click)="selectSeat(item.seat, true)" class="seat-element text-12 selected">
+                                                {{passengerInitial(item.seat.number)}}
+                                            </button>
+                                        }
+                                    }
+                                </mat-grid-tile>
+                            }
+                        </mat-grid-list>
+                    </div>
                 }
-            </mat-grid-tile>
-        </mat-grid-list>
-    </div>
+            }
+        </section>
+    }
 </div>

@@ -1,224 +1,237 @@
-import { Component, OnInit } from '@angular/core';
-import { HotelSearchSidebarComponent } from './hotel-search-sidebar/hotel-search-sidebar.component';
-import { HotelResultsViewComponent } from './hotel-results-view/hotel-results-view.component';
-import { HotelResultComponent } from './hotel-results-view/hotel-result/hotel-result.component';
-import { SharedDataService } from '../../services/shared-data.service';
-import { ActivatedRoute } from '@angular/router';
-import { combineLatest, forkJoin, map } from 'rxjs';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { combineLatest, map } from 'rxjs';
+import { DuffelStaysService } from '../../services/duffel-stays.service';
 import { GooglePlacesService } from '../../services/google-places.service';
-import { AmadeusHotelsService } from '../../services/amadeus-hotels.service';
-import { HotelOffer } from '../../types/amadeus-hotel-offers-response.types';
-import { Hotel } from '../../types/amadeus-hotels-response.types';
-import { CommonModule } from '@angular/common';
-import { LiteApiService } from '../../services/lite-api.service';
-import { HotelListResult, HotelMinRate, HotelsListResponse } from '../../types/lite-api.types';
-import { MatDialog } from '@angular/material/dialog';
-import { HotelBottomSheetInputData, HotelSearchBottomsheetComponent } from '../../shared/hotel-search-bottomsheet/hotel-search-bottomsheet.component';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MetaHandlerService } from '../../services/meta-handler.service';
-export interface HotelSearchParams{
-  placeId: string,
-  rooms: string,
-  checkin: string,
-  checkout: string
+import { SharedDataService } from '../../services/shared-data.service';
+import {
+  DuffelStaysAccommodation,
+  DuffelStaysSearchResult
+} from '../../types/duffel-stays.types';
+
+interface HotelSearchParams {
+  placeId: string;
+  rooms: string;
+  checkin: string;
+  checkout: string;
 }
-export interface HotelListResultDisplay extends HotelListResult{
-  rate?: number
+
+interface HotelSearchQuery {
+  lat?: string;
+  lng?: string;
+  destination?: string;
+  destinationType?: string;
 }
+
 @Component({
   selector: 'app-hotel-search',
-  imports: [HotelSearchSidebarComponent, HotelResultsViewComponent, CommonModule],
+  imports: [CommonModule],
   templateUrl: './hotel-search.component.html',
   styleUrl: './hotel-search.component.scss'
 })
 export class HotelSearchComponent implements OnInit {
-  //offers?:HotelOffer[];
-  //primaryInfo:Hotel[] = [];
-  destination!:google.maps.places.Place;
-  loading:boolean=false;
-  loadingMore:boolean = false;
-  checkIn!:Date;
-  checkOut!:Date;
-  rooms!:number[][];
-  dN!: { d: number, n: number };
-  activeAmenitiesFilters:string[]=[];
-  activeHotelFilter?:string;
-  
-  dates!: string[];
-  offset:number=0;
-  limit:number=20;
-  totalResults:number=0;
-  hotelsResults:HotelListResultDisplay[]=[];
-  hotelsList!:HotelsListResponse;
+  loading = true;
+  results: DuffelStaysSearchResult[] = [];
+  errorMessage = '';
+  destinationName = 'tu destino';
+  checkIn = '';
+  checkOut = '';
+  rooms: number[][] = [];
+  adults = 0;
+  minors = 0;
+  private latitude?: number;
+  private longitude?: number;
+  private radius = 20;
+  private readonly isBrowser: boolean;
+
   constructor(
-    private route: ActivatedRoute, 
-    private sharedService: SharedDataService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private shared: SharedDataService,
     private places: GooglePlacesService,
-    private hotels: AmadeusHotelsService,
-    private lite: LiteApiService,
-    private dialog: MatDialog,
-    private sb: MatSnackBar,
-    private meta: MetaHandlerService
-  ){}
+    private stays: DuffelStaysService,
+    private meta: MetaHandlerService,
+    @Inject(PLATFORM_ID) platformId: object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+
   ngOnInit(): void {
-    this.meta.setMeta({
-      title: "Xplora Travel || Buscar Hoteles",
-      description: "Explora y compara hoteles disponibles en tu destino seleccionado. Encuentra las mejores opciones de alojamiento, tarifas y servicios para tus fechas de viaje con Xplora Travel.",
-      image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fhotels.jpg?alt=media&token=7360a482-31e9-405f-abe5-59ab0e2bdf7c"
-    });
-    this.loading=true;
-    this.sharedService.setLoading(true);
-    this.sharedService.setBookingMode(true);
+    this.shared.setBookingMode(true);
     this.route.data.pipe(
-      map(data => data["headerType"])
-    ).subscribe((type: "light"|"dark") => {
-      //console.log(type);
-      //this.headerType = type;
-      this.sharedService.changeHeaderType(type);
+      map(data => data['headerType'])
+    ).subscribe((type: 'light' | 'dark') => {
+      this.shared.changeHeaderType(type);
     });
-    combineLatest([this.route.params, this.route.queryParams, this.lite.facilitiesData]).subscribe(([p, q, facilities]) => {
-      this.loading = true;
-      this.hotelsResults = [];
-      const params: HotelSearchParams = p as HotelSearchParams;
-      //console.log(facilities.data);
-      this.lite.updateFacilities(facilities);
-      const queryParams:{amenities?:string, hotel?:string} = q;
-      if(queryParams.amenities){
-        this.activeAmenitiesFilters = queryParams.amenities.split(",");
-      }
-      if(queryParams.hotel){
-        this.activeHotelFilter=queryParams.hotel;
-      }
-      this.dates = [params.checkin, params.checkout];
-      this.checkIn = new Date(params.checkin + "T00:00:00");
-      this.checkOut = new Date(params.checkout + "T00:00:00");
-      this.rooms = params.rooms.split('_').map(pair => pair.split(',').map(Number));
-      this.places.getPlace(params.placeId, ["displayName", "location"]).then(place => {
-        //console.log(place.place.location);
-        //console.log(place.place.location?.lat());
-        this.destination = place.place;
-        this.meta.setMeta({
-          title: `Xplora Travel || Hoteles en ${this.destination.displayName}`,
-          description: `Explora y compara hoteles disponibles en ${this.destination.displayName}. Encuentra las mejores opciones de alojamiento, tarifas y servicios para tus fechas de viaje con Xplora Travel.`,
-          image: "https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fhotels.jpg?alt=media&token=7360a482-31e9-405f-abe5-59ab0e2bdf7c"
-        });
-        this.loadHotels();
 
-        /* this.hotels.getHotelList(place.place.location!.lat(), place.place.location!.lng(), 10, queryParams.amenities?.split(",") ?? []).subscribe(hotels => {
-          let hotelList: string[] = hotels.data.map(hotel => hotel.hotelId);
-          if(this.activeHotelFilter){
-            hotelList = [this.activeHotelFilter];
-          }
-          this.primaryInfo = hotels.data;
-          this.hotels.getHotelOffers(hotelList.slice(0, 50), params.checkin, params.checkout, 2, 1).subscribe(offers => {
-            this.loading = false;
-            if (offers.data.length > 0) {
-              this.offers = offers.data.sort((a, b) =>
-                a.available && !b.available ? -1 : !a.available && b.available ? 1 : 0
-              );
-            }
-          });
-        }); */
+    combineLatest([this.route.params, this.route.queryParams]).subscribe(
+      ([rawParams, rawQuery]) => {
+        const params = rawParams as HotelSearchParams;
+        const query = rawQuery as HotelSearchQuery;
+        void this.prepareSearch(params, query);
+      }
+    );
+  }
+
+  get nights(): number {
+    const start = Date.parse(`${this.checkIn}T00:00:00Z`);
+    const end = Date.parse(`${this.checkOut}T00:00:00Z`);
+    return Math.max(0, Math.round((end - start) / 86400000));
+  }
+
+  getPhoto(accommodation: DuffelStaysAccommodation): string {
+    return accommodation.photos?.[0]?.url || '/assets/img/general/bg-home-xplora.jpg';
+  }
+
+  getAddress(accommodation: DuffelStaysAccommodation): string {
+    const address = accommodation.location?.address;
+    return [
+      address?.line_one,
+      address?.city_name,
+      address?.region,
+      address?.country_code
+    ].filter(Boolean).join(', ');
+  }
+
+  getAmenities(accommodation: DuffelStaysAccommodation): string[] {
+    return (accommodation.amenities || [])
+      .map(amenity => amenity.description)
+      .filter(Boolean)
+      .slice(0, 4);
+  }
+
+  getStars(accommodation: DuffelStaysAccommodation): number[] {
+    const rating = Math.max(0, Math.min(5, Math.round(accommodation.rating || 0)));
+    return Array.from({ length: rating }, (_, index) => index);
+  }
+
+  hasPublicDiscount(result: DuffelStaysSearchResult): boolean {
+    return Boolean(
+      result.cheapest_rate_public_amount &&
+      result.cheapest_rate_public_currency === result.cheapest_rate_currency &&
+      Number(result.cheapest_rate_public_amount) >
+        Number(result.cheapest_rate_total_amount)
+    );
+  }
+
+  retry(): void {
+    void this.search();
+  }
+
+  backToSearch(): void {
+    void this.router.navigate(['/inicio']);
+  }
+
+  private async prepareSearch(
+    params: HotelSearchParams,
+    query: HotelSearchQuery
+  ): Promise<void> {
+    this.checkIn = params.checkin;
+    this.checkOut = params.checkout;
+    this.rooms = params.rooms
+      .split('_')
+      .map(pair => pair.split(',').map(Number))
+      .filter(room => room.length === 2 && room.every(Number.isFinite));
+    this.adults = this.rooms.reduce((total, room) => total + room[0], 0);
+    this.minors = this.rooms.reduce((total, room) => total + room[1], 0);
+    this.destinationName = String(query.destination || '').trim() || 'tu destino';
+    this.radius = query.destinationType === 'accommodation' ?
+      5 :
+      query.destinationType === 'airport' ? 35 : 20;
+
+    const latitude = Number(query.lat);
+    const longitude = Number(query.lng);
+    if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      this.latitude = latitude;
+      this.longitude = longitude;
+    } else if (this.isBrowser) {
+      try {
+        const place = await this.places.getPlace(
+          params.placeId,
+          ['displayName', 'location']
+        );
+        this.destinationName =
+          place.place.displayName || this.destinationName;
+        this.latitude = place.place.location?.lat();
+        this.longitude = place.place.location?.lng();
+      } catch {
+        this.latitude = undefined;
+        this.longitude = undefined;
+      }
+    }
+
+    this.meta.setMeta({
+      title: `Xplora Travel || Hoteles en ${this.destinationName}`,
+      description:
+        `Explora alojamientos disponibles en ${this.destinationName} con Duffel Stays.`,
+      image:
+        'https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fhotels.jpg?alt=media&token=7360a482-31e9-405f-abe5-59ab0e2bdf7c'
+    });
+    await this.search();
+  }
+
+  private async search(): Promise<void> {
+    this.loading = true;
+    this.errorMessage = '';
+    this.results = [];
+    this.shared.setLoading(true);
+    try {
+      if (this.latitude === undefined || this.longitude === undefined) {
+        throw new Error('STAYS_LOCATION_MISSING');
+      }
+      if (!this.rooms.length || this.adults < this.rooms.length) {
+        throw new Error('STAYS_OCCUPANCY_INVALID');
+      }
+      if (this.minors > 0) {
+        throw new Error('STAYS_CHILD_AGES_REQUIRED');
+      }
+      const response = await this.stays.search({
+        latitude: this.latitude,
+        longitude: this.longitude,
+        radius: this.radius,
+        rooms: this.rooms.length,
+        adults: this.adults,
+        checkInDate: this.checkIn,
+        checkOutDate: this.checkOut,
+        mobile: this.isBrowser && window.matchMedia('(max-width: 767px)').matches
       });
-    });
+      this.results = response.data.results || [];
+    } catch (error) {
+      this.errorMessage = this.getSearchError(error);
+    } finally {
+      this.loading = false;
+      this.shared.setLoading(false);
+    }
   }
-  filterByAmenities(amenities:string[]){
-    
-  }
-  loadHotels(distance:number=1000): void {
-    const latitude:number = this.destination.location!.lat();
-    const longitude: number = this.destination.location!.lng();
-    const dates: string[] = this.dates;
-    // Prevenir llamadas múltiples simultáneas
-    //if (this.loading||this.loadingMore) return;
-    this.lite.getHotels(
-      longitude,
-      latitude,
-      distance,
-      1.5,           // timeout
-      this.offset,   // offset
-      this.limit     // limit
-    ).subscribe({
-      next: (resp) => {
-        //console.log(resp);
-        // `resp.data` es la lista de hoteles
-        // `resp.total` indica cuántos hoteles hay en total
-        this.totalResults = resp.total;
-        this.hotelsList = resp;
 
-        // IDs para tarifas mínimas
-        const hotelIds = resp.hotelIds;
-
-        // Ahora, traer las tarifas mínimas de estos hoteles
-        this.lite.getMinRates(
-            hotelIds,
-            [{ adults: 2 }],   // Ejemplo de ocupación: 2 adultos
-            dates, // checkin - checkout
-            5                  // timeout
-          )
-          .subscribe({
-            next: (ratesResp) => {
-              this.sharedService.setLoading(false);
-              //console.log('Tarifas mínimas obtenidas:', ratesResp);
-              if(ratesResp.data && ratesResp.data.length > 0) {
-                const ratesData = ratesResp.data; 
-                // ratesData es un array de objetos { hotelId, price, suggestedSellPrice }
-
-                // Agregar las tarifas mínimas al arreglo de hoteles
-                const hotelsWithRates:HotelListResultDisplay[] = resp.data.map(hotel => {
-                  const foundRate = ratesData.find(r => r.hotelId === hotel.id);
-                  let resultDisplay:HotelListResultDisplay = {
-                    ...hotel,
-                    rate: foundRate ? foundRate.price : undefined
-                  };
-                  return resultDisplay;
-                });
-
-                // Agregar al array total
-                this.hotelsResults.push(...hotelsWithRates);
-
-                // Si esta fue la primera carga, para la siguiente
-                // pediremos 10 en lugar de 20
-
-                if (this.offset === 0) {
-                  this.limit = 10;
-                }
-
-                // Actualizamos offset para la siguiente carga
-                this.offset += resp.data.length;
-                this.loading = false;
-                this.loadingMore = false;
-              }else{
-                if(this.offset === 0) {
-                  const data: HotelBottomSheetInputData = {
-                    checkIn: this.checkIn,
-                    checkOut: this.checkOut,
-                    destination: this.destination,
-                    rooms: this.rooms
-                  }
-                  this.dialog.open(HotelSearchBottomsheetComponent, {data, panelClass: ['rounded-4','bottomsheet-no-padding']});
-                  this.sb.open("No se encontraron hoteles disponibles para esta búsqueda", "Cerrar");
-                }else{
-                  this.sb.open("No se encontraron más hoteles disponibles", "Cerrar", {
-                    duration: 3000
-                  });
-                }
-              }
-            },
-            error: (err) => {
-              console.error('Error obteniendo tarifas mínimas', err);
-              this.loading = false;
-            }
-          });
-      },
-      error: (err) => {
-        console.error('Error obteniendo hoteles', err);
-        this.loading = false;
-      }
-    });
-  }
-  loadMore(){
-    this.loadingMore = true;
-    this.loadHotels();
+  private getSearchError(error: unknown): string {
+    const payload = error instanceof HttpErrorResponse
+      ? JSON.stringify(error.error || {})
+      : String((error as Error)?.message || '');
+    if (payload.includes('DUFFEL_STAYS_DISABLED')) {
+      return 'El buscador de hoteles esta desactivado temporalmente.';
+    }
+    if (
+      payload.includes('DUFFEL_STAYS_TEST_TOKEN_MISSING') ||
+      payload.includes('DUFFEL_STAYS_LIVE_TOKEN_MISSING')
+    ) {
+      return 'Falta configurar el token del entorno activo de Duffel Stays.';
+    }
+    if (payload.includes('STAYS_CHILD_AGES_REQUIRED')) {
+      return 'Esta primera integracion admite busquedas solo para adultos.';
+    }
+    if (payload.includes('STAYS_LOCATION_MISSING')) {
+      return 'No fue posible obtener las coordenadas del destino.';
+    }
+    if (
+      error instanceof HttpErrorResponse &&
+      (error.status === 401 || error.status === 403)
+    ) {
+      return 'Duffel rechazo la consulta. Es posible que tu cuenta aun no tenga acceso a Stays.';
+    }
+    return 'No fue posible consultar alojamientos en Duffel Stays. Intenta nuevamente.';
   }
 }

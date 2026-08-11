@@ -27,6 +27,7 @@ import { BookingPublicConfirmationComponent } from './pages/booking-public-confi
 import { XploraiComponent } from './pages/xplorai/xplorai.component';
 import { ActivitySearchComponent } from './pages/activity-search/activity-search.component';
 import { ActivityDetailsComponent } from './pages/activity-details/activity-details.component';
+import { deferredPlanGuard } from './guards/deferred-plan.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'inicio', pathMatch: 'full' },
@@ -79,6 +80,18 @@ export const routes: Routes = [
     { path: 'confirmacion', children: [
       {path: ':bookingID', component: BookingPublicConfirmationComponent, data: {headerType:"dark"}}
     ]},
+    {
+      path: 'plan-pagos/:bookingID',
+      loadComponent: () => import('./pages/deferred-payment-plan/deferred-payment-plan-page.component').then(c => c.DeferredPaymentPlanPageComponent),
+      canActivate: [deferredPlanGuard],
+      data: {headerType:"dark"}
+    },
+    {
+      path: 'realizar-abono/:bookingID',
+      loadComponent: () => import('./pages/make-contribution/make-contribution.component').then(c => c.MakeContributionComponent),
+      canActivate: [deferredPlanGuard],
+      data: {headerType:"dark"}
+    },
     { path: '', redirectTo: '/inicio', pathMatch: 'full' },
     { 
       path: 'mi-cuenta', 

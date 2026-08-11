@@ -1,5 +1,11 @@
-<div class="p-20" style="max-width: 720px;">
-    <h3 class="mb-10">Editar cliente y contacto</h3>
+<ng-template #contactFooter let-close="close">
+    <div class="d-flex justify-end x-gap-10">
+        <button mat-stroked-button type="button" (click)="close()">Cancelar</button>
+        <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">Guardar cambios</button>
+    </div>
+</ng-template>
+<app-xplora-bottom-sheet title="Editar cliente y contacto" subtitle="Mantén actualizados los datos de la reservación" [footerTemplate]="contactFooter">
+<div style="max-width: 720px;">
     <form [formGroup]="form" class="row y-gap-15">
         <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
@@ -68,10 +74,6 @@
                 }
             </div>
         </div>
-        <div class="col-12 d-flex justify-end">
-            <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
-                Guardar
-            </button>
-        </div>
     </form>
 </div>
+</app-xplora-bottom-sheet>

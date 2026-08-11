@@ -11,6 +11,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { MatButtonModule } from '@angular/material/button';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { resolveAirlineLogoUrl } from '../../../utils/airline-logo.utils';
 
 @Component({
   selector: 'app-flight-confirmation-sidebar',
@@ -26,11 +27,19 @@ export class FlightConfirmationSidebarComponent implements OnChanges {
   discountedAmmount:number = 0;
   dates!: {outbound:Date[], inbound?:Date[]};
   insuranceAdded:boolean=false;
+  outboundAirlineLogoUrl:string = '';
+  inboundAirlineLogoUrl:string = '';
   infoIcon = faCircleInfo;
   ngOnChanges(changes: SimpleChanges): void {
     if (!changes['booking'] || !this.booking?.flightDetails) return;
     const counts = this.booking.flightDetails.passengers.counts;
     this.totalPassengers = counts.adults + counts.childrens + counts.infants;
+    this.outboundAirlineLogoUrl = resolveAirlineLogoUrl(
+      this.booking.flightDetails.flights.outbound?.offer
+    );
+    this.inboundAirlineLogoUrl = resolveAirlineLogoUrl(
+      this.booking.flightDetails.flights.inbound?.offer
+    );
 
       this.dates = {
         outbound: [

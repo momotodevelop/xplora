@@ -1,55 +1,109 @@
-<form [formGroup]="form">
-    <p class="text-16 fw-400">Titular de la Reservación</p>
-    @if(bookingData&&bookingData.flightDetails.passengers.details!==undefined){
-        <mat-chip-listbox class="mb-10" aria-label="Dog selection">
-            @for(passenger of passengersChips; track passenger;){
-                <mat-chip (click)="autoFill(passenger.name, passenger.lastname)">
-                    <img matChipAvatar src="https://ui-avatars.com/api/?background=004aad&color=fff&name={{passenger.name}}+{{passenger.lastname}}"/>
-                    {{passenger.name}} {{passenger.lastname}}
-                </mat-chip>
-            }
-        </mat-chip-listbox>
-    }
-    <div class="row x-gap-10 y-gap-10 pb-20">
-        <div class="col-md-6">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
-                <mat-label>Nombre(s)</mat-label>
-                <input matInput placeholder="Nombre(s)" formControlName="name">
-            </mat-form-field>
+<section class="holder-step">
+    @if(!isLoggedIn){
+        <div class="login-invitation">
+            <div class="login-invitation__icon">
+                <mat-icon>loyalty</mat-icon>
+            </div>
+            <div class="login-invitation__copy">
+                <strong>Inicia sesión y acumula Xplorer Points</strong>
+                <span>Además, completaremos tus datos para que reserves más rápido.</span>
+            </div>
+            <button type="button" mat-flat-button color="primary" (click)="openLogin()">
+                Iniciar sesión
+            </button>
         </div>
-        <div class="col-md-6">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
-                <mat-label>Apellido(s)</mat-label>
-                <input matInput placeholder="Apellido(s)" formControlName="lastname">
-            </mat-form-field>
-        </div>
-        <div class="col-md-6">
-            <div class="row x-gap-5">
-                <div class="col-5">
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
-                        <mat-label>País</mat-label>
-                        <mat-select formControlName="country_code">
-                            @for(country of countries; track country;){
-                                <mat-option class="country-code-option" [value]="country.code">
-                                    {{ country.id }} (+{{ country.code }})
-                                </mat-option>
-                            }
-                        </mat-select>
-                    </mat-form-field>
-                </div>
-                <div class="col-7">
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
-                        <mat-label>Número de Telefono</mat-label>
-                        <input matInput type="tel" placeholder="10 Dígitos" formControlName="phone" maxlength="10">
-                    </mat-form-field>
-                </div>
+    }@else{
+        <div class="session-summary">
+            <img
+                class="session-summary__avatar"
+                [src]="profileAvatar"
+                [alt]="'Foto de perfil de ' + userDisplayName">
+            <div class="session-summary__copy">
+                <strong>¡Bienvenido, {{userDisplayName}}!</strong>
+                <span>Esta reservación acumulará Xplorer Points.</span>
             </div>
         </div>
-        <div class="col">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
-                <mat-label>Correo Electronico</mat-label>
-                <input matInput placeholder="ejemplo@gmail.com" formControlName="email">
-            </mat-form-field>
+    }
+
+    <form [formGroup]="form" class="holder-form">
+        @if(isLoggedIn){
+            <mat-slide-toggle
+                color="primary"
+                class="holder-toggle"
+                [checked]="reservationForSomeoneElse"
+                (change)="toggleReservationOwner($event.checked)">
+                Esta reservación es para alguien más
+            </mat-slide-toggle>
+        }
+
+        <div class="holder-form__heading">
+            <div>
+                <h3>Datos del titular</h3>
+                <p>Usaremos estos datos para enviarte la confirmación y cualquier actualización del viaje.</p>
+            </div>
         </div>
-    </div>
-</form>
+
+        <div class="row x-gap-20 y-gap-20">
+            <div class="col-md-6">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                    <mat-label>Nombre(s)</mat-label>
+                    <input matInput autocomplete="given-name" formControlName="name">
+                    @if(hasLockedAccountName && !reservationForSomeoneElse){
+                        <mat-icon matSuffix>lock</mat-icon>
+                    }
+                </mat-form-field>
+            </div>
+            <div class="col-md-6">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                    <mat-label>Apellido(s)</mat-label>
+                    <input matInput autocomplete="family-name" formControlName="lastname">
+                    @if(hasLockedAccountName && !reservationForSomeoneElse){
+                        <mat-icon matSuffix>lock</mat-icon>
+                    }
+                </mat-form-field>
+            </div>
+            <div class="col-md-6">
+                <div class="row x-gap-10">
+                    <div class="col-5">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                            <mat-label>País</mat-label>
+                            <mat-select formControlName="country_code">
+                                @for(country of countries; track country.id){
+                                    <mat-option class="country-code-option" [value]="country.code">
+                                        {{country.id}} (+{{country.code}})
+                                    </mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-7">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                            <mat-label>Teléfono</mat-label>
+                            <input matInput type="tel" autocomplete="tel-national" placeholder="10 dígitos" formControlName="phone" maxlength="10">
+                        </mat-form-field>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+                    <mat-label>Correo electrónico</mat-label>
+                    <input matInput type="email" autocomplete="email" placeholder="ejemplo@correo.com" formControlName="email">
+                    @if(hasLockedAccountEmail){
+                        <mat-icon matSuffix>lock</mat-icon>
+                    }
+                </mat-form-field>
+            </div>
+        </div>
+
+        @if(isLoggedIn){
+            <p class="account-data-note">
+                <mat-icon>info</mat-icon>
+                @if(hasLockedAccountEmail){
+                    El correo corresponde a tu cuenta. Puedes actualizar el teléfono para esta reservación.
+                }@else{
+                    Completa un correo de contacto. El teléfono puede actualizarse para esta reservación.
+                }
+            </p>
+        }
+    </form>
+</section>

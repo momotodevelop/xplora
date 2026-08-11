@@ -1,7 +1,16 @@
+<ng-template #locationFooter>
+  <button (click)="close()" class="button -md -outline-blue-1 text-blue-1 w-100">Cancelar</button>
+</ng-template>
+
+<app-xplora-bottom-sheet
+  title="Selecciona tu destino"
+  subtitle="Descubre experiencias para tu viaje"
+  [contentPadding]="false"
+  [footerTemplate]="locationFooter">
 <div class="px-15 py-15 mat-elevation-z1">
   <div class="form-input">
     <input [formControl]="searchInput" #search type="text" />
-    <label class="lh-1 text-16 text-light-1">¿A donde vamos?</label>
+    <label class="lh-1 text-16 text-light-1">¿A dónde vamos?</label>
   </div>
 </div>
 
@@ -51,6 +60,4 @@
   </div>
 }
 
-<div class="px-15 py-15 mat-elevation-z1 cancel-button">
-  <button (click)="close()" class="button -md -outline-blue-1 text-blue-1" style="width: 100%;">Cancelar</button>
-</div>
+</app-xplora-bottom-sheet>

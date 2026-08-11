@@ -100,6 +100,9 @@ export class LoginComponent implements OnInit {
     this.closeBottomSheet.emit();
     this.router.navigate([route]);
   }
+  get isAdmin(): boolean {
+    return this.userData?.role === 'admin';
+  }
   anonLogin(){
     this.auth.anonLogin().then(ok=>{
       this.sb.open("Bienvenido usuario anónimo", "OK", {duration: 1500});

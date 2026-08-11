@@ -1,99 +1,159 @@
-<div style="height: 50px; border-bottom: 1px solid #dddddd; padding: 8px 16px; background: #fff;">
-    <div class="text-20 fw-500 mb-0 d-inline-block">Allianz Travel Premium<sup>®</sup></div>
-    <button (click)="close()" type="button" class="btn-close" aria-label="Close" style="margin-top: 5px; float: right;"></button>
-</div>
-<div class="scrollable-content">
-    <div style="padding: 0;">
-        <table class="font-12" style="width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e5e5e5;">
-            <thead>
-                <tr style="background: #f7f7f7;">
-                    <th style="text-align: left; padding: 4px 5px; border-bottom: 1px solid #e5e5e5; font-weight: 600;">Cobertura</th>
-                    <th style="text-align: left; padding: 4px 5px; border-bottom: 1px solid #e5e5e5; font-weight: 600;">Basico</th>
-                    <th style="text-align: left; padding: 4px 5px; border-bottom: 1px solid #e5e5e5; font-weight: 600;">Premium</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="padding: 4px 5px; border-bottom: 1px solid #f0f0f0;">Urgencias medicas</td>
-                    <td style="padding: 4px 5px; border-bottom: 1px solid #f0f0f0;">10,000 US$</td>
-                    <td style="padding: 4px 5px; border-bottom: 1px solid #f0f0f0;">75,000 US$</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 5px; border-bottom: 1px solid #f0f0f0;">Cancelacion de viaje</td>
-                    <td style="padding: 4px 5px; border-bottom: 1px solid #f0f0f0;">500 US$</td>
-                    <td style="padding: 4px 5px; border-bottom: 1px solid #f0f0f0;">20,000 US$</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 5px; border-bottom: 1px solid #f0f0f0;">Transporte de urgencia</td>
-                    <td style="padding: 4px 5px; border-bottom: 1px solid #f0f0f0;">50,000 US$</td>
-                    <td style="padding: 4px 5px; border-bottom: 1px solid #f0f0f0;">1,000,000 US$</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 5px;">Pérdida o daño de equipaje</td>
-                    <td style="padding: 4px 5px;">500 US$</td>
-                    <td style="padding: 4px 5px;">2,000 US$</td>
-                </tr>
-                @if (showAllBenefits) {
-                    <tr>
-                        <td style="padding: 4px 5px; border-top: 1px solid #f0f0f0;">Interrupcion de viaje</td>
-                        <td style="padding: 4px 5px; border-top: 1px solid #f0f0f0;">10,000 US$</td>
-                        <td style="padding: 4px 5px; border-top: 1px solid #f0f0f0;">20,000 US$</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 4px 5px; border-top: 1px solid #f0f0f0;">Demora de viaje</td>
-                        <td style="padding: 4px 5px; border-top: 1px solid #f0f0f0;">300 US$</td>
-                        <td style="padding: 4px 5px; border-top: 1px solid #f0f0f0;">1,600 US$</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 4px 5px; border-top: 1px solid #f0f0f0;">Sublimite dental</td>
-                        <td style="padding: 4px 5px; border-top: 1px solid #f0f0f0;">750 US$</td>
-                        <td style="padding: 4px 5px; border-top: 1px solid #f0f0f0;">750 US$</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 4px 5px;">Retraso de equipaje (6+ hrs)</td>
-                        <td style="padding: 4px 5px;">200 US$</td>
-                        <td style="padding: 4px 5px;">600 US$</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        <div style="margin-top: 8px;">
-            <button (click)="toggleBenefits()" mat-stroked-button color="primary">
-                {{ showAllBenefits ? 'Ocultar beneficios' : 'Ver demas beneficios' }}
-            </button>
+<ng-template #insuranceHeader let-close="close">
+    <div class="insurance-sheet__header">
+        <div class="insurance-sheet__brand">
+            <span class="insurance-sheet__shield"><mat-icon>verified_user</mat-icon></span>
+            <div>
+                <span class="insurance-sheet__eyebrow">Protección para tu viaje</span>
+                <h2>Allianz Travel Premium<sup>®</sup></h2>
+            </div>
         </div>
+        <button (click)="close()" type="button" class="insurance-sheet__close" aria-label="Cerrar">
+            <mat-icon>close</mat-icon>
+        </button>
     </div>
-    <mat-tab-group>
-        <mat-tab [label]="data.flights[0].departure.iataCode+' - '+data.flights[0].arrival.iataCode">
-            <mat-selection-list #outbound color="primary" (selectionChange)="change()">
-                @for (passenger of data.passengers; track passenger; let i = $index) {
-                    <mat-list-option [value]="i">
-                        <span matListItemTitle style="font-weight: 500;">{{passenger.name}}</span>
-                        <span matListItemLine>{{passenger.type}} - {{outboundPrice|currency:'MXN'}}</span>
-                    </mat-list-option>
+</ng-template>
+
+<ng-template #insuranceFooter>
+    <footer class="insurance-sheet__footer">
+        <div>
+            <span>Total adicional</span>
+            <strong>{{total|currency:'MXN'}}</strong>
+            <small>Impuestos incluidos</small>
+        </div>
+        <button (click)="save()" mat-flat-button color="primary">
+            Guardar protección
+            <mat-icon>arrow_forward</mat-icon>
+        </button>
+    </footer>
+</ng-template>
+
+<app-xplora-bottom-sheet
+    [headerTemplate]="insuranceHeader"
+    [footerTemplate]="insuranceFooter"
+    [contentPadding]="false"
+    [footerPadding]="false">
+    <div class="insurance-sheet__content">
+        <section class="insurance-hero">
+            <div class="insurance-hero__copy">
+                <span class="insurance-hero__badge">Cobertura internacional</span>
+                <h3>Viaja con respaldo antes y durante tu vuelo</h3>
+                <p>El plan Básico ya está incluido. Puedes subir a Premium por pasajero y trayecto para ampliar los montos de protección.</p>
+            </div>
+            <div class="insurance-hero__visual" aria-hidden="true">
+                <mat-icon>health_and_safety</mat-icon>
+            </div>
+        </section>
+
+        <section class="insurance-comparison">
+            <div class="insurance-section-heading">
+                <div>
+                    <span>Comparación de cobertura</span>
+                    <h3>Elige el nivel de tranquilidad</h3>
+                </div>
+                <span class="insurance-section-heading__included">Básico incluido</span>
+            </div>
+
+            <div class="coverage-table" role="table" aria-label="Comparación de coberturas">
+                <div class="coverage-table__head" role="row">
+                    <span role="columnheader">Cobertura</span>
+                    <span role="columnheader">Básico</span>
+                    <span role="columnheader" class="coverage-table__premium">Premium</span>
+                </div>
+                <div class="coverage-row" role="row">
+                    <span role="cell"><mat-icon>medical_services</mat-icon>Urgencias médicas</span>
+                    <span role="cell">10,000 US$</span>
+                    <strong role="cell">75,000 US$</strong>
+                </div>
+                <div class="coverage-row" role="row">
+                    <span role="cell"><mat-icon>event_busy</mat-icon>Cancelación de viaje</span>
+                    <span role="cell">500 US$</span>
+                    <strong role="cell">20,000 US$</strong>
+                </div>
+                <div class="coverage-row" role="row">
+                    <span role="cell"><mat-icon>emergency</mat-icon>Transporte de urgencia</span>
+                    <span role="cell">50,000 US$</span>
+                    <strong role="cell">1,000,000 US$</strong>
+                </div>
+                <div class="coverage-row" role="row">
+                    <span role="cell"><mat-icon>luggage</mat-icon>Pérdida o daño de equipaje</span>
+                    <span role="cell">500 US$</span>
+                    <strong role="cell">2,000 US$</strong>
+                </div>
+                @if (showAllBenefits) {
+                    <div class="coverage-row" role="row">
+                        <span role="cell"><mat-icon>flight_land</mat-icon>Interrupción de viaje</span>
+                        <span role="cell">10,000 US$</span>
+                        <strong role="cell">20,000 US$</strong>
+                    </div>
+                    <div class="coverage-row" role="row">
+                        <span role="cell"><mat-icon>schedule</mat-icon>Demora de viaje</span>
+                        <span role="cell">300 US$</span>
+                        <strong role="cell">1,600 US$</strong>
+                    </div>
+                    <div class="coverage-row" role="row">
+                        <span role="cell"><mat-icon>dentistry</mat-icon>Sublímite dental</span>
+                        <span role="cell">750 US$</span>
+                        <strong role="cell">750 US$</strong>
+                    </div>
+                    <div class="coverage-row" role="row">
+                        <span role="cell"><mat-icon>work_history</mat-icon>Retraso de equipaje (6+ hrs)</span>
+                        <span role="cell">200 US$</span>
+                        <strong role="cell">600 US$</strong>
+                    </div>
                 }
-            </mat-selection-list>
-        </mat-tab>
-        @if(data.flights.length>1){
-            <mat-tab [label]="data.flights[1].departure.iataCode+' - '+data.flights[1].arrival.iataCode">
-                <mat-selection-list #inbound color="primary" (selectionChange)="change()">
-                    @for (passenger of data.passengers; track passenger; let i = $index) {
-                        <mat-list-option [value]="i">
-                        <span matListItemTitle style="font-weight: 500;">{{passenger.name}}</span>
-                        <span matListItemLine>{{passenger.type}} - {{inboundPrice|currency:'MXN'}}</span>
-                        </mat-list-option>
-                    }
-                </mat-selection-list>
-            </mat-tab>
-        }
-    </mat-tab-group>
-</div>
-<div style="height: 70px;border-top: 1px solid #dddddd;padding: 8px 16px;display: flex;justify-content: space-between; background: #fff; align-items: center;">
-    <div>
-        <div class="text-20 fw-500 mb-0" style="height: 25px;">{{total|currency:'MXN'}}</div>
-        <div class="text-16 fw-200 text-light-1">Total adicional</div>
+            </div>
+            <button (click)="toggleBenefits()" type="button" class="insurance-benefits-toggle">
+                {{showAllBenefits ? 'Ver menos coberturas' : 'Ver todas las coberturas'}}
+                <mat-icon>{{showAllBenefits ? 'expand_less' : 'expand_more'}}</mat-icon>
+            </button>
+        </section>
+
+        <section class="insurance-passengers">
+            <div class="insurance-section-heading insurance-section-heading--with-action">
+                <div>
+                    <span>Personaliza la protección</span>
+                    <h3>¿A quién quieres agregar Premium?</h3>
+                </div>
+                <button
+                    type="button"
+                    class="insurance-select-all"
+                    [class.insurance-select-all--active]="allPassengersSelected"
+                    [attr.aria-label]="allPassengersSelected ? 'Quitar seguro Premium a todos los pasajeros y trayectos' : 'Agregar seguro Premium a todos los pasajeros y trayectos'"
+                    (click)="toggleAllPassengers()">
+                    <mat-icon>{{allPassengersSelected ? 'remove_done' : 'group_add'}}</mat-icon>
+                    {{allPassengersSelected ? 'Quitar a todos' : 'Agregar a todos'}}
+                </button>
+            </div>
+            <div class="insurance-selection-status" aria-live="polite">
+                <mat-icon>info</mat-icon>
+                <span>{{selectedPassengerCount}} de {{totalPassengerOptions}} selecciones Premium activas entre todos los trayectos</span>
+            </div>
+            <mat-tab-group class="insurance-tabs" animationDuration="250ms">
+                <mat-tab [label]="data.flights[0].departure.iataCode+' → '+data.flights[0].arrival.iataCode">
+                    <mat-selection-list #outbound color="primary" (selectionChange)="change()" class="insurance-passenger-list">
+                        @for (passenger of data.passengers; track passenger.name; let i = $index) {
+                            <mat-list-option [value]="i">
+                                <span matListItemTitle>{{passenger.name}}</span>
+                                <span matListItemLine>{{passenger.type}} · {{outboundPrice|currency:'MXN'}} por este trayecto</span>
+                            </mat-list-option>
+                        }
+                    </mat-selection-list>
+                </mat-tab>
+                @if(data.flights.length>1){
+                    <mat-tab [label]="data.flights[1].departure.iataCode+' → '+data.flights[1].arrival.iataCode">
+                        <mat-selection-list #inbound color="primary" (selectionChange)="change()" class="insurance-passenger-list">
+                            @for (passenger of data.passengers; track passenger.name; let i = $index) {
+                                <mat-list-option [value]="i">
+                                    <span matListItemTitle>{{passenger.name}}</span>
+                                    <span matListItemLine>{{passenger.type}} · {{inboundPrice|currency:'MXN'}} por este trayecto</span>
+                                </mat-list-option>
+                            }
+                        </mat-selection-list>
+                    </mat-tab>
+                }
+            </mat-tab-group>
+        </section>
+
+        <p class="insurance-sheet__disclaimer">Los montos mostrados resumen las coberturas. La emisión y condiciones finales están sujetas a los términos de la póliza.</p>
     </div>
-    <div>
-        <button (click)="save()" mat-flat-button color="primary">Guardar</button>
-    </div>
-</div>
+</app-xplora-bottom-sheet>

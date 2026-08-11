@@ -1,10 +1,17 @@
-<div class="sheet-header">
-  <div class="text-20 fw-500">
-    {{ editingPromoID ? 'Editar promoción' : 'Nueva promoción' }}
+<ng-template #promoFooter>
+  <div class="sheet-footer">
+    <button mat-stroked-button type="button" (click)="close()">Cancelar</button>
+    <button mat-flat-button color="primary" type="button" (click)="savePromo()">
+      {{ editingPromoID ? 'Actualizar promoción' : 'Crear promoción' }}
+    </button>
   </div>
-  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
-</div>
+</ng-template>
 
+<app-xplora-bottom-sheet
+  [title]="editingPromoID ? 'Editar promoción' : 'Nueva promoción'"
+  subtitle="Configura las condiciones comerciales"
+  [contentPadding]="false"
+  [footerTemplate]="promoFooter">
 <div class="sheet-body">
   <form class="row y-gap-20" [formGroup]="form" (ngSubmit)="savePromo()">
     <div class="col-md-6">
@@ -79,14 +86,9 @@
       </mat-form-field>
     </div>
 
-    <div class="col-12 d-flex items-center justify-between">
+    <div class="col-12">
       <mat-checkbox formControlName="isActive">Promoción activa</mat-checkbox>
-      <div class="d-flex items-center x-gap-10">
-        <button mat-stroked-button type="button" (click)="close()">Cancelar</button>
-        <button mat-flat-button color="primary" type="submit">
-          {{ editingPromoID ? 'Actualizar' : 'Crear' }}
-        </button>
-      </div>
     </div>
   </form>
 </div>
+</app-xplora-bottom-sheet>

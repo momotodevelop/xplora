@@ -6,11 +6,13 @@ import { MatListModule, MatSelectionList, MatListOption } from "@angular/materia
 import { MatTabsModule } from "@angular/material/tabs";
 import { ExtraServiceBottomSheetData } from "../extras.component";
 import { FlightAdditionalServiceItem } from "../../../../types/booking.types";
+import { MatIconModule } from "@angular/material/icon";
+import { XploraBottomSheetComponent } from '../../../../shared/xplora-bottom-sheet/xplora-bottom-sheet.component';
 
 @Component({
   selector: 'app-extras-insurance',
   standalone: true,
-  imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule],
+  imports: [MatBottomSheetModule, MatButtonModule, CommonModule, MatTabsModule, MatListModule, MatIconModule, XploraBottomSheetComponent],
   templateUrl: './add-insurance.component.html',
   styleUrl: './add-insurance.component.scss'
 })
@@ -33,6 +35,16 @@ export class AddPremiumInsuranceComponent implements AfterViewInit {
   }
   get inboundPrice(): number {
     return this.price * (this.data.inboundSegmentCount || 0);
+  }
+  get selectedPassengerCount(): number {
+    return (this.outbound?.selectedOptions.selected.length || 0) +
+      (this.inbound?.selectedOptions.selected.length || 0);
+  }
+  get totalPassengerOptions(): number {
+    return (this.outbound?.options.length || 0) + (this.inbound?.options.length || 0);
+  }
+  get allPassengersSelected(): boolean {
+    return this.totalPassengerOptions > 0 && this.selectedPassengerCount === this.totalPassengerOptions;
   }
 
   ngAfterViewInit(): void {
@@ -61,6 +73,19 @@ export class AddPremiumInsuranceComponent implements AfterViewInit {
 
   close() {
     this._bottomSheetRef.dismiss();
+  }
+
+  toggleAllPassengers(): void {
+    const shouldSelect = !this.allPassengersSelected;
+    [this.outbound, this.inbound].forEach(list => {
+      if (!list) return;
+      if (shouldSelect) {
+        list.selectAll();
+      } else {
+        list.deselectAll();
+      }
+    });
+    this.change();
   }
 
   save() {

@@ -1,4 +1,12 @@
-<div class="bg-white px-30 py-30 rounded-4">
+<ng-template #passengersFooter>
+    <button (click)="close()" class="button -md -dark-1 bg-blue-1 text-white w-100">Confirmar pasajeros</button>
+</ng-template>
+
+<app-xplora-bottom-sheet
+    title="Pasajeros"
+    subtitle="Indica quiénes viajarán"
+    [footerTemplate]="passengersFooter">
+<div class="bg-white">
     <div class="row y-gap-10 justify-between items-center">
         <div class="col-auto">
             <div class="text-15 fw-500">Adultos</div>
@@ -63,6 +71,5 @@
             </div>
         </div>
     </div>
-    <div class="border-top-light mt-24 mb-24"></div>
-    <button (click)="close()" class="button -md -dark-1 bg-blue-1 text-white" style="width: 100%;">Aceptar</button>
 </div>
+</app-xplora-bottom-sheet>

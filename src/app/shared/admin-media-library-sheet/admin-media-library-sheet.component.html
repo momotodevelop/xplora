@@ -1,5 +1,4 @@
-<bottom-sheet-header [title]="data.title || 'Biblioteca de Imagenes'" (close)="close()" />
-
+<app-xplora-bottom-sheet [title]="data.title || 'Biblioteca de imágenes'" subtitle="Selecciona el recurso que deseas utilizar">
 <div class="admin-media-sheet">
   <div class="admin-media-sheet__actions">
     <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
@@ -53,3 +52,4 @@
     </div>
   }
 </div>
+</app-xplora-bottom-sheet>
