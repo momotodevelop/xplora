@@ -1,0 +1,169 @@
+<section class="xplora-gateway" [class.xplora-gateway--disabled]="disabled">
+  <header class="xplora-gateway__header">
+    <div>
+      <span class="xplora-gateway__eyebrow">Xplora Gateway</span>
+      <h3>Información de pago</h3>
+      <p>Ingresa los datos de la tarjeta que deseas utilizar.</p>
+    </div>
+    <span class="xplora-gateway__secure"><mat-icon>lock</mat-icon> Captura segura</span>
+  </header>
+
+  <form [formGroup]="cardForm" autocomplete="on">
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Número de tarjeta</mat-label>
+          <input matInput placeholder="0000 0000 0000 0000" type="tel" ccNumber #ccNumber="ccNumber" formControlName="number">
+          <mat-icon matSuffix>credit_card</mat-icon>
+          <mat-hint>Visa, Mastercard o American Express</mat-hint>
+          @if(cardForm.controls.number.touched && cardForm.controls.number.invalid){
+            <mat-error>Ingresa un número de tarjeta válido.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+      <div class="col-6 col-md-3 pr-0 px-md-0">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Vigencia</mat-label>
+          <input type="tel" matInput ccExp formControlName="expiration" placeholder="MM/AA">
+          <mat-icon matSuffix>event</mat-icon>
+          @if(cardForm.controls.expiration.touched && cardForm.controls.expiration.invalid){
+            <mat-error>Revisa la vigencia.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+      <div class="col-6 col-md-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>CVV</mat-label>
+          <input type="tel" matInput placeholder="000" ccCVC formControlName="cvv">
+          <mat-icon matSuffix>lock</mat-icon>
+          <mat-hint>3 o 4 dígitos</mat-hint>
+          @if(cardForm.controls.cvv.touched && cardForm.controls.cvv.invalid){
+            <mat-error>Ingresa un CVV válido.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+      <div class="col-12">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Nombre del titular</mat-label>
+          <input matInput placeholder="Como aparece en la tarjeta" type="text" autocomplete="cc-name" formControlName="holder">
+          <mat-icon matSuffix>account_circle</mat-icon>
+          @if(cardForm.controls.holder.touched && cardForm.controls.holder.invalid){
+            <mat-error>Ingresa el nombre del titular.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    @if(availableInstallments.length > 0){
+      <mat-selection-list color="primary" (selectionChange)="installmentsChange($event)" [multiple]="false">
+        <div mat-subheader><strong>Opciones de pago disponibles</strong></div>
+        <mat-list-option [value]="1" selected>
+          <span matListItemTitle><strong>Un solo pago</strong></span>
+          <span matListItemLine>{{ pendingAmount | currency: 'MXN' }}</span>
+        </mat-list-option>
+        @for(installment of availableInstallments; track installment.quantity){
+          <mat-list-option [value]="installment.quantity">
+            <span matListItemTitle>
+              <strong>{{ installment.quantity }} mensualidades</strong>
+              <span matTooltip="Meses sin intereses" class="badge badge-pill badge-primary text-8 ml-5">MSI</span>
+            </span>
+            <span matListItemLine>
+              {{ installment.quantity }} pagos de {{ installment.amount | currency: 'MXN' }}
+            </span>
+          </mat-list-option>
+        }
+      </mat-selection-list>
+    }
+  </form>
+
+  @if(isCardComplete){
+    <section class="xplora-gateway__address">
+      <div class="xplora-gateway__section-title">
+        <mat-icon>home</mat-icon>
+        <div>
+          <h4>Dirección de facturación</h4>
+          <p>Completa la dirección asociada a la tarjeta.</p>
+        </div>
+      </div>
+
+      <form [formGroup]="addressForm" autocomplete="on">
+        <div class="row">
+          <div class="col-12 col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>País</mat-label>
+              <mat-select formControlName="countryCode">
+                @for(country of countries; track country.id){
+                  <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <div class="col-12 col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Código postal</mat-label>
+              <input matInput formControlName="postalCode" autocomplete="postal-code" placeholder="Código postal">
+              @if(addressForm.controls.postalCode.touched && addressForm.controls.postalCode.invalid){
+                <mat-error>Ingresa un código postal válido.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="col-12">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Calle y número</mat-label>
+              <input matInput formControlName="line1" autocomplete="address-line1" placeholder="Calle, número exterior">
+              @if(addressForm.controls.line1.touched && addressForm.controls.line1.invalid){
+                <mat-error>Ingresa la calle y el número.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="col-12">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Interior o referencia (opcional)</mat-label>
+              <input matInput formControlName="line2" autocomplete="address-line2" placeholder="Departamento, interior o referencia">
+            </mat-form-field>
+          </div>
+          <div class="col-12 col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Ciudad</mat-label>
+              <input matInput formControlName="city" autocomplete="address-level2" placeholder="Ciudad">
+              @if(addressForm.controls.city.touched && addressForm.controls.city.invalid){
+                <mat-error>Ingresa la ciudad.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="col-12 col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Estado o provincia</mat-label>
+              <input matInput formControlName="state" autocomplete="address-level1" placeholder="Estado o provincia">
+              @if(addressForm.controls.state.touched && addressForm.controls.state.invalid){
+                <mat-error>Ingresa el estado o la provincia.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div class="col-12">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Colonia o localidad (opcional)</mat-label>
+              <input matInput formControlName="neighborhood" autocomplete="address-level3" placeholder="Colonia o localidad">
+            </mat-form-field>
+          </div>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if(showSubmitButton){
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      class="w-100 xplora-gateway__pay-button"
+      [disabled]="!isComplete || saving"
+      (click)="processPayment()">
+      {{ saving ? 'Procesando información...' : ('Pagar ' + (pendingAmount | currency: 'MXN')) }}
+    </button>
+  }
+
+  <p class="xplora-gateway__terms">
+    Al continuar, confirmas que aceptas los Términos y Condiciones y la Política de Privacidad de {{ site.brand.name }}.
+  </p>
+</section>

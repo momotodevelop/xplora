@@ -122,7 +122,7 @@ export class XploraCardElementComponent implements OnInit {
       bookingId: this.booking.bookingID!,
       status: "failed",
     }
-    this.card.addPayment(cardPaymentData as StoredCardPaymentData).then(()=>{
+    this.card.addPayment(this.booking.bookingID!, cardPaymentData as StoredCardPaymentData).then(()=>{
       setTimeout(() => {
         this.loading = false;
         this.paymentCompleted.emit(true);

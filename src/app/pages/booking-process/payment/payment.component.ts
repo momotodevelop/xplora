@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewChecked, Output, EventEmitter, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter, Input } from '@angular/core';
 import { BookingHandlerService } from '../../../services/booking-handler.service';
 import { XploraPaymentsService } from '../../../services/xplora-payments.service';
 import { debounceTime, filter, first } from 'rxjs';
@@ -8,8 +8,7 @@ import { DiscountsMP, PaymentData } from '../../../types/mp.types';
 import { environment } from '../../../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faLock, faSpinner, faMoneyBillTransfer, faMoneyBills, faCreditCard, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
-import { faCircle, faCircleDot } from '@fortawesome/free-regular-svg-icons';
+import { faSpinner, faMoneyBillTransfer, faMoneyBills, faCreditCard, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { v4 as uuid } from 'uuid';
 import { SharedDataService } from '../../../services/shared-data.service';
@@ -23,27 +22,19 @@ import  * as _  from 'lodash';
 import { PdfGeneratorService } from '../../../services/pdf-generator.service';
 import { FileUploadService } from '../../../services/file-upload.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatListModule, MatSelectionList, MatSelectionListChange } from '@angular/material/list';
-import { ClipSDKService, PaymentDetails } from '../../../services/clip-sdk.service';
-import { CreditCardDirectivesModule, CreditCardFormatDirective, CreditCardValidators } from '../../../shared/credit-card/credit-card-library';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { Installment, Issuer } from '../../../types/installments.clip.type';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { trigger, transition, style, stagger, animate, query } from '@angular/animations';
+import { PaymentDetails } from '../../../services/clip-sdk.service';
 import {
   BookingStatus,
   DeferredPaymentFrequency,
   DeferredPaymentPlan,
-  FirebaseBooking,
   FlightFirebaseBooking,
   PaymentMethod
 } from '../../../types/booking.types';
 import { FireBookingService } from '../../../services/fire-booking.service';
 import { FireAuthService } from '../../../services/fire-auth.service';
 import { User } from '@angular/fire/auth';
-import { StoredCardPaymentData, XploraCardServicesService } from '../../../services/xplora-card-services.service';
 import { NotificationService } from '../../../services/notifications.service';
 import { Timestamp } from 'firebase/firestore';
 import { Item, logEvent } from 'firebase/analytics';
@@ -59,6 +50,11 @@ import {
   DeferredPaymentPlanService
 } from '../../../services/deferred-payment-plan.service';
 import { DeferredPaymentTermsDialogComponent } from './deferred-payment-terms-dialog.component';
+import {
+  XploraGatewayAttemptLimitError,
+  XploraGatewayComponent,
+  XploraGatewayValidationError
+} from '../../../shared/xplora-gateway/xplora-gateway.component';
 
 export type AvailablePaymentMethods = "CASH"|"CARD"|"SPEI"|"DEFERRED";
 
@@ -88,7 +84,6 @@ export interface PaymentProceesData{
 
 
 declare const MercadoPago: any;
-declare const ClipSDK: any;
 declare global {
   interface Window { paymentBrickController: any; }
 }
@@ -102,51 +97,31 @@ declare global {
         FontAwesomeModule,
         MatSnackBarModule,
         MatTabsModule,
-        MatFormFieldModule,
         MatExpansionModule,
         MatIconModule,
-        MatInputModule,
         MatExpansionModule,
         MatCheckboxModule,
         FormsModule,
         MatListModule,
-        CreditCardDirectivesModule,
-        ReactiveFormsModule,
-        MatTooltipModule,
-        MatDialogModule
+        MatDialogModule,
+        XploraGatewayComponent
     ],
     templateUrl: './payment.component.html',
     styleUrl: './payment.component.scss',
-    providers: [CurrencyPipe, UpperCasePipe],
-    animations: [
-        trigger('listAnimation', [
-            transition('* => *', [
-                query(':enter', [
-                    style({ opacity: 0, transform: 'translateY(-20px)' }), // Estilo inicial
-                    stagger('300ms', [
-                        animate('500ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })) // Estilo final
-                    ])
-                ], { optional: true })
-            ])
-        ])
-    ]
+    providers: [CurrencyPipe, UpperCasePipe]
 })
-export class PaymentComponent implements OnInit, AfterViewChecked {
+export class PaymentComponent implements OnInit {
   @ViewChild('panelTarjeta') panelTarjeta!:MatExpansionPanel;
   @ViewChild('panelEfectivo') panelEfectivo!:MatExpansionPanel;
   @ViewChild('panelSpei') panelSpei!:MatExpansionPanel;
   @ViewChild('panelDeferred') panelDeferred!:MatExpansionPanel;
   @ViewChild('paymentOfficeList') list!: MatSelectionList;
-  @ViewChild('installments') installmentsList?: MatSelectionList;
-  @ViewChild('ccNumber') ccNumber!: CreditCardFormatDirective;
+  @ViewChild(XploraGatewayComponent) gateway?: XploraGatewayComponent;
   @Input() speiPaymentTimeMinutes = DEFAULT_PAYMENT_CONFIG.speiPaymentTimeMinutes;
   @Output() selectedPaymentMethod:EventEmitter<PaymentMethod> = new EventEmitter<PaymentMethod>(false);
   @Output() paymentProcessStart:EventEmitter<PaymentProceesData> = new EventEmitter<PaymentProceesData>()
   total:number=0;
-  secureIcon=faLock;
   spinnerIcon=faSpinner;
-  nonCheckCircle=faCircle;
-  checkedCircle=faCircleDot;
   cardIcon=faCreditCard;
   speiIcon=faMoneyBillTransfer;
   cashIcon=faMoneyBills;
@@ -154,22 +129,13 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
   loading:boolean=false;
   bookingID?:string;
   chargeResume?:Charge[];
-  clipCard:any;
   user?:User;
   selectedPayment?: AvailablePaymentMethods = 'CARD';
   allPaymentOffices: PaymentOffice[] = [];
   paymentOffices: PaymentOffice[] = [];
   selectedPaymentOffice?:string;
   booking!:FlightFirebaseBooking;
-  cardForm:FormGroup = new FormGroup({
-    number: new FormControl('', [CreditCardValidators.validateCCNumber]),
-    type: new FormControl(''),
-    expiration: new FormControl('', [CreditCardValidators.validateExpDate]),
-    cvv: new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(4)]),
-    holder: new FormControl('', [Validators.required])
-  });
-  availableInstallments?:Installment[];
-  cardIssuer?:Issuer;
+  cardGatewayValid = false;
   activePromo?:Promo;
   discounted:number=0;
   deferredEligibility?: DeferredPaymentEligibility;
@@ -189,10 +155,8 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     private notifications: NotificationService,
     private pdf:PdfGeneratorService,
     private fileUpload: FileUploadService,
-    private clip: ClipSDKService,
     private fireBooking: FireBookingService,
     private auth: FireAuthService,
-    private card: XploraCardServicesService,
     private gtag: Analytics,
     private wa: WhatsAppUrlManagerService,
     private paymentOfficesService: XploraPaymentOfficesService,
@@ -227,36 +191,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     this.bookingHandler.promo.subscribe(promo=>{
       this.activePromo = promo;
     });
-    this.cardForm.controls['number'].valueChanges.pipe(debounceTime(750)).subscribe((CCnumber:string)=>{
-      if(this.cardForm.controls['number'].valid){
-        this.cardForm.controls['type'].setValue(this.ccNumber.resolvedScheme$.value);
-        const bin = CCnumber.replace(/\s/g, "").slice(0,6);
-        const type = ['visa', 'mastercard', 'amex'].includes(this.ccNumber.resolvedScheme$.value.toLowerCase()) 
-          ? this.ccNumber.resolvedScheme$.value.toLowerCase() === 'mastercard' 
-            ? 'master' 
-            : this.ccNumber.resolvedScheme$.value.toLowerCase()
-          : undefined;
-        if(bin&&type){
-          this.clip.getInstallments(this.total, bin, (type as 'visa'|'master'|'amex')).subscribe(installments=>{
-            if(installments.length>0){
-              if(installments[0].issuer!==undefined){
-                this.cardIssuer = installments[0].issuer;
-              }
-              if(installments[0].installments&&installments[0].installments.length>0){
-                this.cardForm.addControl('installments', new FormControl(1));
-                this.availableInstallments=this.clip.createInstallments(installments[0].installments, this.total).filter(installment=>installment.quantity>1);
-              }
-            }else{
-              if(this.cardForm.controls['installments']!==undefined) this.cardForm.removeControl('installments');
-              this.availableInstallments=undefined;
-            }
-          })
-        }
-      }else{
-        if(this.cardForm.controls['installments']!==undefined) this.cardForm.removeControl('installments');
-        this.availableInstallments=undefined;
-      }
-    });
     this.bookingHandler.prices.pipe(debounceTime(1500)).subscribe(prices=>{
       this.total = prices[0];
       this.discounted = prices[1];
@@ -282,13 +216,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
     this.bookingHandler.charges.subscribe(charges=>{
       this.chargeResume=charges;
     });
-  }
-  ngAfterViewChecked(): void {
-    this.panelTarjeta.expandedChange.subscribe(expanded=>{
-    });
-  }
-  installmentsChange(event:MatSelectionListChange){
-    this.cardForm.controls['installments'].setValue(event.options[0].value);
   }
   getBookingStatusText(status:BookingStatus){
     switch(status){
@@ -328,26 +255,30 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       break;
     }
   }
-  initializeClipPayment(paymentAmount: number, termsEnabled:boolean, test:boolean){
-    const clip = new ClipSDK(test?"Bearer test_00f300d3-09d0-432c-bd9b-2357e9bb4e24":"5d9be0f9-bf54-4e0b-88b5-00465d838fe4");
-    this.clipCard = clip.element.create('Card', {
-      locale: 'es',
-      paymentAmount,
-      terms: {
-        enabled: termsEnabled
-      }
-    });
-    this.clipCard.mount('clip_checkout'); 
-  }
-  makePaymentFirebase(){
+  async makePaymentFirebase(): Promise<void> {
+    if (!this.selectedPayment || !this.bookingID || this.loading) {
+      this.snackbar.open('Selecciona una forma de pago para continuar.', 'OK', {duration: 2500});
+      return;
+    }
+
+    if (this.selectedPayment === 'CARD' && (!this.gateway || !this.gateway.isComplete)) {
+      this.gateway?.markAllAsTouched();
+      this.snackbar.open(
+        'Completa correctamente los datos de la tarjeta y la dirección de facturación.',
+        'OK',
+        {duration: 3500}
+      );
+      return;
+    }
+
     if (this.selectedPayment === 'DEFERRED' && !this.canConfirmDeferredPlan) {
       this.snackbar.open('Selecciona un calendario y acepta los términos del plan de pagos.', 'OK', {duration: 2500});
       return;
     }
-    //START PAYMENT
+
     const outboundFlight = this.booking!.flightDetails!.flights.outbound!;
     const inboundFlight = this.booking!.flightDetails!.flights.outbound!;
-    let items:Item[]  = [
+    const items:Item[]  = [
       {
         index: 0,
         price: outboundFlight.offer.price.total as number,
@@ -380,59 +311,67 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
       firstName: this.booking.contact?.name,
       lastName: this.booking.contact?.lastname
     }).subscribe();
-    this.paymentProcessStart.emit({
+
+    const paymentProcessData: PaymentProceesData = {
       amount: this.total,
-      paymentMethod: this.selectedPayment!,
-      card: this.cardForm.value as PaymentDetails,
+      paymentMethod: this.selectedPayment,
+      card: this.selectedPayment === 'CARD' ? this.gateway?.paymentDetails : undefined,
       promo: this.activePromo,
       deferredPlan: this.selectedPayment === 'DEFERRED' ? this.selectedDeferredPlan : undefined
-    });
-    if(this.selectedPayment){
-      const selectedDeferredPlan = this.selectedPayment === 'DEFERRED'
-        ? this.createAcceptedDeferredPlan()
-        : undefined;
-      let BookingUpdateData:Partial<FlightFirebaseBooking>={
-        payment: {
-          amount: this.total,
-          originalAmount: this.total+this.discounted,
-          type: this.selectedPayment === 'DEFERRED' ? "DELAYED" : "NOW",
-          office: this.selectedPaymentOffice ?? "NA",
-          totalDue: this.total,
-          method: this.selectedPayment,
-          payed: 0,
-          status: "PENDING",
-          paymentLimit: selectedDeferredPlan?.payoffDate ?? this.paymentLimitByPaymentType(this.selectedPayment),
-          ...(selectedDeferredPlan ? { deferredPlan: selectedDeferredPlan } : {})
-        },
-        charges: this.chargeResume,
-        status: "PENDING",
-        created: new Timestamp(Math.round(new Date().getTime()/1000), 0),
+    };
+    const selectedDeferredPlan = this.selectedPayment === 'DEFERRED'
+      ? this.createAcceptedDeferredPlan()
+      : undefined;
+    const bookingUpdateData:Partial<FlightFirebaseBooking>={
+      payment: {
+        amount: this.total,
+        originalAmount: this.total+this.discounted,
+        type: this.selectedPayment === 'DEFERRED' ? 'DELAYED' : 'NOW',
+        office: this.selectedPaymentOffice ?? 'NA',
+        totalDue: this.total,
+        method: this.selectedPayment,
+        payed: 0,
+        status: 'PENDING',
+        paymentLimit: selectedDeferredPlan?.payoffDate ?? this.paymentLimitByPaymentType(this.selectedPayment),
+        ...(selectedDeferredPlan ? { deferredPlan: selectedDeferredPlan } : {})
+      },
+      charges: this.chargeResume,
+      status: 'PENDING',
+      created: new Timestamp(Math.round(new Date().getTime()/1000), 0),
+    };
+    if(this.user){
+      bookingUpdateData.uid = this.user.uid;
+    }
+    if(this.activePromo){
+      bookingUpdateData.payment!.promo = this.activePromo;
+    }
+
+    this.loading = true;
+    try {
+      const updatedBooking = await this.fireBooking.updateBooking(this.bookingID, bookingUpdateData);
+      if (this.selectedPayment === 'CARD') {
+        await this.gateway!.savePayment();
       }
-      if(this.user){
-        BookingUpdateData.uid = this.user.uid;
+      this.paymentProcessStart.emit(paymentProcessData);
+      await this.confirmBooking(updatedBooking as FlightFirebaseBooking, this.selectedPayment === 'CARD');
+    } catch (error) {
+      this.loading = false;
+      if (error instanceof XploraGatewayAttemptLimitError) {
+        this.snackbar.open(
+          'Ya se registró el intento inicial con tarjeta. Continúa desde las opciones de pago de tu reservación.',
+          'OK',
+          {duration: 5000}
+        );
+      } else if (error instanceof XploraGatewayValidationError) {
+        this.snackbar.open(
+          'Revisa los datos de la tarjeta y la dirección de facturación.',
+          'OK',
+          {duration: 3500}
+        );
+      } else {
+        console.error('No fue posible registrar la reservación:', error);
+        this.snackbar.open('No fue posible procesar tu reservación. Inténtalo nuevamente.', 'OK', {duration: 3000});
       }
-      if(this.activePromo){
-        BookingUpdateData.payment!.promo = this.activePromo;
-      }
-      const request:[Promise<FirebaseBooking>, Promise<string>?] = [this.fireBooking.updateBooking(this.bookingID!, BookingUpdateData)];
-      if(this.selectedPayment==="CARD"){
-        const card = this.cardForm.value as PaymentDetails;
-        const cardPaymentData = {
-          ...card,
-          amount: this.total,
-          createdAt: new Date(),
-          bookingId: this.bookingID!,
-          status: "failed",
-        }
-        request.push(this.card.addPayment(cardPaymentData as StoredCardPaymentData))
-      }
-      Promise.all(request).then(results=>{
-        //END PAYMENT
-        this.confirmBooking(results[0] as FlightFirebaseBooking, this.selectedPayment==='CARD').then(confirmed=>{
-        });
-      }).catch(err=>{
-        this.snackbar.open("Error al procesar tu reservación. Inténtalo nuevamente.", "OK", {duration: 2000});
-      });
     }
   }
   paymentLimitByPaymentType(paymentType: AvailablePaymentMethods): Timestamp {
@@ -457,104 +396,6 @@ export class PaymentComponent implements OnInit, AfterViewChecked {
 
     const futureDate = new Date(now.getTime() + secondsToAdd * 1000);
     return Timestamp.fromDate(futureDate);
-  }
-  makePayment(){
-    if(this.selectedPayment){
-      switch(this.selectedPayment){
-        case "CARD":
-          this.loading = true;
-          const card = this.cardForm.value as PaymentDetails;
-          this.cardForm.disable();
-          this.payments.propietaryProcessor(card.number.replace(/\s/g, ""), card.expiration, "visa", card.holder, card.cvv, this.total, card.installments?card.installments.toString():"1", this.bookingID!, this.cardIssuer?.name, this.cardIssuer?.country).subscribe(result=>{
-            this.cardForm.enable();
-            this.cardForm.reset();
-            this.loading = false;
-            this.snackbar.open("Transacción Declinada. Inténtalo nuevamente.", "OK", {duration: 3000});
-            this.availableInstallments = undefined;
-            this.payments.getPaymentRecords(this.bookingID!).subscribe(records=>{
-              if(records.records.length>2){
-                this.shared.setLoading(true);
-                this.xplora.updateBooking(this.bookingID!, {
-                  charges: this.chargeResume,
-                  activePayment: {
-                    type: "tarjeta-declinada",
-                    promo: this.activePromo,
-                    originalAmount: this.total+this.discounted,
-                    amount: this.total,
-                    totalDue: this.total
-                  },
-                  totalDue: this.total,
-                  paymentURL: "https://xploratravel.com.mx/reservar/completar-pago/tarjeta/"+this.bookingID!,
-                  status: "HOLD"
-                }).subscribe({
-                  next: (ok) =>{
-                    //console.log(ok)
-                    /* this.confirmBooking(ok.booking).then(confirmed=>{
-                      const url = `/confirmacion/vuelos/${this.bookingID!}`;
-                      window.location.href = url;
-                    }); */
-                  },
-                  error: (err) => {console.error(err);}
-                });
-              }
-            })
-          });
-        break;
-        case "CASH":
-          this.shared.setLoading(true);
-          this.xplora.updateBooking(this.bookingID!, {
-            charges: this.chargeResume,
-            activePayment: {
-              type: "efectivo",
-              office: this.selectedPaymentOffice!,
-              promo: this.activePromo,
-              originalAmount: this.total+this.discounted,
-              amount: this.total,
-              totalDue: this.total
-            },
-            totalDue: this.total,
-            paymentURL: "https://xploratravel.com.mx/reservar/completar-pago/efectivo/"+this.bookingID!,
-            status: "HOLD"
-          }).subscribe({
-            next: (ok) =>{
-              //console.log(ok)
-              /* this.confirmBooking(ok.status).then(confirmed=>{
-                const url = `/confirmacion/vuelos/${this.bookingID!}`;
-                window.location.href = url;
-              }); */
-            },
-            error: (err) => {console.error(err);}
-          });
-        break;
-        case "SPEI":
-          this.shared.setLoading(true);
-          this.xplora.updateBooking(this.bookingID!, {
-            charges: this.chargeResume,
-            activePayment: {
-              type: "spei",
-              promo: this.activePromo,
-              originalAmount: this.total+this.discounted,
-              amount: this.total,
-              totalDue: this.total
-            },
-            totalDue: this.total,
-            paymentURL: "https://xploratravel.com.mx/reservar/completar-pago/spei/"+this.bookingID!,
-            status: "HOLD"
-          }).subscribe({
-            next: (ok) =>{
-              //console.log(ok)
-              /* this.confirmBooking(ok.booking).then(confirmed=>{
-                const url = `/confirmacion/vuelos/${this.bookingID!}`;
-                window.location.href = url;
-              }); */
-            },
-            error: (err) => {console.error(err);}
-          });
-        break;
-      }
-    }else{
-      this.snackbar.open("Por favor selecciona un metodo de pago.", "OK", {duration: 2000})
-    }
   }
   initializeMercadoPago(preference:string, prices:number[], contact: {name: string;surname: string;email: string;}, pnr: string, promo?: Promo): void {
     const mp = new MercadoPago(environment.mpPublicKey, {

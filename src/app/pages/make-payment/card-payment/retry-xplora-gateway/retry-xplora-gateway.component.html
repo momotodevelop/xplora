@@ -1,5 +1,12 @@
 @if(madePaymentMode){
-    <app-flow-redirect-payment [booking]="booking"></app-flow-redirect-payment>
+    <app-xplora-gateway
+        [booking]="booking"
+        [amount]="pendingCardAmount"
+        attemptType="RETRY"
+        [showSubmitButton]="true"
+        (paymentRejected)="handleRejectedAttempt()"
+        (attemptLimitReached)="handleAttemptLimitReached()">
+    </app-xplora-gateway>
 }@else{
     <p><b>Tu pago fue rechazado.</b> Para mantener tu reservación, <b>elige otra forma de pago</b> y complétala cuanto antes para asegurar tarifa y disponibilidad.</p>
     <!-- Opción 1: Reintentar pago en línea -->
@@ -8,7 +15,7 @@
             <div>
                 <div class="form-radio d-flex items-center">
                     <div class="radio">
-                        <input [attr.disabled]="true" type="radio" [formControl]="selectedOption" value="RETRY" />
+                        <input [disabled]="disabledCardPayment" type="radio" [formControl]="selectedOption" value="RETRY" />
                         <div class="radio__mark">
                             <div class="radio__icon"></div>
                         </div>
@@ -19,14 +26,20 @@
             </div>
             <p class="text-dark-1">Reintenta el pago de tu reservación en línea utilizando tu tarjeta de crédito o débito.</p>
             <p class="text-dark-1 fw-500">
-                Total a pagar: {{ getDiscountedAmount(0) | currency: 'MXN' }}
+                Total a pagar: {{ pendingCardAmount | currency: 'MXN' }}
             </p>
             <!-- Nota (solo se muestra si está seleccionada) -->
             @if(disabledCardPayment){
                 <div class="d-flex items-center justify-start bg-error-1 pl-15 pr-10 py-15 rounded-8">
                     <fa-icon class="text-error-2" [icon]="infoIcon"></fa-icon>
                     <div style="line-height: 1.5;" class="text-error-2 ml-10">
-                        Por motivos de seguridad, este método de pago ha sido desactivado. Por favor, selecciona otro método para completar tu reservación.
+                        @if(attemptsLoading){
+                            Estamos verificando la disponibilidad del pago con tarjeta. Podrás continuar en un momento.
+                        }@else if(retryLimitReached){
+                            Alcanzaste el límite de dos reintentos adicionales con tarjeta. Elige transferencia o pago en sucursal para completar tu reservación.
+                        }@else{
+                            Este método no está disponible. Elige otra forma de pago para completar tu reservación.
+                        }
                     </div>
                 </div>
             }
@@ -35,6 +48,7 @@
                     <fa-icon class="text-info-2" [icon]="infoIcon"></fa-icon>
                     <div style="line-height: 1.5;" class="text-info-2 ml-10">
                         Asegúrate de que los datos de tu tarjeta sean correctos y que cuentes con saldo suficiente para completar la transacción.
+                        <br>Dispones de {{ remainingCardRetries }} {{ remainingCardRetries === 1 ? 'reintento adicional' : 'reintentos adicionales' }} con tarjeta.
                     </div>
                 </div>
             }

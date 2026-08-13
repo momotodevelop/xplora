@@ -24,3 +24,14 @@
     border-color: #297eff;
     background-color: rgba(41,126,255,0.05);
 }
+
+.option-card.option-card--disabled {
+    background: #f8fafc;
+    cursor: not-allowed;
+    opacity: .78;
+}
+
+.option-card.option-card--disabled:hover {
+    box-shadow: none;
+    transform: none;
+}

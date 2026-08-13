@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FirebaseBooking } from '../../../types/booking.types';
-import { FlowRedirectPaymentComponent } from './flow-redirect-payment/flow-redirect-payment.component';
 import { RetryXploraGatewayComponent } from './retry-xplora-gateway/retry-xplora-gateway.component';
+import { XploraGatewayComponent } from '../../../shared/xplora-gateway/xplora-gateway.component';
 
 @Component({
   selector: 'app-card-payment',
-  imports: [FlowRedirectPaymentComponent, RetryXploraGatewayComponent],
+  imports: [RetryXploraGatewayComponent, XploraGatewayComponent],
   templateUrl: './card-payment.component.html',
   styleUrl: './card-payment.component.scss'
 })

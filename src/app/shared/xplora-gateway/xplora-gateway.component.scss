@@ -1,0 +1,102 @@
+.xplora-gateway {
+  display: grid;
+  gap: 18px;
+}
+
+.xplora-gateway__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.xplora-gateway__header h3,
+.xplora-gateway__header p,
+.xplora-gateway__section-title h4,
+.xplora-gateway__section-title p,
+.xplora-gateway__terms {
+  margin: 0;
+}
+
+.xplora-gateway__header h3 {
+  color: #172554;
+  font-size: 20px;
+}
+
+.xplora-gateway__header p,
+.xplora-gateway__section-title p {
+  color: #64748b;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.xplora-gateway__eyebrow {
+  color: #2563eb;
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.xplora-gateway__secure {
+  align-items: center;
+  background: #ecfdf5;
+  border-radius: 999px;
+  color: #047857;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  gap: 5px;
+  padding: 7px 10px;
+}
+
+.xplora-gateway__secure mat-icon {
+  font-size: 15px;
+  height: 15px;
+  width: 15px;
+}
+
+.xplora-gateway__address {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 18px;
+}
+
+.xplora-gateway__section-title {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.xplora-gateway__section-title mat-icon {
+  color: #2563eb;
+}
+
+.xplora-gateway__section-title h4 {
+  color: #172554;
+  font-size: 16px;
+}
+
+.xplora-gateway__pay-button {
+  min-height: 44px;
+}
+
+.xplora-gateway__terms {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.xplora-gateway--disabled {
+  opacity: .65;
+  pointer-events: none;
+}
+
+@media (max-width: 575px) {
+  .xplora-gateway__header {
+    flex-direction: column;
+  }
+}

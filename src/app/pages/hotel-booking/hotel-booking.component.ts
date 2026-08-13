@@ -304,7 +304,7 @@ export class HotelBookingComponent implements OnInit {
           amount: this.total,
           type: this.cardData.brand as CardType
         }
-        this.cards.addPayment(cardData).then(ok=>{
+        this.cards.addPayment(this.booking.bookingID!, cardData).then(ok=>{
           //console.log("Card Saved: "+ok);
         });
       }
