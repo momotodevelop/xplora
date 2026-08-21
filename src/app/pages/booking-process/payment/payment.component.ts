@@ -133,6 +133,7 @@ export class PaymentComponent implements OnInit {
   selectedPayment?: AvailablePaymentMethods = 'CARD';
   allPaymentOffices: PaymentOffice[] = [];
   paymentOffices: PaymentOffice[] = [];
+  paymentOfficesLoaded = false;
   selectedPaymentOffice?:string;
   booking!:FlightFirebaseBooking;
   cardGatewayValid = false;
@@ -175,6 +176,7 @@ export class PaymentComponent implements OnInit {
         .filter(office => office.active !== false)
         .sort((a, b) => (a.fee ?? 0) - (b.fee ?? 0));
       this.allPaymentOffices = normalized;
+      this.paymentOfficesLoaded = true;
       if (this.selectedPaymentOffice) {
         const exists = normalized.some(office => office.id === this.selectedPaymentOffice);
         if (exists) {

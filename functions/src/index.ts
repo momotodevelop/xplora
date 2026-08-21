@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import { join } from 'path';
-import axios from 'axios';
+import axios, {isAxiosError} from 'axios';
 import * as admin from 'firebase-admin';
 import { createHmac } from 'crypto';
 import type { Request, Response } from 'express';
@@ -45,7 +45,10 @@ const serverAppPromise = import(fullMjsPath);
 
 const XPLORA_SITE_URL = 'https://xploratravel.com.mx';
 const DUFFEL_API_BASE = 'https://api.duffel.com';
+const POSTALIA_API_BASE = 'https://postalia.com.mx/api/codigos-postales';
+const POSTALIA_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const DUFFEL_ACCESS_TOKEN = defineSecret('DUFFEL_ACCESS_TOKEN');
+const POSTALIA_BEARER_TOKEN = defineSecret('POSTALIA_BEARER_TOKEN');
 const DUFFEL_CONFIG_DOC = 'config/flights';
 const DUFFEL_STAYS_CONFIG_DOC = 'config/stays';
 const secretManager = new SecretManagerServiceClient();
@@ -78,6 +81,86 @@ interface StoredFlowKycSession {
 interface CreatedDiditSession {
   raw: DiditSessionResponse;
   kyc: StoredFlowKycSession;
+}
+
+interface PostaliaApiNeighborhood {
+  nombre?: unknown;
+  tipo?: unknown;
+}
+
+interface PostaliaApiResponse {
+  codigo_postal?: unknown;
+  estado?: unknown;
+  municipio?: unknown;
+  ciudad?: unknown;
+  zona?: unknown;
+  colonias?: unknown;
+}
+
+interface PostaliaPostalCodeResponse {
+  codigo_postal: string;
+  estado: string;
+  municipio: string;
+  ciudad: string;
+  zona: string;
+  colonias: Array<{nombre: string; tipo?: string}>;
+}
+
+const postaliaCache = new Map<string, {
+  expiresAt: number;
+  value: PostaliaPostalCodeResponse;
+}>();
+
+function asTrimmedString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizePostaliaResponse(
+  payload: PostaliaApiResponse,
+  requestedPostalCode: string
+): PostaliaPostalCodeResponse {
+  const colonias = Array.isArray(payload.colonias) ?
+    payload.colonias
+      .map((item): {nombre: string; tipo?: string} | null => {
+        if (typeof item === 'string') {
+          const nombre = item.trim();
+          return nombre ? {nombre} : null;
+        }
+        if (!item || typeof item !== 'object') {
+          return null;
+        }
+        const colonia = item as PostaliaApiNeighborhood;
+        const nombre = asTrimmedString(colonia.nombre);
+        if (!nombre) {
+          return null;
+        }
+        const tipo = asTrimmedString(colonia.tipo);
+        return tipo ? {nombre, tipo} : {nombre};
+      })
+      .filter((item): item is {nombre: string; tipo?: string} =>
+        item !== null
+      ) :
+    [];
+
+  return {
+    codigo_postal:
+      asTrimmedString(payload.codigo_postal) || requestedPostalCode,
+    estado: asTrimmedString(payload.estado),
+    municipio: asTrimmedString(payload.municipio),
+    ciudad:
+      asTrimmedString(payload.ciudad) || asTrimmedString(payload.municipio),
+    zona: asTrimmedString(payload.zona),
+    colonias,
+  };
+}
+
+function setPostaliaCors(res: Response): void {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '3600',
+  });
 }
 
 function buildDiditCallbackUrl(bookingId: string): string {
@@ -155,6 +238,74 @@ export const ssrApp = functions.https.onRequest(async (request, response) => {
     response.status(500).send("Error interno del servidor.");
   }
 });
+
+export const postaliaApi = functions.https.onRequest(
+  {
+    secrets: [POSTALIA_BEARER_TOKEN],
+    timeoutSeconds: 15,
+    memory: '256MiB',
+  },
+  async (req: Request, res: Response) => {
+    setPostaliaCors(res);
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+    if (req.method !== 'GET') {
+      res.set('Allow', 'GET, OPTIONS');
+      res.status(405).end();
+      return;
+    }
+
+    const postalCode = String(req.query.postalCode || '').trim();
+    if (!/^\d{5}$/.test(postalCode)) {
+      res.status(400).end();
+      return;
+    }
+
+    const cached = postaliaCache.get(postalCode);
+    if (cached && cached.expiresAt > Date.now()) {
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.status(200).json(cached.value);
+      return;
+    }
+
+    const bearerToken = POSTALIA_BEARER_TOKEN.value().trim();
+    if (!bearerToken) {
+      res.status(503).end();
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${POSTALIA_API_BASE}/${encodeURIComponent(postalCode)}`,
+        {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${bearerToken}`,
+          },
+          timeout: 10000,
+        }
+      );
+      const normalized = normalizePostaliaResponse(
+        response.data as PostaliaApiResponse,
+        postalCode
+      );
+      postaliaCache.set(postalCode, {
+        expiresAt: Date.now() + POSTALIA_CACHE_TTL_MS,
+        value: normalized,
+      });
+
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.status(200).json(normalized);
+    } catch (error) {
+      const upstreamStatus = isAxiosError(error) ?
+        error.response?.status :
+        undefined;
+      res.status(upstreamStatus === 404 ? 404 : 502).end();
+    }
+  }
+);
 
 interface StoredFlightPricingConfig extends FlightPricingConfig {
   updatedAt?: FirebaseFirestore.Timestamp;

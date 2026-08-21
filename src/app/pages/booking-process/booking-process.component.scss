@@ -3,104 +3,8 @@
   padding-bottom: 56px;
 }
 
-.booking-stepper {
-  background: transparent;
-  width: 100%;
-}
-
-.step-content {
-  padding: 8px 4px 6px;
-}
-
-.step-actions {
-  align-items: center;
-  border-top: 1px solid #edf1f6;
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-  margin-top: 22px;
-  padding-top: 16px;
-}
-
-.step-actions--end {
-  justify-content: flex-end;
-}
-
-.payment-step {
-  width: 100%;
-}
-
-.payment-step__heading {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.payment-step__heading span {
-  color: var(--primary-color);
-  display: block;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-
-.payment-step__heading h2 {
-  color: #172033;
-  font-size: 26px;
-  margin: 1px 0 0;
-}
-
 .booking-summary {
   padding-top: 12px;
-}
-
-:host ::ng-deep .booking-stepper .mat-vertical-stepper-header {
-  border-radius: 14px;
-  min-height: 58px;
-  transition: background-color .2s ease;
-}
-
-:host ::ng-deep .booking-stepper .mat-vertical-stepper-header:hover,
-:host ::ng-deep .booking-stepper .mat-vertical-stepper-header[aria-selected='true'] {
-  background: #f5f8fc;
-}
-
-:host ::ng-deep .booking-stepper .mat-step-label {
-  color: #667085;
-  font-size: 14px;
-  font-weight: 650;
-}
-
-:host ::ng-deep .booking-stepper .mat-step-label-selected {
-  color: #172033;
-}
-
-:host ::ng-deep .booking-stepper .mat-step-icon-selected,
-:host ::ng-deep .booking-stepper .mat-step-icon-state-done {
-  background: var(--primary-color);
-}
-
-:host ::ng-deep .booking-stepper .mat-vertical-content-container {
-  margin-left: 23px;
-}
-
-:host ::ng-deep .booking-stepper .mat-vertical-content {
-  padding: 0 18px 28px 28px;
-}
-
-:host ::ng-deep .booking-stepper--payment > .mat-step:last-child > .mat-vertical-stepper-header {
-  display: none;
-}
-
-:host ::ng-deep .booking-stepper--payment > .mat-step:last-child > .mat-vertical-content-container {
-  border-left: 0;
-  margin-left: 0;
-}
-
-:host ::ng-deep .booking-stepper--payment > .mat-step:last-child .mat-vertical-content {
-  padding: 0;
 }
 
 @media (max-width: 991px) {
@@ -116,30 +20,5 @@
 @media (max-width: 575px) {
   .booking-layout {
     margin-top: 16px;
-  }
-
-  :host ::ng-deep .booking-stepper .mat-vertical-stepper-header {
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-
-  :host ::ng-deep .booking-stepper .mat-vertical-content-container {
-    margin-left: 19px;
-  }
-
-  :host ::ng-deep .booking-stepper .mat-vertical-content {
-    padding: 0 0 24px 18px;
-  }
-
-  .step-content {
-    padding-right: 0;
-  }
-
-  .step-actions button {
-    min-width: 0;
-  }
-
-  .payment-step__heading h2 {
-    font-size: 22px;
   }
 }

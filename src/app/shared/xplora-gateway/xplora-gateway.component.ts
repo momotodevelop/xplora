@@ -9,7 +9,21 @@ import { MatListModule, MatSelectionListChange } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { debounceTime, firstValueFrom, Subject, take, takeUntil } from 'rxjs';
+import {
+  catchError,
+  combineLatest,
+  debounceTime,
+  distinctUntilChanged,
+  firstValueFrom,
+  map,
+  of,
+  startWith,
+  Subject,
+  switchMap,
+  take,
+  takeUntil,
+  timer
+} from 'rxjs';
 import { CreditCardDirectivesModule, CreditCardFormatDirective, CreditCardValidators } from '../credit-card/credit-card-library';
 import { FirebaseBooking } from '../../types/booking.types';
 import { PaymentDetails, ClipSDKService } from '../../services/clip-sdk.service';
@@ -24,6 +38,8 @@ import {
   XploraCardServicesService
 } from '../../services/xplora-card-services.service';
 import { SiteIdentityService } from '../../services/site-identity.service';
+import { PostaliaPostalCode, PostaliaService } from '../../services/postalia.service';
+import { MEXICO_STATES } from '../../static/mexico-states.static';
 
 export class XploraGatewayValidationError extends Error {
   constructor() {
@@ -66,12 +82,18 @@ export class XploraGatewayComponent implements AfterViewInit, OnChanges, OnDestr
   @ViewChild('ccNumber') private ccNumber?: CreditCardFormatDirective;
 
   readonly countries = WORLD_COUNTRIES;
+  readonly mexicoStates = MEXICO_STATES;
+  readonly manualNeighborhoodOption = '__MANUAL_NEIGHBORHOOD__';
   readonly site = this.siteIdentity.config;
   private readonly destroyed$ = new Subject<void>();
   private lastValidity?: boolean;
 
   availableInstallments: Installment[] = [];
+  availableNeighborhoods: string[] = [];
+  addressAutocompleted = false;
   saving = false;
+
+  readonly neighborhoodSelection = new FormControl('', { nonNullable: true });
 
   readonly cardForm = new FormGroup({
     number: new FormControl('', {
@@ -104,7 +126,6 @@ export class XploraGatewayComponent implements AfterViewInit, OnChanges, OnDestr
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(5)]
     }),
-    line2: new FormControl('', { nonNullable: true }),
     city: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(2)]
@@ -120,7 +141,8 @@ export class XploraGatewayComponent implements AfterViewInit, OnChanges, OnDestr
     private readonly clip: ClipSDKService,
     private readonly cards: XploraCardServicesService,
     private readonly snackBar: MatSnackBar,
-    private readonly siteIdentity: SiteIdentityService
+    private readonly siteIdentity: SiteIdentityService,
+    private readonly postalia: PostaliaService
   ) {}
 
   ngAfterViewInit(): void {
@@ -131,6 +153,11 @@ export class XploraGatewayComponent implements AfterViewInit, OnChanges, OnDestr
 
     this.cardForm.statusChanges.pipe(takeUntil(this.destroyed$)).subscribe(() => this.emitValidity());
     this.addressForm.statusChanges.pipe(takeUntil(this.destroyed$)).subscribe(() => this.emitValidity());
+    this.neighborhoodSelection.valueChanges.pipe(
+      takeUntil(this.destroyed$)
+    ).subscribe(selection => this.handleNeighborhoodSelection(selection));
+
+    this.configurePostalCodeLookup();
     this.emitValidity();
   }
 
@@ -143,9 +170,12 @@ export class XploraGatewayComponent implements AfterViewInit, OnChanges, OnDestr
       if (this.disabled) {
         this.cardForm.disable({ emitEvent: false });
         this.addressForm.disable({ emitEvent: false });
+        this.neighborhoodSelection.disable({ emitEvent: false });
       } else {
         this.cardForm.enable({ emitEvent: false });
         this.addressForm.enable({ emitEvent: false });
+        this.neighborhoodSelection.enable({ emitEvent: false });
+        this.syncAutocompletedControls();
       }
       this.emitValidity();
     }
@@ -173,6 +203,14 @@ export class XploraGatewayComponent implements AfterViewInit, OnChanges, OnDestr
     return !this.disabled && this.cardForm.valid && this.addressForm.valid;
   }
 
+  get isMexico(): boolean {
+    return this.addressForm.controls.countryCode.value === 'MX';
+  }
+
+  get isManualNeighborhood(): boolean {
+    return this.neighborhoodSelection.value === this.manualNeighborhoodOption;
+  }
+
   get paymentDetails(): PaymentDetails {
     const value = this.cardForm.getRawValue();
     return {
@@ -191,7 +229,6 @@ export class XploraGatewayComponent implements AfterViewInit, OnChanges, OnDestr
       countryCode: value.countryCode,
       postalCode: value.postalCode.trim(),
       line1: value.line1.trim(),
-      ...(value.line2.trim() ? { line2: value.line2.trim() } : {}),
       city: value.city.trim(),
       state: value.state.trim(),
       ...(value.neighborhood.trim() ? { neighborhood: value.neighborhood.trim() } : {})
@@ -323,6 +360,112 @@ export class XploraGatewayComponent implements AfterViewInit, OnChanges, OnDestr
         this.cardForm.controls.installments.setValue(1);
       }
     });
+  }
+
+  private configurePostalCodeLookup(): void {
+    const countryControl = this.addressForm.controls.countryCode;
+    const postalCodeControl = this.addressForm.controls.postalCode;
+
+    countryControl.valueChanges.pipe(
+      startWith(countryControl.value),
+      takeUntil(this.destroyed$)
+    ).subscribe(countryCode => this.updatePostalCodeValidators(countryCode));
+
+    combineLatest([
+      countryControl.valueChanges.pipe(startWith(countryControl.value)),
+      postalCodeControl.valueChanges.pipe(startWith(postalCodeControl.value))
+    ]).pipe(
+      map(([countryCode, postalCode]) => ({
+        countryCode,
+        postalCode: postalCode.trim()
+      })),
+      distinctUntilChanged((previous, current) =>
+        previous.countryCode === current.countryCode &&
+        previous.postalCode === current.postalCode
+      ),
+      switchMap(({ countryCode, postalCode }) => {
+        this.resetPostaliaResult();
+        if (countryCode !== 'MX' || !/^\d{5}$/.test(postalCode)) {
+          return of(null);
+        }
+
+        return timer(350).pipe(
+          switchMap(() => this.postalia.getPostalCode(postalCode)),
+          catchError(() => of(null))
+        );
+      }),
+      takeUntil(this.destroyed$)
+    ).subscribe(result => {
+      if (result) {
+        this.applyPostaliaResult(result);
+      }
+    });
+  }
+
+  private updatePostalCodeValidators(countryCode: string): void {
+    const postalCodeControl = this.addressForm.controls.postalCode;
+    postalCodeControl.setValidators([
+      Validators.required,
+      countryCode === 'MX'
+        ? Validators.pattern(/^\d{5}$/)
+        : Validators.pattern(/^[A-Za-z0-9 -]{3,10}$/)
+    ]);
+    postalCodeControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private resetPostaliaResult(): void {
+    const cityControl = this.addressForm.controls.city;
+    const stateControl = this.addressForm.controls.state;
+
+    if (this.addressAutocompleted) {
+      cityControl.setValue('', { emitEvent: false });
+      stateControl.setValue('', { emitEvent: false });
+    }
+
+    this.addressAutocompleted = false;
+    this.availableNeighborhoods = [];
+    this.neighborhoodSelection.setValue('', { emitEvent: false });
+    this.addressForm.controls.neighborhood.setValue('', { emitEvent: false });
+
+    if (!this.disabled) {
+      cityControl.enable({ emitEvent: false });
+      stateControl.enable({ emitEvent: false });
+      this.neighborhoodSelection.enable({ emitEvent: false });
+    }
+    this.emitValidity();
+  }
+
+  private applyPostaliaResult(result: PostaliaPostalCode): void {
+    const city = result.ciudad.trim() || result.municipio.trim();
+    const state = result.estado.trim();
+
+    if (city && state) {
+      this.addressForm.controls.city.setValue(city, { emitEvent: false });
+      this.addressForm.controls.state.setValue(state, { emitEvent: false });
+      this.addressAutocompleted = true;
+      this.syncAutocompletedControls();
+    }
+
+    this.availableNeighborhoods = [...new Set(
+      result.colonias
+        .map(neighborhood => neighborhood.nombre.trim())
+        .filter(Boolean)
+    )];
+    this.emitValidity();
+  }
+
+  private handleNeighborhoodSelection(selection: string): void {
+    this.addressForm.controls.neighborhood.setValue(
+      selection === this.manualNeighborhoodOption ? '' : selection
+    );
+  }
+
+  private syncAutocompletedControls(): void {
+    if (!this.addressAutocompleted || this.disabled) {
+      return;
+    }
+    this.addressForm.controls.city.disable({ emitEvent: false });
+    this.addressForm.controls.state.disable({ emitEvent: false });
   }
 
   private emitValidity(): void {

@@ -5,6 +5,7 @@ export const environment = {
     amadeusClientSecret: 'WsBj5jGZLqVxfUxR',
     amadeusApiUrl: 'https://api.amadeus.com',
     duffelApiUrl: 'https://us-central1-travelocity-mx.cloudfunctions.net/duffelApi',
+    postaliaApiUrl: 'https://us-central1-travelocity-mx.cloudfunctions.net/postaliaApi',
     mpPublicKey: "APP_USR-f654f0cd-f9a1-438e-bed1-0238f164bbd3",
     linkedIn: {
         enabled: false,

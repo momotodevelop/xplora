@@ -14,26 +14,33 @@
         <mat-expansion-panel-header>
             <mat-panel-title><fa-icon [ngClass]="{'active-icon':selectedPayment==='CASH'}" class="mr-5 text-14" [icon]="cashIcon"></fa-icon> Efectivo</mat-panel-title>
         </mat-expansion-panel-header>
-        <mat-selection-list color="primary" #paymentOfficeList (selectionChange)="paymentOfficeChange($event)" [multiple]="false" >
-            @for(paymentOffice of paymentOffices; track paymentOffice){
-                <mat-list-option [disabled]="!isOfficeAvailable(paymentOffice, total)" [value]="paymentOffice.id">
-                    <div matListItemTitle style="font-weight: bolder;">{{paymentOffice.name}} <span [ngClass]="paymentOffice.fee>0?'badge-primary':'badge-success'" class="badge badge-pill badge-success">+{{paymentOffice.fee|currency:'MXN'}}</span> </div>
-                    <div matListItemLine class="text-14">
-                        @if(isBelowOfficeMin(paymentOffice, total)){
-                            <span>Monto minimo: {{paymentOffice.minAmount|currency:'MXN'}}</span>
-                        }@else if(isAboveOfficeMax(paymentOffice, total)){
-                            <span>Monto maximo: {{paymentOffice.maxAmount|currency:'MXN'}}</span>
-                        }@else{
-                            @if(paymentOffice.delayHours>0){
-                                <span>Se aplica en {{paymentOffice.delayHours}} horas</span>
+        @if(paymentOfficesLoaded && allPaymentOffices.length === 0){
+            <div class="alert alert-info payment-offices-empty" role="alert">
+                <mat-icon>info</mat-icon>
+                <span>No hay sucursales de pago disponibles por el momento para esta reservación.</span>
+            </div>
+        }@else{
+            <mat-selection-list color="primary" #paymentOfficeList (selectionChange)="paymentOfficeChange($event)" [multiple]="false" >
+                @for(paymentOffice of paymentOffices; track paymentOffice){
+                    <mat-list-option [disabled]="!isOfficeAvailable(paymentOffice, total)" [value]="paymentOffice.id">
+                        <div matListItemTitle style="font-weight: bolder;">{{paymentOffice.name}} <span [ngClass]="paymentOffice.fee>0?'badge-primary':'badge-success'" class="badge badge-pill badge-success">+{{paymentOffice.fee|currency:'MXN'}}</span> </div>
+                        <div matListItemLine class="text-14">
+                            @if(isBelowOfficeMin(paymentOffice, total)){
+                                <span>Monto minimo: {{paymentOffice.minAmount|currency:'MXN'}}</span>
+                            }@else if(isAboveOfficeMax(paymentOffice, total)){
+                                <span>Monto maximo: {{paymentOffice.maxAmount|currency:'MXN'}}</span>
                             }@else{
-                                <span>Se aplica de inmediato</span>
+                                @if(paymentOffice.delayHours>0){
+                                    <span>Se aplica en {{paymentOffice.delayHours}} horas</span>
+                                }@else{
+                                    <span>Se aplica de inmediato</span>
+                                }
                             }
-                        }
-                    </div>
-                </mat-list-option>
-            }
-        </mat-selection-list>
+                        </div>
+                    </mat-list-option>
+                }
+            </mat-selection-list>
+        }
         @if(selectedPaymentOffice){
             <button (click)="resetPaymentOffice()" mat-button color="primary">Cambiar sucursal de pago</button>
             <p class="text-dark-1 text-14 mt-10" style="text-align: justify;">Una vez que confirmes tu reservación, recibirás un <b>número de referencia que deberás proporcionar</b> al momento de hacer el pago. Los detalles para completar la transacción serán <b>enviados a tu correo electrónico</b>.</p>

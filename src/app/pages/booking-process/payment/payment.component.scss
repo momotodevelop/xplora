@@ -1,3 +1,19 @@
+.payment-offices-empty {
+  align-items: flex-start;
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 10px 12px;
+}
+
+.payment-offices-empty mat-icon {
+  flex: 0 0 auto;
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
 .deferred-intro {
   align-items: flex-start;
   background: linear-gradient(135deg, #eef5ff, #f8fbff);
@@ -166,12 +182,14 @@
 }
 
 .deferred-schedule__row--header {
+  background: #f8fafc;
   color: #64748b;
   font-size: 10px;
   font-weight: 700;
   position: sticky;
   text-transform: uppercase;
   top: 0;
+  z-index: 1;
 }
 
 .deferred-approval-note,

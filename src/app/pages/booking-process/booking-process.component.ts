@@ -1,26 +1,19 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatStepperModule} from '@angular/material/stepper';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { PassengerValue, PassengersComponent } from './passengers/passengers.component';
 import { BookingSidebarComponent } from './booking-sidebar/booking-sidebar.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { SharedDataService } from '../../services/shared-data.service';
 import { CommonModule, DatePipe } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { SeatPendingDialog, SeatsComponent } from './seats/seats.component';
+import { SeatPendingDialog } from './seats/seats.component';
 import { SeatMap, SeatMapSavingData } from '../../types/amadeus-seat-map.types';
 import { BookingHandlerService } from '../../services/booking-handler.service';
 import { AmadeusLocation } from '../../types/amadeus-airport-response.types';
-import { ExtrasComponent } from './extras/extras.component';
-import { ContactInfoComponent, ContactInfoValue } from './contact-info/contact-info.component';
-import { PaymentComponent, PaymentProceesData } from './payment/payment.component';
+import { ContactInfoValue } from './contact-info/contact-info.component';
+import { PaymentProceesData } from './payment/payment.component';
 import { XploraPromosService } from '../../services/xplora-promos.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { combineLatest } from 'rxjs';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSpinner, faChevronRight, faMoneyBill, faBank } from '@fortawesome/free-solid-svg-icons';
+import { combineLatest, filter } from 'rxjs';
+import { faMoneyBill, faBank } from '@fortawesome/free-solid-svg-icons';
 import { FireBookingService } from '../../services/fire-booking.service';
 import { FlightFirebaseBooking, PaymentMethod } from '../../types/booking.types';
 import { BookingCreationLoaderComponent, Line, Step, StepTextElement } from '../../shared/booking-creation-loader/booking-creation-loader.component';
@@ -49,20 +42,10 @@ export type Steps = "PASSENGERS"|"SEATS"|"CONTACT"|"EXTRAS"|"PAYMENT";
 @Component({
     selector: 'app-booking-process',
     imports: [
-        MatStepperModule,
-        MatFormFieldModule,
-        PassengersComponent,
         BookingSidebarComponent,
-        MatButtonModule,
-        SeatsComponent,
-        ExtrasComponent,
-        ContactInfoComponent,
-        PaymentComponent,
         CommonModule,
-        MatIconModule,
-        MatProgressSpinnerModule,
-        FontAwesomeModule,
-        BookingCreationLoaderComponent
+        BookingCreationLoaderComponent,
+        RouterOutlet
     ],
     templateUrl: './booking-process.component.html',
     styleUrl: './booking-process.component.scss',
@@ -73,7 +56,8 @@ export class BookingProcessComponent implements OnInit {
   }
 
   constructor(
-    private route: ActivatedRoute, 
+    private route: ActivatedRoute,
+    private router: Router,
     private sharedService: SharedDataService,
     public bookingHandler: BookingHandlerService,
     private promos: XploraPromosService,
@@ -85,7 +69,6 @@ export class BookingProcessComponent implements OnInit {
     private gtag: Analytics,
     private fbp: FacebookPixelService,
     private GoogleTagService: GoogleTagManagerService,
-    private changeDetector: ChangeDetectorRef,
     private paymentConfigService: XploraPaymentConfigService
   ){}
   confirmationLoader:boolean=false;
@@ -100,8 +83,6 @@ export class BookingProcessComponent implements OnInit {
   private savingSeats:boolean = false;
   contactInfo?: ContactInfoValue;
   activePromoCode?:string;
-  spinnerIcon=faSpinner;
-  nextIcon=faChevronRight;
   loadingProcess:boolean = false;
   paymentMethod:PaymentMethod="CARD";
   speiPaymentTimeMinutes = DEFAULT_PAYMENT_CONFIG.speiPaymentTimeMinutes;
@@ -109,43 +90,60 @@ export class BookingProcessComponent implements OnInit {
     return this.speiPaymentTimeMinutes * 60;
   }
   passengersStepIcon = 'passengersStepIcon';
-  steps = [
-    { title: 'Titular de la reservación', content: 'contact' },
-    { title: 'Pasajeros', content: 'passengers' },
-    { title: 'Asientos', content: 'seats' },
-    { title: 'Adicionales', content: 'extras' },
-    { title: 'Pago', content: 'payment' }
+  readonly steps: Array<{ id: Steps; path: string; title: string }> = [
+    { id: 'CONTACT', path: 'titular', title: 'Titular de la reservación' },
+    { id: 'PASSENGERS', path: 'pasajeros', title: 'Pasajeros' },
+    { id: 'SEATS', path: 'asientos', title: 'Asientos' },
+    { id: 'EXTRAS', path: 'adicionales', title: 'Adicionales' },
+    { id: 'PAYMENT', path: 'pago', title: 'Elige cómo pagar' }
   ];
+  readonly stepContext = this;
   activeStep = 0;
+  flowReady = false;
   contactStepComplete = false;
   passengersStepComplete = false;
   seatsStepComplete = false;
   extrasStepComplete = false;
-  @ViewChild(PassengersComponent) passengersForm?: PassengersComponent;
-  @ViewChild('extras') extras?: ExtrasComponent;
+  @ViewChild(RouterOutlet) stepOutlet?: RouterOutlet;
+  private insuranceRequestPending = false;
+  private readonly baseDescription = 'Completa tu reservación de vuelo en Xplora Travel. Ingresa los datos de los pasajeros, selecciona asientos, agrega servicios adicionales y realiza el pago de forma segura y sencilla.';
+  private readonly baseImage = 'https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3';
+
   ngOnInit():void {
     this.paymentConfigService.watchPaymentConfig().subscribe(config => {
       this.speiPaymentTimeMinutes = config.speiPaymentTimeMinutes;
     });
 
-    const baseDescription = 'Completa tu reservación de vuelo en Xplora Travel. Ingresa los datos de los pasajeros, selecciona asientos, agrega servicios adicionales y realiza el pago de forma segura y sencilla.';
-    const baseImage = 'https://firebasestorage.googleapis.com/v0/b/xploramxv2.firebasestorage.app/o/miniatures%2Fflights.jpg?alt=media&token=0defc707-55a6-4886-ac34-0507d3089aa3';
     this.meta.setMeta({
       title: "Xplora Travel || Completar Reservación",
-      description: baseDescription,
-      image: baseImage
+      description: this.baseDescription,
+      image: this.baseImage
     })
-    //this.sharedService.changeHeaderType("dark");
+
     this.sharedService.setBookingMode(true);
     this.sharedService.setLoading(true);
+
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      if (this.flowReady) {
+        this.synchronizeStepWithRoute();
+      }
+    });
+
+    this.bookingHandler.booking.subscribe(booking=>{
+      if(booking!==undefined){
+        this.booking=booking;
+      }
+    });
+
     combineLatest([this.route.params,this.route.queryParams]).subscribe(([p, q])=>{
-      const params:{bookingID:string} = p as {bookingID:string, step: Steps};
+      const params:{bookingID:string} = p as {bookingID:string};
       const bookingID:string = params.bookingID;
       this.bookingID = bookingID;
-      this.fireBooking.getBooking(bookingID).subscribe(booking=>{
+      this.fireBooking.getBooking(bookingID).subscribe(async booking=>{
+        const flightBooking = booking as FlightFirebaseBooking;
         const passengersTotal = (booking.flightDetails?.passengers.counts.adults??0)+(booking.flightDetails?.passengers.counts.childrens??0)+(booking.flightDetails?.passengers.counts.infants??0);
-        this.bookingHandler.setBookingInfo(booking as FlightFirebaseBooking);
-        this.sharedService.setLoading(false);
         if(q){
           const queryParams:{promo?:string} = q as {promo?:string};
           if(queryParams.promo!==undefined){
@@ -165,45 +163,53 @@ export class BookingProcessComponent implements OnInit {
         if (this.contactStepComplete) this.contactInfo = booking.contact;
         if (this.passengersStepComplete) this.passengers = booking.flightDetails?.passengers.details;
 
-        this.activeStep = this.extrasStepComplete
-          ? 4
-          : this.seatsStepComplete
-            ? 3
-            : this.contactStepComplete && this.passengersStepComplete
-              ? 2
-              : this.contactStepComplete
-                ? 1
-                : 0;
+        this.booking = flightBooking;
+        this.bookingHandler.setBookingInfo(flightBooking);
 
-        this.meta.setMeta({
-          title: `Xplora Travel || Completar Reservación || ${this.steps[this.activeStep].title}`,
-          description: baseDescription,
-          image: baseImage
-        });
-      });
-      this.bookingHandler.booking.subscribe(booking=>{
-        if(booking!==undefined){
-          this.booking=booking;
+        const requestedStep = this.getRouteStepIndex();
+        const furthestAvailableStep = this.getFurthestAvailableStep();
+        const initialStep = requestedStep !== undefined && requestedStep <= furthestAvailableStep
+          ? requestedStep
+          : furthestAvailableStep;
+
+        if (requestedStep !== initialStep) {
+          await this.navigateToStep(initialStep, true, false);
+        } else {
+          this.activeStep = initialStep;
+          this.updateStepMeta();
         }
+
+        this.flowReady = true;
+        this.sharedService.setLoading(false);
       });
     });
   }
-  next() {
+
+  next(): void {
     if (this.activeStep < this.steps.length - 1) {
-      this.scrollToTop();
-      this.activeStep++;
+      void this.navigateToStep(this.activeStep + 1);
     }
   }
-  prev() {
+
+  prev(): void {
     if (this.activeStep > 0) {
-      this.scrollToTop();
-      this.activeStep--;
+      void this.navigateToStep(this.activeStep - 1);
     }
   }
-  onStepSelectionChange(stepIndex: number): void {
-    if (stepIndex === this.activeStep) return;
+
+  async navigateToStep(stepIndex: number, replaceUrl = false, shouldScroll = true): Promise<boolean> {
+    const step = this.steps[stepIndex];
+    if (!step) return false;
+
     this.activeStep = stepIndex;
-    this.scrollToTop();
+    this.updateStepMeta();
+    if (shouldScroll) this.scrollToTop();
+
+    return this.router.navigate([step.path], {
+      relativeTo: this.route,
+      queryParamsHandling: 'preserve',
+      replaceUrl
+    });
   }
 
   onContactValidity(contact: ContactInfoValue | undefined): void {
@@ -220,11 +226,49 @@ export class BookingProcessComponent implements OnInit {
     this.extrasStepComplete = true;
     this.navigateAfterCompletingStep(4);
   }
+
+  private synchronizeStepWithRoute(): void {
+    const requestedStep = this.getRouteStepIndex();
+    const furthestAvailableStep = this.getFurthestAvailableStep();
+
+    if (requestedStep === undefined || requestedStep > furthestAvailableStep) {
+      void this.navigateToStep(furthestAvailableStep, true);
+      return;
+    }
+
+    this.activeStep = requestedStep;
+    this.updateStepMeta();
+    this.scrollToTop();
+  }
+
+  private getRouteStepIndex(): number | undefined {
+    const requestedStep = this.route.firstChild?.snapshot.data['step'] as Steps | undefined;
+    if (!requestedStep) return undefined;
+
+    const index = this.steps.findIndex(step => step.id === requestedStep);
+    return index >= 0 ? index : undefined;
+  }
+
+  private getFurthestAvailableStep(): number {
+    if (!this.contactStepComplete) return 0;
+    if (!this.passengersStepComplete) return 1;
+    if (!this.seatsStepComplete) return 2;
+    if (!this.extrasStepComplete) return 3;
+    return 4;
+  }
+
+  private updateStepMeta(): void {
+    this.meta.setMeta({
+      title: `Xplora Travel || Completar Reservación || ${this.steps[this.activeStep].title}`,
+      description: this.baseDescription,
+      image: this.baseImage
+    });
+  }
+
   private scrollToTop() {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    //this.container.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   getPromo(promoCode:string){
@@ -500,13 +544,13 @@ export class BookingProcessComponent implements OnInit {
   completeLoader(){
     navigator.vibrate(400);
   }
-  async processPassengers(): Promise<void> {
+  async processPassengers(passengersForm?: PassengersComponent): Promise<void> {
     if (!this.passengers || !this.bookingID || !this.booking?.flightDetails) return;
 
     this.sharedService.setLoading(true);
     try {
-      const passengerValues = this.passengersForm
-        ? await this.passengersForm.persistRequestedPassengers()
+      const passengerValues = passengersForm
+        ? await passengersForm.persistRequestedPassengers()
         : this.passengers;
       const passengersData: PassengerValue[] = passengerValues.map((passenger, index) => ({
         name: passenger.name,
@@ -542,14 +586,27 @@ export class BookingProcessComponent implements OnInit {
       this._sb.open('Completa los pasos anteriores antes de agregar adicionales.', 'OK', { duration: 2000 });
       return;
     }
-    this.activeStep=3;
-    setTimeout(() => this.extras?.openInsurance());
+
+    if (this.activeStep === 3) {
+      const activeStep = this.stepOutlet?.component as { openInsurance?: () => void } | undefined;
+      activeStep?.openInsurance?.();
+      return;
+    }
+
+    this.insuranceRequestPending = true;
+    void this.navigateToStep(3);
+  }
+
+  consumeInsuranceRequest(): boolean {
+    const requested = this.insuranceRequestPending;
+    this.insuranceRequestPending = false;
+    return requested;
   }
   validContact(event:any){
     //console.log(event);
   }
   goToPassengers(){
-    this.activeStep=1;
+    void this.navigateToStep(1);
   }
   async processContact(): Promise<void> {
     if (!this.contactInfo || !this.bookingID || !this.booking || this.loadingProcess) return;
@@ -670,10 +727,7 @@ export class BookingProcessComponent implements OnInit {
   }
 
   private navigateAfterCompletingStep(stepIndex: number): void {
-    // El stepper lineal debe recibir primero el estado completado del paso actual.
-    this.changeDetector.detectChanges();
-    this.activeStep = stepIndex;
-    this.scrollToTop();
+    void this.navigateToStep(stepIndex);
   }
 
   private contactMatchesBooking(contact: ContactInfoValue | undefined): boolean {

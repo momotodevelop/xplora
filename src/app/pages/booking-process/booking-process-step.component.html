@@ -1,0 +1,108 @@
+<section class="booking-step">
+  <header class="booking-step__header">
+    @if(flow.activeStep > 0){
+      <button
+        type="button"
+        mat-stroked-button
+        class="booking-step__back"
+        [attr.aria-label]="'Volver a ' + previousStepTitle"
+        (click)="flow.prev()">
+        <mat-icon>arrow_back</mat-icon>
+        Anterior
+      </button>
+    }
+
+    <div class="booking-step__title">
+      <span>{{isFinalStep ? 'Paso final' : 'Paso ' + (flow.activeStep + 1) + ' de ' + flow.steps.length}}</span>
+      <h1>{{currentStep.title}}</h1>
+    </div>
+  </header>
+
+  @switch(step){
+    @case('CONTACT'){
+      <div class="step-content">
+        <app-contact-info (valid)="flow.onContactValidity($event)"></app-contact-info>
+        <div class="step-actions">
+          <button
+            type="button"
+            mat-flat-button
+            color="primary"
+            [disabled]="!flow.contactInfo || flow.loadingProcess"
+            (click)="flow.processContact()">
+            Continuar
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    @case('PASSENGERS'){
+      <div class="step-content">
+        <app-passengers
+          [adults]="flow.booking!.flightDetails.passengers.counts.adults"
+          [childrens]="flow.booking!.flightDetails.passengers.counts.childrens"
+          [infants]="flow.booking!.flightDetails.passengers.counts.infants"
+          [passengersData]="flow.booking!.flightDetails.passengers.details ?? []"
+          (valid)="flow.onPassengersValidity($event)">
+        </app-passengers>
+        <div class="step-actions">
+          <button
+            type="button"
+            mat-flat-button
+            color="primary"
+            [disabled]="!flow.passengers || passengersForm?.savingRequestedPassengers"
+            (click)="flow.processPassengers(passengersForm)">
+            Continuar
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    @case('SEATS'){
+      <div class="step-content">
+        <app-seats
+          (completed)="flow.seatSelection = $event"
+          (loading)="flow.loadingSeats = $event"
+          (pendingSeats)="flow.pendingSelectionSeats = $event"
+          (skip)="flow.skipStep('SEATS')"
+          (goToPassengers)="flow.goToPassengers()">
+        </app-seats>
+        <div class="step-actions">
+          <button
+            type="button"
+            mat-flat-button
+            color="primary"
+            [disabled]="flow.loadingSeats"
+            (click)="flow.processSeats()">
+            Continuar
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    @case('EXTRAS'){
+      <div class="step-content">
+        <app-extras
+          (next)="flow.completeExtrasStep()"
+          (skip)="flow.skipStep('EXTRAS')">
+        </app-extras>
+        <div class="step-actions">
+          <button type="button" mat-flat-button color="primary" (click)="flow.completeExtrasStep()">
+            Continuar
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+
+    @case('PAYMENT'){
+      <app-payment
+        [speiPaymentTimeMinutes]="flow.speiPaymentTimeMinutes"
+        (selectedPaymentMethod)="flow.changePaymentMethod($event)"
+        (paymentProcessStart)="flow.startPayment($event)">
+      </app-payment>
+    }
+  }
+</section>

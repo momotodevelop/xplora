@@ -65,7 +65,39 @@ export const routes: Routes = [
       ] 
     },
     { path: 'reservar', children: [
-      {path: 'vuelos/:bookingID', component: BookingProcessComponent, data: {headerType:"dark"}},
+      {
+        path: 'vuelos/:bookingID',
+        component: BookingProcessComponent,
+        data: {headerType:"dark"},
+        children: [
+          {
+            path: 'titular',
+            loadComponent: () => import('./pages/booking-process/booking-process-step.component').then(c => c.BookingProcessStepComponent),
+            data: {step: 'CONTACT'}
+          },
+          {
+            path: 'pasajeros',
+            loadComponent: () => import('./pages/booking-process/booking-process-step.component').then(c => c.BookingProcessStepComponent),
+            data: {step: 'PASSENGERS'}
+          },
+          {
+            path: 'asientos',
+            loadComponent: () => import('./pages/booking-process/booking-process-step.component').then(c => c.BookingProcessStepComponent),
+            data: {step: 'SEATS'}
+          },
+          {
+            path: 'adicionales',
+            loadComponent: () => import('./pages/booking-process/booking-process-step.component').then(c => c.BookingProcessStepComponent),
+            data: {step: 'EXTRAS'}
+          },
+          {
+            path: 'pago',
+            loadComponent: () => import('./pages/booking-process/booking-process-step.component').then(c => c.BookingProcessStepComponent),
+            data: {step: 'PAYMENT'}
+          },
+          {path: '**', redirectTo: ''}
+        ]
+      },
       {path: 'realizar-pago/:bookingID', component: MakePaymentComponent, data: {headerType:"dark"}},
       { 
         path: "hoteles",

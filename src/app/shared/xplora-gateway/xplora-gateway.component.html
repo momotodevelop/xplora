@@ -1,11 +1,11 @@
 <section class="xplora-gateway" [class.xplora-gateway--disabled]="disabled">
   <header class="xplora-gateway__header">
     <div>
-      <span class="xplora-gateway__eyebrow">Xplora Gateway</span>
+      <span class="xplora-gateway__eyebrow">Hasta 24 Meses Sin Intereses</span>
       <h3>Información de pago</h3>
-      <p>Ingresa los datos de la tarjeta que deseas utilizar.</p>
+      <p>Procesaremos tus datos de forma segura.</p>
     </div>
-    <span class="xplora-gateway__secure"><mat-icon>lock</mat-icon> Captura segura</span>
+    <span class="xplora-gateway__secure"><mat-icon>lock</mat-icon> Pago Seguro PCI-DSS</span>
   </header>
 
   <form [formGroup]="cardForm" autocomplete="on">
@@ -101,7 +101,13 @@
           <div class="col-12 col-md-6">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Código postal</mat-label>
-              <input matInput formControlName="postalCode" autocomplete="postal-code" placeholder="Código postal">
+              <input
+                matInput
+                formControlName="postalCode"
+                autocomplete="postal-code"
+                placeholder="Código postal"
+                [attr.inputmode]="isMexico ? 'numeric' : null"
+                [attr.maxlength]="isMexico ? 5 : 10">
               @if(addressForm.controls.postalCode.touched && addressForm.controls.postalCode.invalid){
                 <mat-error>Ingresa un código postal válido.</mat-error>
               }
@@ -116,12 +122,6 @@
               }
             </mat-form-field>
           </div>
-          <div class="col-12">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Interior o referencia (opcional)</mat-label>
-              <input matInput formControlName="line2" autocomplete="address-line2" placeholder="Departamento, interior o referencia">
-            </mat-form-field>
-          </div>
           <div class="col-12 col-md-6">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Ciudad</mat-label>
@@ -133,18 +133,45 @@
           </div>
           <div class="col-12 col-md-6">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Estado o provincia</mat-label>
-              <input matInput formControlName="state" autocomplete="address-level1" placeholder="Estado o provincia">
+              <mat-label>{{ isMexico ? 'Estado' : 'Estado o provincia' }}</mat-label>
+              @if(isMexico && !addressAutocompleted){
+                <mat-select formControlName="state" autocomplete="address-level1">
+                  @for(state of mexicoStates; track state){
+                    <mat-option [value]="state">{{ state }}</mat-option>
+                  }
+                </mat-select>
+              } @else {
+                <input matInput formControlName="state" autocomplete="address-level1" placeholder="Estado o provincia">
+              }
               @if(addressForm.controls.state.touched && addressForm.controls.state.invalid){
-                <mat-error>Ingresa el estado o la provincia.</mat-error>
+                <mat-error>Selecciona o ingresa el estado.</mat-error>
               }
             </mat-form-field>
           </div>
           <div class="col-12">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Colonia o localidad (opcional)</mat-label>
-              <input matInput formControlName="neighborhood" autocomplete="address-level3" placeholder="Colonia o localidad">
-            </mat-form-field>
+            @if(availableNeighborhoods.length > 0){
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Colonia o localidad (opcional)</mat-label>
+                <mat-select [formControl]="neighborhoodSelection">
+                  @for(neighborhood of availableNeighborhoods; track neighborhood){
+                    <mat-option [value]="neighborhood">{{ neighborhood }}</mat-option>
+                  }
+                  <mat-option [value]="manualNeighborhoodOption">Mi colonia no aparece</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              @if(isManualNeighborhood){
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Escribe tu colonia o localidad</mat-label>
+                  <input matInput formControlName="neighborhood" autocomplete="address-level3" placeholder="Colonia o localidad">
+                </mat-form-field>
+              }
+            } @else {
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Colonia o localidad (opcional)</mat-label>
+                <input matInput formControlName="neighborhood" autocomplete="address-level3" placeholder="Colonia o localidad">
+              </mat-form-field>
+            }
           </div>
         </div>
       </form>
